@@ -4,7 +4,6 @@ use crate::products::ProductMap;
 use crate::schedule::{Schedule, Series};
 use chrono::{Datelike, Months, NaiveDate};
 use serde::Serialize;
-use std::collections::HashSet;
 
 #[derive(Debug, Clone, Serialize)]
 pub struct VaccinationStatus {
@@ -77,16 +76,15 @@ fn evaluate_series(
     record: &VaccinationRecord,
     product_map: &ProductMap,
 ) -> Result<SeriesStatus, EvaluationError> {
-    let series_antigens: HashSet<&str> = series.antigens.iter().map(String::as_str).collect();
-
+    // Conformance matching is by product class, not antigen overlap: a dose
+    // belongs to this series only if the Green Book names its product for this
+    // programme. This is what stops a 6-in-1 dose (which contains Hib) from
+    // being dragged into the Hib/MenC booster series. See docs/adr/0001.
     let mut matched: Vec<&Immunisation> = record
         .immunisations
         .iter()
         .filter(|imm| {
-            product_map
-                .antigens_for(&imm.vaccine_code)
-                .map(|ants| ants.iter().any(|a| series_antigens.contains(a.as_str())))
-                .unwrap_or(false)
+            product_map.class_for(&imm.vaccine_code) == Some(series.product_class.as_str())
         })
         .collect();
     matched.sort_by_key(|i| i.date);

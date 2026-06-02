@@ -77,7 +77,8 @@ description = """
   Primary immunisation against diphtheria, tetanus, pertussis (whooping cough),
   polio, Hib (Haemophilus influenzae type b) and hepatitis B.
 """
-antigens = ["diphtheria", "tetanus", "pertussis", "polio", "hib", "hepatitis-b"]
+product_class = "6-in-1"   # conformance: doses of this class match this series
+antigens = ["diphtheria", "tetanus", "pertussis", "polio", "hib", "hepatitis-b"]  # coverage only
 
 [series.eligibility]
 population = "all"
@@ -354,7 +355,7 @@ snomed_description = "Human papillomavirus infection (disorder)"
 
 ## Product Mapping File: `products/gb-snomed-dm.toml`
 
-The schedule is authored in terms of antigens ("diphtheria", "hib"). FHIR records contain product codes (SNOMED CT). A separate mapping file bridges them.
+FHIR records contain product codes (SNOMED CT). The mapping file bridges each product code to two things: its `product_class` (the conformance unit the Green Book names, used to match doses to series) and the `antigens` it covers (used for the disease-coverage view). See [ADR 0001](../docs/adr/0001-product-class-conformance-vs-antigen-coverage.md).
 
 This mapping is maintained using SNOMED CT ECL queries against the UK drug extension, which encodes the antigen composition of each product via the SNOMED concept hierarchy. For v1 a hand-curated table covering the ~10-15 products in the current schedule is sufficient.
 
@@ -374,11 +375,13 @@ last_verified = "2026-01-01"
 [[product]]
 code = "39114911000001105"
 display = "Infanrix Hexa vaccine (product)"
+product_class = "6-in-1"
 antigens = ["diphtheria", "tetanus", "pertussis", "polio", "hib", "hepatitis-b"]
 
 [[product]]
 code = "9743801000001106"
 display = "Pediacel vaccine (product)"
+product_class = "5-in-1"
 antigens = ["diphtheria", "tetanus", "pertussis", "polio", "hib"]
 notes = "5-in-1; does not include hepatitis B. Used before 2017 6-in-1 introduction."
 
@@ -480,16 +483,24 @@ Before evaluating a series for a patient, check:
 
 When the FHIR `Patient.gender` field is `other` or `unknown`, the evaluator treats the patient as eligible for any sex-restricted series and attaches an uncertainty flag to the result so downstream consumers can see that the determination depends on a missing data point.
 
-### Dose validity
+### Two questions: conformance and coverage
 
-A dose is valid if:
+Evaluation answers two distinct questions, with two different matching rules. See [ADR 0001](../docs/adr/0001-product-class-conformance-vs-antigen-coverage.md).
 
-1. The vaccine code maps (via the product table) to at least one antigen in the series.
-2. The date of administration is on or after `earliest_age` (calculated from DOB).
-3. If `latest_age` is set, the date is on or before that age.
-4. The interval from the previous valid dose is >= `min_interval_from_previous`.
+- **Schedule conformance** — "did the patient receive the doses the Green Book asked for, at valid ages and intervals?" The Green Book names *products* per appointment, so conformance matches a dose to a series by **product class**, not antigen overlap. This is what determines series completion and overall status below.
+- **Antigen coverage** — "what diseases is the patient protected against?" Computed separately by aggregating the antigens of every product received, independent of series. (Deferred; the data model supports it additively.)
 
-Doses that fail validity checks are recorded with reasons but do not count toward series completion.
+Matching by product class is what prevents a 6-in-1 dose — which contains Hib, tetanus, diphtheria and polio — from being incorrectly counted against the Hib/MenC or Td/IPV booster series.
+
+### Dose validity (conformance)
+
+A dose belongs to a series if the product's `product_class` equals the series' `product_class`. A matched dose is valid if:
+
+1. The date of administration is on or after `earliest_age` (calculated from DOB).
+2. If `latest_age` is set, the date is on or before that age.
+3. The interval from the previous valid dose is >= `min_interval_from_previous`.
+
+Doses that fail validity checks are recorded with reasons but do not count toward series completion. A dose whose product class matches no series in the applicable schedule (e.g. a 5-in-1 dose against a 6-in-1 schedule) conforms to nothing in that version and is surfaced as unmatched rather than counted.
 
 ### Dose sequencing
 

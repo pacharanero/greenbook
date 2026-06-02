@@ -1,5 +1,8 @@
 # Product-to-antigen mapping for UK SNOMED drug extension codes.
-# Each entry maps a product SNOMED code to the antigens it covers.
+# Each entry maps a product SNOMED code to:
+#   - product_class: the conformance class the Green Book names (drives series
+#     matching — see docs/adr/0001-product-class-conformance-vs-antigen-coverage.md)
+#   - antigens: the diseases the product covers (for the deferred coverage view)
 
 coding_system = "snomed-uk-dm"
 coding_system_url = "https://snomed.info/sct"
@@ -8,46 +11,55 @@ last_verified = "2026-01-01"
 [[product]]
 code = "39114911000001105"
 display = "Infanrix Hexa vaccine (product)"
+product_class = "6-in-1"
 antigens = ["diphtheria", "tetanus", "pertussis", "polio", "hib", "hepatitis-b"]
 
 [[product]]
 code = "9743801000001106"
 display = "Pediacel vaccine (product)"
+product_class = "5-in-1"
 antigens = ["diphtheria", "tetanus", "pertussis", "polio", "hib"]
-notes = "5-in-1; does not include hepatitis B. Used before 2017 6-in-1 introduction."
+notes = "5-in-1; does not include hepatitis B. Used before 2017 6-in-1 introduction. No conforming series in the 2026 schedule; conforms to the schedule valid at the time of administration once historical versions exist."
 
 [[product]]
 code = "12672211000001104"
 display = "Bexsero vaccine (product)"
+product_class = "MenB"
 antigens = ["meningococcal-b"]
 
 [[product]]
 code = "7374211000001102"
 display = "Rotarix vaccine (product)"
+product_class = "Rotavirus"
 antigens = ["rotavirus"]
 
 [[product]]
 code = "14473901000001100"
 display = "Prevenar 13 vaccine (product)"
+product_class = "PCV"
 antigens = ["pneumococcal"]
 
 [[product]]
 code = "9684201000001108"
 display = "Menitorix vaccine (product)"
+product_class = "Hib/MenC"
 antigens = ["hib", "meningococcal-c"]
 
 [[product]]
 code = "9324201000001104"
 display = "Priorix vaccine (product)"
+product_class = "MMR"
 antigens = ["measles", "mumps", "rubella"]
 
 [[product]]
 code = "14491811000001103"
 display = "Gardasil 9 vaccine (product)"
+product_class = "HPV"
 antigens = ["hpv"]
 
 [[product]]
 code = "22704311000001109"
 display = "Revaxis vaccine (product)"
+product_class = "Td/IPV"
 antigens = ["tetanus", "diphtheria", "polio"]
 notes = "Td/IPV - used for teenage booster."

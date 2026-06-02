@@ -18,6 +18,11 @@ pub struct ProductMapFile {
 pub struct Product {
     pub code: String,
     pub display: String,
+    /// Conformance class (e.g. "6-in-1", "MMR"). A dose conforms to a schedule
+    /// series when its product's class equals the series' `product_class`. This
+    /// is the unit the Green Book actually names. The `antigens` list below is
+    /// used only for the (deferred) antigen-coverage view, not for conformance.
+    pub product_class: String,
     pub antigens: Vec<String>,
     #[serde(default)]
     pub notes: Option<String>,
@@ -32,6 +37,11 @@ pub struct ProductMap {
 impl ProductMap {
     pub fn antigens_for(&self, code: &str) -> Option<&[String]> {
         self.by_code.get(code).map(|p| p.antigens.as_slice())
+    }
+
+    /// The conformance class for a product code, if known.
+    pub fn class_for(&self, code: &str) -> Option<&str> {
+        self.by_code.get(code).map(|p| p.product_class.as_str())
     }
 
     pub fn display_for(&self, code: &str) -> Option<&str> {

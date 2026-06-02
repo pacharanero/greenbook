@@ -6,6 +6,10 @@ This changelog tracks the **crate and tooling**. Changes to schedule *content* a
 
 ## [Unreleased]
 
+### Changed
+
+- Conformance matching is now by **product class** rather than antigen overlap, separating "schedule conformance" from "antigen coverage" ([ADR 0001](./docs/adr/0001-product-class-conformance-vs-antigen-coverage.md)). Product map entries and schedule series now carry a required `product_class` field. This fixes 6-in-1 doses being falsely flagged INVALID under the Hib/MenC and Td/IPV booster series (resolves queries §1 and §3).
+
 ### Added
 
 - Initial proof-of-concept: FHIR R4 bundle parser, TOML schedule and product-map loaders, age-offset arithmetic, and a per-series + overall vaccination-status evaluation engine.
