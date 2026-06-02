@@ -1,0 +1,379 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "MMR catch-up — test scenarios",
+  "description": "Six patient cases used to test schedule-aware classification of MMR vaccination records. Each case lists the inputs (DOB and full vaccination history) and the expected classifier output.",
+  "scheduleRules": {
+    "programme": "MMR",
+    "minAgeMonths": {
+      "dose1": 12,
+      "dose2": 15
+    },
+    "minIntervalDaysBetweenValidDoses": 28,
+    "maxSequence": 2,
+    "outOfScheduleReasons": [
+      {
+        "key": "BeforeAge12Months",
+        "label": "Given before age 12 months",
+        "trigger": "Given dose with createdAt < dob + 12 months and Dose 1 slot still open"
+      },
+      {
+        "key": "BeforeAge15Months",
+        "label": "Given before age 15 months",
+        "trigger": "Given dose with createdAt < dob + 15 months and Dose 2 slot still open"
+      },
+      {
+        "key": "LessThan28DaysAfterPrevious",
+        "label": "Given less than 28 days after previous dose",
+        "trigger": "Given dose with createdAt - lastValidGiven.createdAt < 28 days"
+      },
+      {
+        "key": "ExtraDose",
+        "label": "Additional dose",
+        "trigger": "Given dose arriving when both schedule slots are already filled"
+      }
+    ],
+    "classificationOrder": "chronological by createdAt ascending",
+    "nonGivenOutcomesIgnored": ["Absent", "Refused", "Unwell", "Contraindicated", "Partially vaccinated"],
+    "eligibleFromLogic": "nextSlot = validDoses.length + 1; if nextSlot > 2 then null; else max(dob + minAgeMonths[nextSlot], lastValidGiven.createdAt + 28 days) — second term only applied when a previous valid dose exists"
+  },
+  "vaccines": {
+    "13968211000001108": { "brand": "M-M-RvaxPro", "type": "MMR", "manufacturer": "Merck Sharp & Dohme (UK) Ltd" },
+    "34925111000001104": { "brand": "Priorix", "type": "MMR", "manufacturer": "GlaxoSmithKline UK Ltd" },
+    "99926011000001103": { "brand": "ProQuad", "type": "MMRV", "manufacturer": "Merck Sharp & Dohme (UK) Ltd", "note": "Off-schedule UK; included to model miscoded records" },
+    "39779611000001104": { "brand": "MenQuadfi", "type": "MenACWY", "manufacturer": "Sanofi" },
+    "7374311000001101": { "brand": "Revaxis", "type": "Td/IPV", "manufacturer": "Sanofi" }
+  },
+  "cases": [
+    {
+      "id": "case-1-alice",
+      "summary": "Two valid doses; Dose 2 was recorded with an MMRV product (miscoded), but the classifier still counts it because the programme is MMR.",
+      "patient": {
+        "firstName": "Alice",
+        "lastName": "Adams",
+        "nhsn": "9990000011",
+        "dob": "2012-01-12",
+        "yearGroup": 9,
+        "academicYear": "2025/26",
+        "prototypeUuid": "mmr00001-0000-4000-8000-000000000001"
+      },
+      "vaccinations": [
+        {
+          "index": 0,
+          "createdAt": "2013-01-26",
+          "ageAtVaccination": { "months": 12, "days": 14 },
+          "vaccineSnomed": "13968211000001108",
+          "vaccineBrand": "M-M-RvaxPro",
+          "programmeId": "mmr",
+          "outcome": "Vaccinated",
+          "source": "NHS Immunisations API"
+        },
+        {
+          "index": 1,
+          "createdAt": "2015-05-22",
+          "ageAtVaccination": { "months": 40, "days": 10 },
+          "vaccineSnomed": "99926011000001103",
+          "vaccineBrand": "ProQuad",
+          "programmeId": "mmr",
+          "outcome": "Vaccinated",
+          "source": "NHS Immunisations API"
+        }
+      ],
+      "expected": {
+        "classifications": [
+          { "index": 0, "status": "valid", "slot": 1 },
+          { "index": 1, "status": "valid", "slot": 2 }
+        ],
+        "programmeStatus": "Vaccinated",
+        "eligibleFrom": null,
+        "dosesRemaining": 0
+      }
+    },
+    {
+      "id": "case-2-bilal",
+      "summary": "One valid Dose 1, then a long trail of failed attempts to give Dose 2 (two absences, one parental refusal). Still needs Dose 2. Has a separate Y9 Doubles absence record from last academic year.",
+      "patient": {
+        "firstName": "Bilal",
+        "lastName": "Begum",
+        "nhsn": "9990000029",
+        "dob": "2011-03-03",
+        "yearGroup": 10,
+        "academicYear": "2025/26",
+        "prototypeUuid": "mmr00002-0000-4000-8000-000000000002"
+      },
+      "vaccinations": [
+        {
+          "index": 0,
+          "createdAt": "2012-03-17",
+          "ageAtVaccination": { "months": 12, "days": 14 },
+          "vaccineSnomed": "13968211000001108",
+          "vaccineBrand": "M-M-RvaxPro",
+          "programmeId": "mmr",
+          "outcome": "Vaccinated",
+          "source": "NHS Immunisations API"
+        },
+        {
+          "index": 1,
+          "createdAt": "2015-05-03",
+          "ageAtVaccination": { "months": 50, "days": 0 },
+          "vaccineSnomed": "13968211000001108",
+          "vaccineBrand": "M-M-RvaxPro",
+          "programmeId": "mmr",
+          "outcome": "Absent",
+          "source": "Recorded in Mavis"
+        },
+        {
+          "index": 2,
+          "createdAt": "2015-12-03",
+          "ageAtVaccination": { "months": 57, "days": 0 },
+          "vaccineSnomed": "13968211000001108",
+          "vaccineBrand": "M-M-RvaxPro",
+          "programmeId": "mmr",
+          "outcome": "Absent",
+          "source": "Recorded in Mavis"
+        },
+        {
+          "index": 3,
+          "createdAt": "2016-04-03",
+          "ageAtVaccination": { "months": 61, "days": 0 },
+          "vaccineSnomed": "13968211000001108",
+          "vaccineBrand": "M-M-RvaxPro",
+          "programmeId": "mmr",
+          "outcome": "Refused",
+          "source": "Recorded in Mavis",
+          "note": "Parents declined this dose. Bilal has been under paediatric oncology care at Birmingham Children's Hospital since late 2014; MMR was deferred at earlier sessions on his consultant's advice while his immune system was compromised, and declined by his parents during one mid-treatment session. Discharge summary (June 2016, Dr Patel) confirms he is fit to resume routine immunisations once parents are ready."
+        }
+      ],
+      "additionalVaccinations": [
+        {
+          "createdAt": "2025-06-12",
+          "vaccineSnomed": "39779611000001104",
+          "vaccineBrand": "MenQuadfi",
+          "programmeId": "menacwy",
+          "outcome": "Absent",
+          "source": "Recorded in Mavis",
+          "note": "Off school with viral illness on the day of the team visit."
+        },
+        {
+          "createdAt": "2025-06-12",
+          "vaccineSnomed": "7374311000001101",
+          "vaccineBrand": "Revaxis",
+          "programmeId": "td-ipv",
+          "outcome": "Absent",
+          "source": "Recorded in Mavis",
+          "note": "Off school with viral illness on the day of the team visit."
+        }
+      ],
+      "expected": {
+        "classifications": [
+          { "index": 0, "status": "valid", "slot": 1 },
+          { "index": 1, "status": "not-counted", "reason": "outcome is not 'Vaccinated'" },
+          { "index": 2, "status": "not-counted", "reason": "outcome is not 'Vaccinated'" },
+          { "index": 3, "status": "not-counted", "reason": "outcome is not 'Vaccinated'" }
+        ],
+        "programmeStatus": "Partially vaccinated",
+        "eligibleFrom": "2012-06-03",
+        "eligibleFromExplanation": "DOB + 15 months; far in the past, so eligible immediately",
+        "dosesRemaining": 1
+      }
+    },
+    {
+      "id": "case-3-chiamaka",
+      "summary": "First dose given at 11 months (before the 12-month minimum) is out of schedule. The next given dose at 50 months becomes Dose 1.",
+      "patient": {
+        "firstName": "Chiamaka",
+        "lastName": "Chen",
+        "nhsn": "9990000037",
+        "dob": "2011-11-28",
+        "yearGroup": 9,
+        "academicYear": "2025/26",
+        "prototypeUuid": "mmr00003-0000-4000-8000-000000000003"
+      },
+      "vaccinations": [
+        {
+          "index": 0,
+          "createdAt": "2012-10-28",
+          "ageAtVaccination": { "months": 11, "days": 0 },
+          "vaccineSnomed": "13968211000001108",
+          "vaccineBrand": "M-M-RvaxPro",
+          "programmeId": "mmr",
+          "outcome": "Vaccinated",
+          "source": "NHS Immunisations API"
+        },
+        {
+          "index": 1,
+          "createdAt": "2016-01-28",
+          "ageAtVaccination": { "months": 50, "days": 0 },
+          "vaccineSnomed": "13968211000001108",
+          "vaccineBrand": "M-M-RvaxPro",
+          "programmeId": "mmr",
+          "outcome": "Vaccinated",
+          "source": "Recorded in Mavis"
+        }
+      ],
+      "expected": {
+        "classifications": [
+          { "index": 0, "status": "out-of-schedule", "reason": "BeforeAge12Months" },
+          { "index": 1, "status": "valid", "slot": 1 }
+        ],
+        "programmeStatus": "Partially vaccinated",
+        "eligibleFrom": "2016-02-25",
+        "eligibleFromExplanation": "max(DOB + 15m = 2013-02-28, dose1 + 28d = 2016-02-25) — interval rule wins",
+        "dosesRemaining": 1
+      }
+    },
+    {
+      "id": "case-4-dmitri",
+      "summary": "First dose given one day before the 1st birthday (11m 29d) — out of schedule by one day. The second given dose at 48m was logged as Dose 2 by the original clinician but the classifier promotes it to Dose 1, so the patient appears to still need a Dose 2. Parent has refused MMR for the catch-up session citing 'Vaccine already received'.",
+      "patient": {
+        "firstName": "Dmitri",
+        "lastName": "Dixit",
+        "nhsn": "9990000045",
+        "dob": "2012-07-05",
+        "yearGroup": 9,
+        "academicYear": "2025/26",
+        "prototypeUuid": "mmr00004-0000-4000-8000-000000000004"
+      },
+      "vaccinations": [
+        {
+          "index": 0,
+          "createdAt": "2013-07-04",
+          "ageAtVaccination": { "months": 11, "days": 29 },
+          "vaccineSnomed": "13968211000001108",
+          "vaccineBrand": "M-M-RvaxPro",
+          "programmeId": "mmr",
+          "outcome": "Vaccinated",
+          "source": "NHS Immunisations API"
+        },
+        {
+          "index": 1,
+          "createdAt": "2016-07-19",
+          "ageAtVaccination": { "months": 48, "days": 14 },
+          "vaccineSnomed": "13968211000001108",
+          "vaccineBrand": "M-M-RvaxPro",
+          "programmeId": "mmr",
+          "outcome": "Vaccinated",
+          "source": "NHS Immunisations API"
+        }
+      ],
+      "consent": {
+        "decision": "Refused",
+        "refusalReason": "Vaccine already received"
+      },
+      "expected": {
+        "classifications": [
+          { "index": 0, "status": "out-of-schedule", "reason": "BeforeAge12Months" },
+          { "index": 1, "status": "valid", "slot": 1 }
+        ],
+        "programmeStatus": "Partially vaccinated",
+        "eligibleFrom": "2016-08-16",
+        "eligibleFromExplanation": "max(DOB + 15m = 2013-10-05, dose1 + 28d = 2016-08-16) — interval rule wins",
+        "dosesRemaining": 1
+      }
+    },
+    {
+      "id": "case-5-eshe",
+      "summary": "One clinical Dose 1 event recorded three times — the original GP record plus two echo duplicates from other feeds, arriving days apart. The earliest counts as Dose 1 and the duplicates fall foul of the 28-day interval rule.",
+      "patient": {
+        "firstName": "Eshe",
+        "lastName": "Edwards",
+        "nhsn": "9990000053",
+        "dob": "2010-10-15",
+        "yearGroup": 10,
+        "academicYear": "2025/26",
+        "prototypeUuid": "mmr00005-0000-4000-8000-000000000005"
+      },
+      "vaccinations": [
+        {
+          "index": 0,
+          "createdAt": "2011-11-15",
+          "ageAtVaccination": { "months": 13, "days": 0 },
+          "vaccineSnomed": "13968211000001108",
+          "vaccineBrand": "M-M-RvaxPro",
+          "programmeId": "mmr",
+          "outcome": "Vaccinated",
+          "source": "NHS Immunisations API",
+          "feedNote": "GP original record"
+        },
+        {
+          "index": 1,
+          "createdAt": "2011-11-18",
+          "ageAtVaccination": { "months": 13, "days": 3 },
+          "vaccineSnomed": "13968211000001108",
+          "vaccineBrand": "M-M-RvaxPro",
+          "programmeId": "mmr",
+          "outcome": "Vaccinated",
+          "source": "NHS Immunisations API",
+          "feedNote": "Echo from external feed (e.g. CHIS)"
+        },
+        {
+          "index": 2,
+          "createdAt": "2011-11-19",
+          "ageAtVaccination": { "months": 13, "days": 4 },
+          "vaccineSnomed": "13968211000001108",
+          "vaccineBrand": "M-M-RvaxPro",
+          "programmeId": "mmr",
+          "outcome": "Vaccinated",
+          "source": "NHS Immunisations API",
+          "feedNote": "Second echo from another feed"
+        }
+      ],
+      "expected": {
+        "classifications": [
+          { "index": 0, "status": "valid", "slot": 1 },
+          { "index": 1, "status": "out-of-schedule", "reason": "LessThan28DaysAfterPrevious" },
+          { "index": 2, "status": "out-of-schedule", "reason": "LessThan28DaysAfterPrevious" }
+        ],
+        "programmeStatus": "Partially vaccinated",
+        "eligibleFrom": "2012-01-15",
+        "eligibleFromExplanation": "max(DOB + 15m = 2012-01-15, dose1 + 28d = 2011-12-13) — age rule wins",
+        "dosesRemaining": 1
+      }
+    },
+    {
+      "id": "case-6-farah",
+      "summary": "Single dose recorded with a '2P' sequence label by the source feed (i.e. labelled as Dose 2 by the originating system), but no Dose 1 record arrived. The classifier slots it as Dose 1 per the schedule, so the source label and schedule position disagree.",
+      "patient": {
+        "firstName": "Farah",
+        "lastName": "Farooq",
+        "nhsn": "9990000061",
+        "dob": "2012-03-15",
+        "yearGroup": 9,
+        "academicYear": "2025/26",
+        "prototypeUuid": "mmr00006-0000-4000-8000-000000000006"
+      },
+      "vaccinations": [
+        {
+          "index": 0,
+          "createdAt": "2016-03-15",
+          "ageAtVaccination": { "months": 48, "days": 0 },
+          "vaccineSnomed": "13968211000001108",
+          "vaccineBrand": "M-M-RvaxPro",
+          "programmeId": "mmr",
+          "outcome": "Vaccinated",
+          "source": "NHS Immunisations API",
+          "sourceSequenceLabel": "2P"
+        }
+      ],
+      "expected": {
+        "classifications": [
+          { "index": 0, "status": "valid", "slot": 1, "note": "Source labelled this '2P' (Dose 2 / pre-school booster) but classifier assigns Dose 1 because Dose 1 slot is open" }
+        ],
+        "programmeStatus": "Partially vaccinated",
+        "eligibleFrom": "2016-04-12",
+        "eligibleFromExplanation": "max(DOB + 15m = 2013-06-15, dose1 + 28d = 2016-04-12) — interval rule wins",
+        "dosesRemaining": 1
+      }
+    }
+  ],
+  "cohortSession": {
+    "id": "mmr-catchup-y9y10-current",
+    "school": { "id": "135335", "name": "Grace Academy Coventry" },
+    "date": "2026-06-17",
+    "academicYear": "2025/26",
+    "term": "Summer",
+    "yearGroups": [9, 10],
+    "presetNames": ["MMR", "Doubles"],
+    "programmes": ["mmr", "menacwy", "td-ipv"],
+    "consents": "Positive consent seeded for every patient × programme, except: Dmitri's MMR (Refused, 'Vaccine already received'); Bilal's Y9 Doubles (already absent at last year's session — no current consent)"
+  }
+}

@@ -1,0 +1,287 @@
+# =============================================================================
+# NHS Routine Childhood Immunisation Schedule
+# =============================================================================
+# Effective from 2026-01-01.
+# Derived from Green Book Chapter 11, updated 30 March 2026.
+# =============================================================================
+
+[jurisdiction]
+country = "GB"
+country_name = "United Kingdom"
+schedule_authority = "UKHSA"
+product_coding_system = "snomed-uk-dm"
+language = "en-GB"
+
+[schedule]
+valid_from = "2026-01-01"
+source_document = "Green Book Chapter 11, updated 30 March 2026"
+source_url = "https://assets.publishing.service.gov.uk/media/69cbb5ef8017673ffec0f313/Green-book-chapter-11-immunisation-schedules_30_03_26.pdf"
+
+# ---------- SERIES ----------
+
+[[series]]
+id = "6in1-primary"
+display_name = "6-in-1"
+description = "Primary immunisation against diphtheria, tetanus, pertussis (whooping cough), polio, Hib (Haemophilus influenzae type b) and hepatitis B."
+antigens = ["diphtheria", "tetanus", "pertussis", "polio", "hib", "hepatitis-b"]
+
+[series.eligibility]
+population = "all"
+
+[[series.dose]]
+number = 1
+target_age = "8 weeks"
+earliest_age = "8 weeks"
+
+[[series.dose]]
+number = 2
+target_age = "12 weeks"
+earliest_age = "10 weeks"
+min_interval_from_previous = "4 weeks"
+
+[[series.dose]]
+number = 3
+target_age = "16 weeks"
+earliest_age = "14 weeks"
+min_interval_from_previous = "4 weeks"
+
+
+[[series]]
+id = "rotavirus-primary"
+display_name = "Rotavirus"
+description = "Primary immunisation against rotavirus gastroenteritis."
+antigens = ["rotavirus"]
+
+[series.eligibility]
+population = "all"
+notes = "First dose must be given before 15 weeks. Course must be completed by 24 weeks."
+
+[[series.dose]]
+number = 1
+target_age = "8 weeks"
+earliest_age = "6 weeks"
+latest_age = "14 weeks 6 days"
+
+[[series.dose]]
+number = 2
+target_age = "12 weeks"
+min_interval_from_previous = "4 weeks"
+latest_age = "23 weeks 6 days"
+
+
+[[series]]
+id = "menb-primary"
+display_name = "MenB"
+description = "Immunisation against meningococcal group B disease."
+antigens = ["meningococcal-b"]
+
+[series.eligibility]
+population = "all"
+
+[[series.dose]]
+number = 1
+target_age = "8 weeks"
+earliest_age = "8 weeks"
+
+[[series.dose]]
+number = 2
+target_age = "16 weeks"
+earliest_age = "14 weeks"
+min_interval_from_previous = "4 weeks"
+
+[[series.dose]]
+number = 3
+target_age = "12 months"
+earliest_age = "11 months"
+min_interval_from_previous = "6 months"
+
+
+[[series]]
+id = "pcv-primary"
+display_name = "PCV (pneumococcal)"
+description = "Immunisation against pneumococcal disease."
+antigens = ["pneumococcal"]
+
+[series.eligibility]
+population = "all"
+
+[[series.dose]]
+number = 1
+target_age = "12 weeks"
+earliest_age = "8 weeks"
+
+[[series.dose]]
+number = 2
+target_age = "12 months"
+earliest_age = "11 months"
+min_interval_from_previous = "8 weeks"
+
+
+[[series]]
+id = "hib-menc-booster"
+display_name = "Hib/MenC booster"
+description = "Booster providing additional protection against Hib and meningococcal group C."
+antigens = ["hib", "meningococcal-c"]
+
+[series.eligibility]
+population = "all"
+
+[[series.dose]]
+number = 1
+target_age = "12 months"
+earliest_age = "11 months"
+
+
+[[series]]
+id = "mmr-primary"
+display_name = "MMR (first dose)"
+description = "First dose of measles, mumps and rubella vaccine."
+antigens = ["measles", "mumps", "rubella"]
+
+[series.eligibility]
+population = "all"
+
+[[series.dose]]
+number = 1
+target_age = "12 months"
+earliest_age = "11 months"
+
+
+[[series]]
+id = "mmr-second"
+display_name = "MMR (second dose)"
+description = "Second dose of measles, mumps and rubella vaccine."
+antigens = ["measles", "mumps", "rubella"]
+
+[series.eligibility]
+population = "all"
+
+[[series.dose]]
+number = 2
+target_age = "3 years 4 months"
+earliest_age = "3 years"
+min_interval_from_previous = "1 month"
+
+
+[[series]]
+id = "hpv-primary"
+display_name = "HPV"
+description = "Immunisation against human papillomavirus types causing cervical cancer and other HPV-related cancers."
+antigens = ["hpv"]
+
+[series.eligibility]
+population = "all"
+notes = "All females up to 25th birthday. Males born on or after 2006-09-01 up to 25th birthday."
+male_born_on_or_after = "2006-09-01"
+
+[[series.dose]]
+number = 1
+target_age = "12 years"
+earliest_age = "11 years 6 months"
+
+[[series.dose]]
+number = 2
+target_age = "13 years"
+min_interval_from_previous = "6 months"
+
+
+[[series]]
+id = "tdap-ipv-booster"
+display_name = "Td/IPV booster (3-in-1 teenage booster)"
+description = "Booster against tetanus, diphtheria and polio."
+antigens = ["tetanus", "diphtheria", "polio"]
+
+[series.eligibility]
+population = "all"
+
+[[series.dose]]
+number = 1
+target_age = "14 years"
+earliest_age = "13 years 6 months"
+
+
+# ---------- ANTIGEN REGISTRY ----------
+
+[[antigen]]
+id = "diphtheria"
+display_name = "Diphtheria"
+snomed_concept = "397428000"
+snomed_description = "Diphtheria (disorder)"
+
+[[antigen]]
+id = "tetanus"
+display_name = "Tetanus"
+snomed_concept = "76902006"
+snomed_description = "Tetanus (disorder)"
+
+[[antigen]]
+id = "pertussis"
+display_name = "Pertussis (whooping cough)"
+snomed_concept = "27836007"
+snomed_description = "Pertussis (disorder)"
+
+[[antigen]]
+id = "polio"
+display_name = "Poliomyelitis"
+snomed_concept = "398102009"
+snomed_description = "Acute poliomyelitis (disorder)"
+
+[[antigen]]
+id = "hib"
+display_name = "Haemophilus influenzae type b (Hib)"
+snomed_concept = "433692003"
+snomed_description = "Haemophilus influenzae type b infection (disorder)"
+
+[[antigen]]
+id = "hepatitis-b"
+display_name = "Hepatitis B"
+snomed_concept = "66071002"
+snomed_description = "Hepatitis B (disorder)"
+
+[[antigen]]
+id = "rotavirus"
+display_name = "Rotavirus"
+snomed_concept = "18624000"
+snomed_description = "Disease due to Rotavirus (disorder)"
+
+[[antigen]]
+id = "meningococcal-b"
+display_name = "Meningococcal group B"
+snomed_concept = "860805006"
+snomed_description = "Infection caused by Neisseria meningitidis serogroup B (disorder)"
+
+[[antigen]]
+id = "meningococcal-c"
+display_name = "Meningococcal group C"
+snomed_concept = "860806007"
+snomed_description = "Infection caused by Neisseria meningitidis serogroup C (disorder)"
+
+[[antigen]]
+id = "pneumococcal"
+display_name = "Pneumococcal disease"
+snomed_concept = "16814004"
+snomed_description = "Pneumococcal infectious disease (disorder)"
+
+[[antigen]]
+id = "measles"
+display_name = "Measles"
+snomed_concept = "14189004"
+snomed_description = "Measles (disorder)"
+
+[[antigen]]
+id = "mumps"
+display_name = "Mumps"
+snomed_concept = "36989005"
+snomed_description = "Mumps (disorder)"
+
+[[antigen]]
+id = "rubella"
+display_name = "Rubella"
+snomed_concept = "36653000"
+snomed_description = "Rubella (disorder)"
+
+[[antigen]]
+id = "hpv"
+display_name = "Human papillomavirus (HPV)"
+snomed_concept = "240532009"
+snomed_description = "Human papillomavirus infection (disorder)"

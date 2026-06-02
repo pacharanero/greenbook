@@ -1,0 +1,142 @@
+{
+  "resourceType": "Bundle",
+  "type": "collection",
+  "entry": [
+    {
+      "resource": {
+        "resourceType": "Patient",
+        "id": "patient-1",
+        "birthDate": "2025-10-29",
+        "gender": "female"
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Immunization",
+        "status": "completed",
+        "vaccineCode": {
+          "coding": [{
+            "system": "http://snomed.info/sct",
+            "code": "39114911000001105",
+            "display": "Infanrix Hexa vaccine (product)"
+          }]
+        },
+        "patient": { "reference": "Patient/patient-1" },
+        "occurrenceDateTime": "2025-12-24",
+        "protocolApplied": [{ "doseNumberPositiveInt": 1 }]
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Immunization",
+        "status": "completed",
+        "vaccineCode": {
+          "coding": [{
+            "system": "http://snomed.info/sct",
+            "code": "7374211000001102",
+            "display": "Rotarix vaccine (product)"
+          }]
+        },
+        "patient": { "reference": "Patient/patient-1" },
+        "occurrenceDateTime": "2025-12-24",
+        "protocolApplied": [{ "doseNumberPositiveInt": 1 }]
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Immunization",
+        "status": "completed",
+        "vaccineCode": {
+          "coding": [{
+            "system": "http://snomed.info/sct",
+            "code": "12672211000001104",
+            "display": "Bexsero vaccine (product)"
+          }]
+        },
+        "patient": { "reference": "Patient/patient-1" },
+        "occurrenceDateTime": "2025-12-24",
+        "protocolApplied": [{ "doseNumberPositiveInt": 1 }]
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Immunization",
+        "status": "completed",
+        "vaccineCode": {
+          "coding": [{
+            "system": "http://snomed.info/sct",
+            "code": "39114911000001105",
+            "display": "Infanrix Hexa vaccine (product)"
+          }]
+        },
+        "patient": { "reference": "Patient/patient-1" },
+        "occurrenceDateTime": "2026-01-21",
+        "protocolApplied": [{ "doseNumberPositiveInt": 2 }]
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Immunization",
+        "status": "completed",
+        "vaccineCode": {
+          "coding": [{
+            "system": "http://snomed.info/sct",
+            "code": "7374211000001102",
+            "display": "Rotarix vaccine (product)"
+          }]
+        },
+        "patient": { "reference": "Patient/patient-1" },
+        "occurrenceDateTime": "2026-01-21",
+        "protocolApplied": [{ "doseNumberPositiveInt": 2 }]
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Immunization",
+        "status": "completed",
+        "vaccineCode": {
+          "coding": [{
+            "system": "http://snomed.info/sct",
+            "code": "14473901000001100",
+            "display": "Prevenar 13 vaccine (product)"
+          }]
+        },
+        "patient": { "reference": "Patient/patient-1" },
+        "occurrenceDateTime": "2026-01-21",
+        "protocolApplied": [{ "doseNumberPositiveInt": 1 }]
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Immunization",
+        "status": "completed",
+        "vaccineCode": {
+          "coding": [{
+            "system": "http://snomed.info/sct",
+            "code": "39114911000001105",
+            "display": "Infanrix Hexa vaccine (product)"
+          }]
+        },
+        "patient": { "reference": "Patient/patient-1" },
+        "occurrenceDateTime": "2026-02-18",
+        "protocolApplied": [{ "doseNumberPositiveInt": 3 }]
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Immunization",
+        "status": "completed",
+        "vaccineCode": {
+          "coding": [{
+            "system": "http://snomed.info/sct",
+            "code": "12672211000001104",
+            "display": "Bexsero vaccine (product)"
+          }]
+        },
+        "patient": { "reference": "Patient/patient-1" },
+        "occurrenceDateTime": "2026-02-18",
+        "protocolApplied": [{ "doseNumberPositiveInt": 2 }]
+      }
+    }
+  ]
+}

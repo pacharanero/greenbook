@@ -1,0 +1,536 @@
+# The Standard
+
+This document defines the data formats and evaluation semantics. It is implementation-neutral: any language that can parse TOML and JSON can implement a conforming evaluator.
+
+---
+
+## File Format: `schedule.toml`
+
+### Design principles
+
+- [TOML](https://toml.io/) (Tom's Obvious Minimal Language)
+- Human-readable without training; editable by clinical informaticists
+- Strongly typed (TOML's type system prevents YAML-style ambiguities)
+- Schedule is **series-centric** for authoring; the CLI `render` command produces the **age-centric** table for publication
+- Each schedule version is a separate dated file - not a git tag
+- Files are still in git, giving a full audit trail of who changed what and when
+
+### Directory structure
+
+```
+schedules/
+  gb/
+    2026-01-01.toml   # current
+    2020-01-01.toml
+    2015-09-01.toml
+    ...
+  us/
+    2026-01-01.toml
+  au/
+    2025-07-01.toml
+products/
+  gb-snomed-dm.toml   # UK SNOMED drug extension product mapping
+  us-cvx.toml
+```
+
+File names match the `valid_from` date in the `[schedule]` block.
+
+### Full annotated example
+
+```toml
+# =============================================================================
+# NHS Routine Childhood Immunisation Schedule
+# =============================================================================
+# This file is the primary computable representation of the schedule.
+# The PDF chapter is generated from this file - not the other way around.
+#
+# To propose a change: copy this file with the new valid_from date as the
+# filename, edit it, and open a pull request.
+# =============================================================================
+
+[jurisdiction]
+country = "GB"                          # ISO 3166-1 alpha-2 (https://www.iso.org/iso-3166-country-codes.html)
+country_name = "United Kingdom"
+schedule_authority = "UKHSA"
+schedule_authority_url = "https://www.gov.uk/government/organisations/uk-health-security-agency"
+product_coding_system = "snomed-uk-dm" # snomed-uk-dm | cvx | amt | snomed-int
+language = "en-GB"                     # BCP 47 (https://www.rfc-editor.org/info/bcp47)
+
+[schedule]
+valid_from = "2026-01-01"
+supersedes = "2020-01-01"
+source_document = "Green Book Chapter 11, updated 30 March 2026"
+source_url = "https://assets.publishing.service.gov.uk/media/..."
+change_summary = """
+  Added 18-month vaccination appointment.
+  See CHANGELOG.md for full details.
+"""
+
+# ---------- SERIES ----------
+# One [[series]] block per vaccination programme.
+# antigens references IDs defined in the [[antigen]] registry below.
+
+[[series]]
+id = "6in1-primary"
+display_name = "6-in-1"
+description = """
+  Primary immunisation against diphtheria, tetanus, pertussis (whooping cough),
+  polio, Hib (Haemophilus influenzae type b) and hepatitis B.
+"""
+antigens = ["diphtheria", "tetanus", "pertussis", "polio", "hib", "hepatitis-b"]
+
+[series.eligibility]
+population = "all"
+
+[[series.dose]]
+number = 1
+target_age = "8 weeks"
+earliest_age = "8 weeks"
+
+[[series.dose]]
+number = 2
+target_age = "12 weeks"
+earliest_age = "10 weeks"
+min_interval_from_previous = "4 weeks"
+
+[[series.dose]]
+number = 3
+target_age = "16 weeks"
+earliest_age = "14 weeks"
+min_interval_from_previous = "4 weeks"
+
+
+[[series]]
+id = "rotavirus-primary"
+display_name = "Rotavirus"
+description = "Primary immunisation against rotavirus gastroenteritis."
+antigens = ["rotavirus"]
+
+[series.eligibility]
+population = "all"
+notes = "First dose must be given before 15 weeks. Course must be completed by 24 weeks."
+
+[[series.dose]]
+number = 1
+target_age = "8 weeks"
+earliest_age = "6 weeks"
+latest_age = "14 weeks 6 days"   # hard cutoff - do not give after 15 weeks
+
+[[series.dose]]
+number = 2
+target_age = "12 weeks"
+min_interval_from_previous = "4 weeks"
+latest_age = "23 weeks 6 days"   # hard cutoff - course must complete by 24 weeks
+
+
+[[series]]
+id = "menb-primary"
+display_name = "MenB"
+description = "Immunisation against meningococcal group B disease."
+antigens = ["meningococcal-b"]
+
+[series.eligibility]
+population = "all"
+
+[[series.dose]]
+number = 1
+target_age = "8 weeks"
+earliest_age = "8 weeks"
+
+[[series.dose]]
+number = 2
+target_age = "16 weeks"
+earliest_age = "14 weeks"
+min_interval_from_previous = "4 weeks"
+
+[[series.dose]]
+number = 3
+target_age = "12 months"
+earliest_age = "11 months"
+min_interval_from_previous = "6 months"
+
+
+[[series]]
+id = "pcv-primary"
+display_name = "PCV (pneumococcal)"
+description = "Immunisation against pneumococcal disease."
+antigens = ["pneumococcal"]
+
+[series.eligibility]
+population = "all"
+
+[[series.dose]]
+number = 1
+target_age = "12 weeks"
+earliest_age = "8 weeks"
+
+[[series.dose]]
+number = 2
+target_age = "12 months"
+earliest_age = "11 months"
+min_interval_from_previous = "8 weeks"
+
+
+[[series]]
+id = "hib-menc-booster"
+display_name = "Hib/MenC booster"
+description = "Booster providing additional protection against Hib and meningococcal group C."
+antigens = ["hib", "meningococcal-c"]
+
+[series.eligibility]
+population = "all"
+
+[[series.dose]]
+number = 1
+target_age = "12 months"
+earliest_age = "11 months"
+
+
+[[series]]
+id = "mmr-primary"
+display_name = "MMR (first dose)"
+description = "First dose of measles, mumps and rubella vaccine."
+antigens = ["measles", "mumps", "rubella"]
+
+[series.eligibility]
+population = "all"
+
+[[series.dose]]
+number = 1
+target_age = "12 months"
+earliest_age = "11 months"
+
+
+[[series]]
+id = "mmr-second"
+display_name = "MMR (second dose)"
+description = "Second dose of measles, mumps and rubella vaccine."
+antigens = ["measles", "mumps", "rubella"]
+
+[series.eligibility]
+population = "all"
+
+[[series.dose]]
+number = 2
+target_age = "3 years 4 months"
+earliest_age = "3 years"
+min_interval_from_previous = "1 month"
+
+
+[[series]]
+id = "hpv-primary"
+display_name = "HPV"
+description = """
+  Immunisation against human papillomavirus types causing cervical cancer
+  and other HPV-related cancers.
+"""
+antigens = ["hpv"]
+
+[series.eligibility]
+population = "all"
+notes = """
+  All females up to 25th birthday.
+  Males born on or after 2006-09-01 up to 25th birthday.
+"""
+male_born_on_or_after = "2006-09-01"
+
+[[series.dose]]
+number = 1
+target_age = "12 years"     # delivered in school year 8
+earliest_age = "11 years 6 months"
+
+[[series.dose]]
+number = 2
+target_age = "13 years"
+min_interval_from_previous = "6 months"
+
+
+[[series]]
+id = "tdap-ipv-booster"
+display_name = "Td/IPV booster (3-in-1 teenage booster)"
+description = "Booster against tetanus, diphtheria and polio."
+antigens = ["tetanus", "diphtheria", "polio"]
+
+[series.eligibility]
+population = "all"
+
+[[series.dose]]
+number = 1
+target_age = "14 years"     # school year 9
+earliest_age = "13 years 6 months"
+
+
+# ---------- ANTIGEN REGISTRY ----------
+# Short IDs used in series blocks map to SNOMED CT concepts here.
+# SNOMED CT concept codes are international and stable.
+# These IDs are intended to be stable across schedule versions and jurisdictions.
+
+[[antigen]]
+id = "diphtheria"
+display_name = "Diphtheria"
+snomed_concept = "397428000"
+snomed_description = "Diphtheria (disorder)"
+
+[[antigen]]
+id = "tetanus"
+display_name = "Tetanus"
+snomed_concept = "76902006"
+snomed_description = "Tetanus (disorder)"
+
+[[antigen]]
+id = "pertussis"
+display_name = "Pertussis (whooping cough)"
+snomed_concept = "27836007"
+snomed_description = "Pertussis (disorder)"
+
+[[antigen]]
+id = "polio"
+display_name = "Poliomyelitis"
+snomed_concept = "398102009"
+snomed_description = "Acute poliomyelitis (disorder)"
+
+[[antigen]]
+id = "hib"
+display_name = "Haemophilus influenzae type b (Hib)"
+snomed_concept = "433692003"
+snomed_description = "Haemophilus influenzae type b infection (disorder)"
+
+[[antigen]]
+id = "hepatitis-b"
+display_name = "Hepatitis B"
+snomed_concept = "66071002"
+snomed_description = "Hepatitis B (disorder)"
+
+[[antigen]]
+id = "rotavirus"
+display_name = "Rotavirus"
+snomed_concept = "18624000"
+snomed_description = "Disease due to Rotavirus (disorder)"
+
+[[antigen]]
+id = "meningococcal-b"
+display_name = "Meningococcal group B"
+snomed_concept = "860805006"
+snomed_description = "Infection caused by Neisseria meningitidis serogroup B (disorder)"
+
+[[antigen]]
+id = "meningococcal-c"
+display_name = "Meningococcal group C"
+snomed_concept = "860806007"
+snomed_description = "Infection caused by Neisseria meningitidis serogroup C (disorder)"
+
+[[antigen]]
+id = "pneumococcal"
+display_name = "Pneumococcal disease"
+snomed_concept = "16814004"
+snomed_description = "Pneumococcal infectious disease (disorder)"
+
+[[antigen]]
+id = "measles"
+display_name = "Measles"
+snomed_concept = "14189004"
+snomed_description = "Measles (disorder)"
+
+[[antigen]]
+id = "mumps"
+display_name = "Mumps"
+snomed_concept = "36989005"
+snomed_description = "Mumps (disorder)"
+
+[[antigen]]
+id = "rubella"
+display_name = "Rubella"
+snomed_concept = "36653000"
+snomed_description = "Rubella (disorder)"
+
+[[antigen]]
+id = "hpv"
+display_name = "Human papillomavirus (HPV)"
+snomed_concept = "240532009"
+snomed_description = "Human papillomavirus infection (disorder)"
+```
+
+---
+
+## Product Mapping File: `products/gb-snomed-dm.toml`
+
+The schedule is authored in terms of antigens ("diphtheria", "hib"). FHIR records contain product codes (SNOMED CT). A separate mapping file bridges them.
+
+This mapping is maintained using SNOMED CT ECL queries against the UK drug extension, which encodes the antigen composition of each product via the SNOMED concept hierarchy. For v1 a hand-curated table covering the ~10-15 products in the current schedule is sufficient.
+
+The mapping is a separate file per coding system so it can be maintained independently and shared across jurisdictions using the same coding system.
+
+When products change over time, a historical dose of the old product counts toward the antigens it actually covered, not those of the replacement. Antigen-level evaluation handles this naturally: a Pediacel (5-in-1) dose counts toward diphtheria/tetanus/pertussis/polio/Hib but not hepatitis B, even when the schedule that applies to the patient now expects 6-in-1. The test suite must exercise both the 5-in-1 → 6-in-1 transition and the MMRV → MMR case, where the non-overlapping varicella antigen makes the substitution lossy in the opposite direction.
+
+```toml
+# Product-to-antigen mapping for UK SNOMED drug extension codes.
+# Maintained by querying the SNOMED CT UK drug extension hierarchy.
+# Each entry maps a product SNOMED code to the antigens it covers.
+
+coding_system = "snomed-uk-dm"
+coding_system_url = "https://snomed.info/sct"
+last_verified = "2026-01-01"
+
+[[product]]
+code = "39114911000001105"
+display = "Infanrix Hexa vaccine (product)"
+antigens = ["diphtheria", "tetanus", "pertussis", "polio", "hib", "hepatitis-b"]
+
+[[product]]
+code = "9743801000001106"
+display = "Pediacel vaccine (product)"
+antigens = ["diphtheria", "tetanus", "pertussis", "polio", "hib"]
+notes = "5-in-1; does not include hepatitis B. Used before 2017 6-in-1 introduction."
+
+[[product]]
+code = "12672211000001104"
+display = "Bexsero vaccine (product)"
+antigens = ["meningococcal-b"]
+
+[[product]]
+code = "7374211000001102"
+display = "Rotarix vaccine (product)"
+antigens = ["rotavirus"]
+
+[[product]]
+code = "14473901000001100"
+display = "Prevenar 13 vaccine (product)"
+antigens = ["pneumococcal"]
+
+[[product]]
+code = "9684201000001108"
+display = "Menitorix vaccine (product)"
+antigens = ["hib", "meningococcal-c"]
+
+[[product]]
+code = "9324201000001104"
+display = "Priorix vaccine (product)"
+antigens = ["measles", "mumps", "rubella"]
+
+[[product]]
+code = "14491811000001103"
+display = "Gardasil 9 vaccine (product)"
+antigens = ["hpv"]
+
+[[product]]
+code = "22704311000001109"
+display = "Revaxis vaccine (product)"
+antigens = ["tetanus", "diphtheria", "polio"]
+notes = "Td/IPV - used for teenage booster."
+```
+
+---
+
+## FHIR Input Format
+
+### Minimum viable input bundle
+
+```json
+{
+  "resourceType": "Bundle",
+  "type": "collection",
+  "entry": [
+    {
+      "resource": {
+        "resourceType": "Patient",
+        "id": "patient-1",
+        "birthDate": "2023-08-15"
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Immunization",
+        "status": "completed",
+        "vaccineCode": {
+          "coding": [{
+            "system": "http://snomed.info/sct",
+            "code": "39114911000001105",
+            "display": "Infanrix Hexa vaccine (product)"
+          }]
+        },
+        "patient": { "reference": "Patient/patient-1" },
+        "occurrenceDateTime": "2023-10-16",
+        "protocolApplied": [{
+          "doseNumberPositiveInt": 1
+        }]
+      }
+    }
+  ]
+}
+```
+
+Sources of FHIR vaccination records compatible with this format:
+
+- NHS Digital Immunisation FHIR API ([`NHSDigital/immunisation-fhir-api`](https://github.com/NHSDigital/immunisation-fhir-api))
+- NIMS (National Immunisation Management System) exports
+- GP system exports (EMIS, SystmOne) via [GP Connect](https://digital.nhs.uk/services/gp-connect)
+
+Multiple `Immunization` resources in a single bundle constitute the complete patient record. Records from different sources (GP, school immunisation, pharmacy) can be composed into a single bundle for evaluation.
+
+---
+
+## Evaluation Logic
+
+### Eligibility check
+
+Before evaluating a series for a patient, check:
+
+1. `eligibility.population` - if `"all"`, proceed. If `"female"` or `"male"`, check patient sex from the `Patient` resource.
+2. `eligibility.male_born_on_or_after` - if present and patient is male, check DOB >= this date. If DOB is before this date, mark series as `NotApplicable`.
+
+When the FHIR `Patient.gender` field is `other` or `unknown`, the evaluator treats the patient as eligible for any sex-restricted series and attaches an uncertainty flag to the result so downstream consumers can see that the determination depends on a missing data point.
+
+### Dose validity
+
+A dose is valid if:
+
+1. The vaccine code maps (via the product table) to at least one antigen in the series.
+2. The date of administration is on or after `earliest_age` (calculated from DOB).
+3. If `latest_age` is set, the date is on or before that age.
+4. The interval from the previous valid dose is >= `min_interval_from_previous`.
+
+Doses that fail validity checks are recorded with reasons but do not count toward series completion.
+
+### Dose sequencing
+
+Three signals can indicate which dose number a record represents: `protocolApplied.doseNumberPositiveInt` in the FHIR record, dose-sequence information embedded in the SNOMED product code, and the relative ordering of dates. None of these is fully reliable on its own across UK source systems. The evaluator derives dose sequence from dates as the primary signal, cross-checks it against the FHIR and SNOMED signals where present, and flags any discrepancy on the resulting `RecordedDose` rather than silently preferring one source.
+
+### Series completion
+
+- `Complete` - all expected doses received and valid
+- `Partial` - at least one valid dose but fewer than expected
+- `None` - no valid doses
+- `NotApplicable` - patient not eligible for this series
+
+### Overall status
+
+- `FullyVaccinated` - all applicable series are `Complete`
+- `PartiallyVaccinated` - at least one applicable series is `Partial` or `None`, and at least one is `Complete` or `Partial`
+- `Unvaccinated` - all applicable series are `None` or `NotApplicable`
+- `Unknown` - patient DOB missing, or no vaccination records and cannot distinguish between genuinely unvaccinated and no data
+
+---
+
+## Future extensions (designed for, not v1)
+
+### At-risk and overriding rules
+
+The current schedule has additional or extended series for immunocompromised children, premature infants, hepatitis B carrier contacts, and similar groups. These are out of scope for v1, but the `eligibility` structure should not preclude them. The intended model is a numerical priority on each rule, analogous to MX records in DNS: the primary schedule applies by default, and a higher-priority at-risk rule whose eligibility predicate matches overrides the primary rule for that patient. This keeps the primary schedule readable in isolation and avoids tangling at-risk logic into the default path.
+
+### Catch-up schedules
+
+When a patient presents late (for example a 3-year-old with no previous vaccinations), the catch-up schedule differs from the primary one. v1 evaluates only against the primary schedule and flags incomplete series. The `eligibility` structure must accommodate catch-up rules in a future version without a rewrite, and the v1 test suite includes catch-up scenarios so the structure is exercised against realistic inputs from the outset.
+
+---
+
+## Historical Versioning (v2 - deferred but designed for)
+
+The file-per-version approach means historical evaluation is an additive feature:
+
+1. Parse patient DOB from the FHIR bundle
+2. Call `load_schedule_for_date(schedules_dir, "gb", dob)` which selects the schedule file where `valid_from <= dob` and no successor has `valid_from <= dob`
+3. Proceed with the same evaluation logic
+
+Schedule files for historical versions would be curated manually, working back from the current schedule using Green Book chapter revisions and JCVI/DoH publications as sources. The change history on the GOV.UK Green Book Chapter 11 page provides a useful skeleton for reconstruction.
+
+Likely scope for full historical coverage: approximately 1990 to present, covering roughly 8-12 distinct schedule versions. This is a bounded, tractable curation task.

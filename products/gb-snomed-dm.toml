@@ -1,0 +1,53 @@
+# Product-to-antigen mapping for UK SNOMED drug extension codes.
+# Each entry maps a product SNOMED code to the antigens it covers.
+
+coding_system = "snomed-uk-dm"
+coding_system_url = "https://snomed.info/sct"
+last_verified = "2026-01-01"
+
+[[product]]
+code = "39114911000001105"
+display = "Infanrix Hexa vaccine (product)"
+antigens = ["diphtheria", "tetanus", "pertussis", "polio", "hib", "hepatitis-b"]
+
+[[product]]
+code = "9743801000001106"
+display = "Pediacel vaccine (product)"
+antigens = ["diphtheria", "tetanus", "pertussis", "polio", "hib"]
+notes = "5-in-1; does not include hepatitis B. Used before 2017 6-in-1 introduction."
+
+[[product]]
+code = "12672211000001104"
+display = "Bexsero vaccine (product)"
+antigens = ["meningococcal-b"]
+
+[[product]]
+code = "7374211000001102"
+display = "Rotarix vaccine (product)"
+antigens = ["rotavirus"]
+
+[[product]]
+code = "14473901000001100"
+display = "Prevenar 13 vaccine (product)"
+antigens = ["pneumococcal"]
+
+[[product]]
+code = "9684201000001108"
+display = "Menitorix vaccine (product)"
+antigens = ["hib", "meningococcal-c"]
+
+[[product]]
+code = "9324201000001104"
+display = "Priorix vaccine (product)"
+antigens = ["measles", "mumps", "rubella"]
+
+[[product]]
+code = "14491811000001103"
+display = "Gardasil 9 vaccine (product)"
+antigens = ["hpv"]
+
+[[product]]
+code = "22704311000001109"
+display = "Revaxis vaccine (product)"
+antigens = ["tetanus", "diphtheria", "polio"]
+notes = "Td/IPV - used for teenage booster."

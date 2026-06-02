@@ -1,0 +1,143 @@
+use chrono::{Local, NaiveDate};
+use clap::{Parser, Subcommand};
+use greenbook::evaluate::{OverallStatus, SeriesCompletionStatus, VaccinationStatus};
+use greenbook::{evaluate, load_product_map, load_schedule, parse_fhir_bundle};
+use std::fs;
+use std::path::PathBuf;
+use std::process::ExitCode;
+
+#[derive(Parser)]
+#[command(
+    name = "greenbook",
+    version,
+    about = "UK childhood immunisation schedule evaluator (POC)"
+)]
+struct Cli {
+    #[command(subcommand)]
+    command: Command,
+}
+
+#[derive(Subcommand)]
+enum Command {
+    /// Evaluate a FHIR bundle against a schedule.
+    Evaluate {
+        /// Path to a schedule TOML file.
+        schedule: PathBuf,
+        /// Path to a product mapping TOML file.
+        products: PathBuf,
+        /// Path to a FHIR Bundle JSON file.
+        bundle: PathBuf,
+        /// Output format.
+        #[arg(long, value_enum, default_value_t = OutputFormat::Report)]
+        format: OutputFormat,
+        /// Override the evaluation date (defaults to today).
+        #[arg(long)]
+        evaluated_at: Option<NaiveDate>,
+    },
+}
+
+#[derive(Copy, Clone, Debug, clap::ValueEnum)]
+enum OutputFormat {
+    Json,
+    Report,
+}
+
+fn main() -> ExitCode {
+    let cli = Cli::parse();
+    match run(cli) {
+        Ok(()) => ExitCode::SUCCESS,
+        Err(e) => {
+            eprintln!("error: {}", e);
+            ExitCode::FAILURE
+        }
+    }
+}
+
+fn run(cli: Cli) -> Result<(), Box<dyn std::error::Error>> {
+    match cli.command {
+        Command::Evaluate {
+            schedule,
+            products,
+            bundle,
+            format,
+            evaluated_at,
+        } => {
+            let schedule = load_schedule(&schedule)?;
+            let products = load_product_map(&products)?;
+            let bundle_json = fs::read_to_string(&bundle)?;
+            let record = parse_fhir_bundle(&bundle_json)?;
+            let evaluated_at = evaluated_at.unwrap_or_else(|| Local::now().date_naive());
+            let status = evaluate(&record, &schedule, &products, evaluated_at)?;
+
+            match format {
+                OutputFormat::Json => {
+                    println!("{}", serde_json::to_string_pretty(&status)?);
+                }
+                OutputFormat::Report => {
+                    print_report(&status, &record);
+                }
+            }
+            Ok(())
+        }
+    }
+}
+
+fn print_report(status: &VaccinationStatus, record: &greenbook::VaccinationRecord) {
+    println!("Greenbook evaluation");
+    println!("====================");
+    if let Some(id) = &record.patient_id {
+        println!("Patient:          {}", id);
+    }
+    println!("DOB:              {}", record.dob);
+    println!("Evaluated at:     {}", status.evaluated_at);
+    println!("Schedule version: {}", status.schedule_version);
+    println!("Overall status:   {}", overall_label(status.overall));
+    println!();
+    println!("By series:");
+    println!("---------");
+    for s in &status.by_series {
+        println!(
+            "  [{}] {} ({}/{} doses)",
+            series_label(s.status),
+            s.display_name,
+            s.doses_valid,
+            s.doses_expected,
+        );
+        for d in &s.doses_recorded {
+            let mark = if d.valid { "ok" } else { "INVALID" };
+            let dose_n = d
+                .assigned_dose_number
+                .map(|n| format!("dose {}", n))
+                .unwrap_or_else(|| "unassigned".into());
+            println!(
+                "      - {}  {}  {}  ({})  [{}]",
+                mark,
+                d.date,
+                dose_n,
+                d.age_at_dose,
+                d.display.as_deref().unwrap_or(&d.vaccine_code),
+            );
+            for r in &d.validity_reasons {
+                println!("          ! {}", r);
+            }
+        }
+    }
+}
+
+fn overall_label(o: OverallStatus) -> &'static str {
+    match o {
+        OverallStatus::FullyVaccinated => "FULLY_VACCINATED",
+        OverallStatus::PartiallyVaccinated => "PARTIALLY_VACCINATED",
+        OverallStatus::Unvaccinated => "UNVACCINATED",
+        OverallStatus::Unknown => "UNKNOWN",
+    }
+}
+
+fn series_label(s: SeriesCompletionStatus) -> &'static str {
+    match s {
+        SeriesCompletionStatus::Complete => "COMPLETE   ",
+        SeriesCompletionStatus::Partial => "PARTIAL    ",
+        SeriesCompletionStatus::None => "NONE       ",
+        SeriesCompletionStatus::NotApplicable => "N/A        ",
+    }
+}
