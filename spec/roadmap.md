@@ -12,7 +12,7 @@ Nothing is committed to git yet. The first milestone is to get a clean, reviewed
 
 ## Guiding principle
 
-Build the format and engine correctly for the *current* schedule so that historical versioning (v2), at-risk overrides, and catch-up rules become additive extensions rather than rewrites. Every design choice made now is judged against that test. See [spec/introduction.md](./introduction.md) §"Scope for v1".
+Build the format and engine correctly for the *current* schedule so that historical versioning (v2), at-risk overrides, and catch-up rules become additive extensions rather than rewrites. Every design choice made now is judged against that test. See the [README](../README.md) §"Scope for v1".
 
 ## Milestones
 
@@ -81,7 +81,7 @@ Gaps in the *data* (not the engine) found under programmatic scrutiny. The Green
 
 These are out of scope now but the format and engine must not preclude them — that is the whole point of the v1 design discipline.
 
-- **Historical versioning (v2).** `load_schedule_for_date(dir, country, date)` selecting the schedule where `valid_from <= dob` with no nearer successor. Then curate ~8–12 historical GB versions back to ~1990. See [spec/standard.md](./standard.md) §"Historical Versioning" and [spec/introduction.md](./introduction.md).
+- **Historical versioning (v2).** `load_schedule_for_date(dir, country, date)` selecting the schedule where `valid_from <= dob` with no nearer successor. Then curate ~8–12 historical GB versions back to ~1990. See [spec/standard.md](./standard.md) §"Historical Versioning" and the [README](../README.md).
 - **At-risk / overriding rules.** DNS-MX-style numerical priority on eligibility rules; higher-priority matching rule overrides the primary schedule. [spec/standard.md](./standard.md) §"Future extensions".
 - **Catch-up schedules.** Distinct from primary-schedule evaluation; v1 only flags incomplete series.
 - **Multi-jurisdiction.** The `schedules/<country>/` and `products/<coding-system>.toml` layout is already shaped for `us`/`au`; no non-GB data yet.
