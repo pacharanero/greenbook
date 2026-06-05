@@ -23,6 +23,7 @@ source_url = "https://assets.publishing.service.gov.uk/media/69cbb5ef8017673ffec
 id = "6in1-primary"
 display_name = "6-in-1"
 description = "Primary immunisation against diphtheria, tetanus, pertussis (whooping cough), polio, Hib (Haemophilus influenzae type b) and hepatitis B."
+product_class = "6-in-1"
 antigens = ["diphtheria", "tetanus", "pertussis", "polio", "hib", "hepatitis-b"]
 
 [series.eligibility]
@@ -50,6 +51,7 @@ min_interval_from_previous = "4 weeks"
 id = "rotavirus-primary"
 display_name = "Rotavirus"
 description = "Primary immunisation against rotavirus gastroenteritis."
+product_class = "Rotavirus"
 antigens = ["rotavirus"]
 
 [series.eligibility]
@@ -73,6 +75,7 @@ latest_age = "23 weeks 6 days"
 id = "menb-primary"
 display_name = "MenB"
 description = "Immunisation against meningococcal group B disease."
+product_class = "MenB"
 antigens = ["meningococcal-b"]
 
 [series.eligibility]
@@ -100,6 +103,7 @@ min_interval_from_previous = "6 months"
 id = "pcv-primary"
 display_name = "PCV (pneumococcal)"
 description = "Immunisation against pneumococcal disease."
+product_class = "PCV"
 antigens = ["pneumococcal"]
 
 [series.eligibility]
@@ -121,6 +125,7 @@ min_interval_from_previous = "8 weeks"
 id = "hib-menc-booster"
 display_name = "Hib/MenC booster"
 description = "Booster providing additional protection against Hib and meningococcal group C."
+product_class = "Hib/MenC"
 antigens = ["hib", "meningococcal-c"]
 
 [series.eligibility]
@@ -136,6 +141,7 @@ earliest_age = "11 months"
 id = "mmr-primary"
 display_name = "MMR (first dose)"
 description = "First dose of measles, mumps and rubella vaccine."
+product_class = "MMR"
 antigens = ["measles", "mumps", "rubella"]
 
 [series.eligibility]
@@ -151,6 +157,7 @@ earliest_age = "11 months"
 id = "mmr-second"
 display_name = "MMR (second dose)"
 description = "Second dose of measles, mumps and rubella vaccine."
+product_class = "MMR"
 antigens = ["measles", "mumps", "rubella"]
 
 [series.eligibility]
@@ -167,6 +174,7 @@ min_interval_from_previous = "1 month"
 id = "hpv-primary"
 display_name = "HPV"
 description = "Immunisation against human papillomavirus types causing cervical cancer and other HPV-related cancers."
+product_class = "HPV"
 antigens = ["hpv"]
 
 [series.eligibility]
@@ -189,6 +197,7 @@ min_interval_from_previous = "6 months"
 id = "tdap-ipv-booster"
 display_name = "Td/IPV booster (3-in-1 teenage booster)"
 description = "Booster against tetanus, diphtheria and polio."
+product_class = "Td/IPV"
 antigens = ["tetanus", "diphtheria", "polio"]
 
 [series.eligibility]

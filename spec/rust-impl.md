@@ -120,7 +120,8 @@ pub struct Series {
     pub id: String,
     pub display_name: String,
     pub description: String,
-    pub antigens: Vec<String>,     // references Antigen.id
+    pub product_class: String,     // conformance: doses of this class match (see ADR 0001)
+    pub antigens: Vec<String>,     // references Antigen.id; coverage view only
     pub eligibility: Eligibility,
     pub dose: Vec<Dose>,
 }

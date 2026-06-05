@@ -28,26 +28,26 @@ Get the working POC onto a reviewable footing before adding behaviour.
 
 These block clean test fixtures and correct output. They are decisions, not code — see [queries.md](./queries.md). Each needs a ruling before the dependent code is worth writing.
 
-- [ ] §1 Dose-to-series matching strictness (proposed: stricter superset matching, with greedy assignment as tiebreaker) — **this gates M2 and the fixture set**
+- [x] §1 Dose-to-series matching — **resolved**: product-class conformance matching vs antigen coverage, [ADR 0001](./docs/adr/0001-product-class-conformance-vs-antigen-coverage.md). Implemented.
+- [x] §3 Suppressing irrelevant invalid doses — **resolved**: falls out of §1; no suppression needed.
 - [ ] §2 "Fully vaccinated" vs "up-to-date for age" — pick a status model
-- [ ] §3 Suppressing irrelevant invalid doses in the report (largely falls out of §1)
 - [ ] §5 `latest_age` semantics for late-but-given doses
 
 ### M2 — Correctness gaps in the engine
 
 The engine currently takes the happy path. Close the known divergences from [spec/standard.md](./spec/standard.md) §"Evaluation Logic".
 
+- [x] Product-class conformance matching ([ADR 0001](./docs/adr/0001-product-class-conformance-vs-antigen-coverage.md)) — 6-in-1 doses no longer falsely flagged under booster series.
 - [ ] **Enforce eligibility.** `population` and `male_born_on_or_after` are parsed but never checked, so no series is ever `NotApplicable` and HPV's sex restriction is inert (queries §4). Wire in the eligibility check, including the `gender = other|unknown` → eligible-with-uncertainty-flag rule.
-- [ ] Apply the §1 matching ruling so 6-in-1 doses stop being falsely flagged INVALID under booster series.
 - [ ] Add the `UpToDateForAge` status (or chosen §2 model) and the per-series due / not-yet-due annotation.
 - [ ] **Dose-sequence cross-check.** Derive sequence from dates (current behaviour) but cross-check against `protocolApplied.doseNumberPositiveInt` and SNOMED signals, flagging discrepancies on the `RecordedDose` rather than silently preferring dates ([spec/standard.md](./spec/standard.md) §"Dose sequencing").
-- [ ] **Unknown product-code warning.** A vaccine code absent from the product map currently disappears silently from evaluation (see [docs/testing.md](./docs/testing.md) §7). Surface it.
+- [ ] **Unmatched-dose reporting.** Two cases now both vanish silently: an *unknown* product code (absent from the map, see [docs/testing.md](./docs/testing.md) §7) and a *known* product whose class matches no series in the loaded schedule (e.g. 5-in-1 vs the 2026 schedule). Surface both.
 
 ### M3 — Output completeness
 
 Bring the output up to the specced shape.
 
-- [ ] `by_antigen` breakdown (`AntigenStatus`) on `VaccinationStatus` — specced in [spec/rust-impl.md](./spec/rust-impl.md), not yet implemented.
+- [ ] **Antigen-coverage view** (`by_antigen` / `AntigenStatus`) — the "what diseases is this child protected against?" computation, deliberately deferred when [ADR 0001](./docs/adr/0001-product-class-conformance-vs-antigen-coverage.md) split conformance from coverage. Aggregates the `antigens` of every product received, independent of series.
 - [ ] Reconcile types with the spec where they have drifted (e.g. `AgeOffset` vs a separate `Interval`; whether `AgeOffset` needs `Ord` — `render` will require sorting by age).
 
 ### M4 — The rest of the CLI
@@ -71,6 +71,12 @@ The spec lists nine fixtures ([spec/rust-impl.md](./spec/rust-impl.md) §"Crate 
 - [ ] `catch_up_age_3` — late presenter; exercises the eligibility structure against the catch-up case ahead of M-future
 - [ ] Fold the [test-data/](./test-data/) MMR catch-up scenarios into integration tests
 
+### M6 — Schedule content gaps
+
+Gaps in the *data* (not the engine) found under programmatic scrutiny. The Green Book has never been machine-checked like this, so expect more.
+
+- [ ] **Pre-school booster missing.** The render example in [spec/rust-impl.md](./spec/rust-impl.md) lists a "4-in-1 pre-school booster" (DTaP/IPV) at 3y4m, but no such series exists in `schedules/gb/2026-01-01.toml` — only MMR dose 2. Add the series, the `4-in-1` product class, and the pre-school booster product(s).
+
 ## Deferred (designed for, explicitly not v1)
 
 These are out of scope now but the format and engine must not preclude them — that is the whole point of the v1 design discipline.
@@ -82,4 +88,4 @@ These are out of scope now but the format and engine must not preclude them — 
 
 ## Suggested near-term order
 
-M0 (commit + CI) → settle M1 §1 (matching) since it gates everything downstream → M2 eligibility (highest-impact correctness gap) → M4 `validate` then `render` (cheap, high-signal, and `render` proves the thesis) → backfill M5 fixtures alongside.
+~~M0 (commit + CI)~~ ✓ → ~~M1 §1 (matching)~~ ✓ → **next: M2 eligibility** (highest-impact remaining correctness gap) → M4 `validate` then `render` (cheap, high-signal, and `render` proves the thesis) → backfill M5 fixtures alongside. M1 §2/§5 still need a ruling before the dependent M2/M3 work.

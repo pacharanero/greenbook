@@ -2,7 +2,11 @@
 
 Open questions that came up while building the POC. Answer when convenient and I'll fold the answers back into the spec and code.
 
-## 1. Doses re-matching across series via antigen overlap
+## 1. Doses re-matching across series via antigen overlap — RESOLVED
+
+**Resolved 2026-06-02 — see [docs/adr/0001](./docs/adr/0001-product-class-conformance-vs-antigen-coverage.md).** Conformance and coverage are two separate questions. Conformance matching is now by **product class** (the unit the Green Book names), not antigen overlap, so a 6-in-1 dose matches only `6in1-primary`. Antigen overlap is retained for the deferred antigen-coverage view. None of the original options (A/B/C) below was adopted as-is; the product-class model supersedes them. Original write-up kept below for context.
+
+---
 
 The spec defines dose-to-series matching as: *"the vaccine code maps to at least one antigen in the series"*. As written, this means a single Infanrix Hexa (6-in-1) dose matches **three** series:
 
@@ -32,7 +36,11 @@ Options:
 
 A is probably the smallest change. C is most data-faithful but pushes work to consumers.
 
-## 3. Suppressing irrelevant invalid doses in the report
+## 3. Suppressing irrelevant invalid doses in the report — RESOLVED
+
+**Resolved 2026-06-02.** Falls out of #1: with product-class conformance matching, a dose is never re-matched into a series it doesn't belong to, so the spurious INVALID entries no longer arise and no suppression is needed. See [docs/adr/0001](./docs/adr/0001-product-class-conformance-vs-antigen-coverage.md). Original write-up kept below.
+
+---
 
 Related to #1 — when a dose is re-matched into a series it doesn't belong to and gets marked invalid, we currently print every such case. For a healthy 6-month-old this means the 6-in-1 doses appear three times in the report, twice as INVALID under booster series they were never intended for.
 
