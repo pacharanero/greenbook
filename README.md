@@ -1,6 +1,6 @@
 # greenbook
 
-A Rust library and CLI that evaluates a patient's FHIR vaccination history against a computable, versioned representation of the NHS routine childhood immunisation schedule (the [Green Book](https://www.gov.uk/government/publications/immunisation-schedule-the-green-book-chapter-11)), reporting whether they are fully vaccinated, partially vaccinated, or unvaccinated - per antigen series and in aggregate.
+A Rust library and CLI that evaluates a patient's FHIR vaccination history against a computable, versioned representation of the NHS routine childhood immunisation schedule (the [Green Book](https://www.gov.uk/government/publications/immunisation-schedule-the-green-book-chapter-11)), reporting whether they are up-to-date for their age, which doses are missing, and (strictly) whether every dose the schedule defines has been given - per series and in aggregate.
 
 For the UK, the childhood vaccination schedule is currently published as human-readable PDF files that serve as the **primary source of truth**. As of 2026 there is no computable version of the schedule. This prototype is an attempt to explore a proof-of-concept for a **computable schedule format** and **evaluation engine**, with the long-term goal of creating a versioned, computable Green Book that can be maintained in parallel with the human-readable version and eventually replace it as the upstream primary publication and 'source of truth', with downstream PDFs being generated from the computable version rather than the other way around.
 
