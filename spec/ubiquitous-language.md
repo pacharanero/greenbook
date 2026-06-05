@@ -11,7 +11,7 @@ The shared vocabulary of greenbook. Terms are **bold** on first use elsewhere in
 | **Series** | One vaccination programme within a schedule (e.g. 6-in-1 primary, MMR second dose), comprising an ordered set of doses. | programme, course |
 | **Dose** | A single *expected* administration within a series, carrying target / earliest / latest age and a minimum interval. | appointment, jab |
 | **Eligibility** | The predicate deciding whether a patient is in scope for a series (population, sex, birth cohort). | applicability |
-| **Jurisdiction** | The country and authority whose schedule this is (e.g. GB / UKHSA). | region, locale |
+| **Jurisdiction** | The country and authority whose schedule this is (e.g. UK / UKHSA). The UK code is the ISO 3166 exceptionally-reserved `UK`, used over the primary alpha-2 `GB` so the UK-wide scope (incl. Northern Ireland) is unambiguous. | region, locale |
 
 ## Products and antigens
 
@@ -31,12 +31,15 @@ The shared vocabulary of greenbook. Terms are **bold** on first use elsewhere in
 | **Coverage** | Which diseases a patient is protected against, computed across the **antigens** of every product received. | protection, immunity |
 | **Matching** | Assigning a recorded dose to a series by equality of **product class**. | antigen overlap (this *was* the matching rule; it is now coverage-only) |
 | **Recorded dose** | A vaccination event present in the patient's record. | administered dose, given dose |
-| **Valid dose** | A recorded dose that satisfies its assigned series' age and interval rules. | counted dose |
+| **Valid dose** | A recorded dose that falls within the standard schedule for its assigned series (on or after `earliest_age`, interval met, not past `latest_age`). Counts toward completion. | counted dose |
+| **Outside standard schedule** | A recorded dose that was given but breaks an age or interval rule - too early *or* too late. Recorded as received; does not count toward completion. Preferred over "invalid", because the dose is a real clinical event. | invalid dose |
 | **Unmatched dose** | A recorded dose whose product class fits no series in the applicable schedule, or whose code is unknown. | orphan dose |
 | **Dose sequencing** | Determining which dose number a recorded dose represents. | dose numbering |
+| **Due / not-yet-due** | Whether an expected dose's age has been reached by the evaluation date. The split that makes "up-to-date for age" computable. | overdue |
 | **Series completion status** | A series' standing: `Complete`, `Partial`, `None`, or `NotApplicable`. | series result |
-| **Overall status** | The aggregate determination: `FullyVaccinated`, `PartiallyVaccinated`, `Unvaccinated`, or `Unknown`. | summary |
-| **Up-to-date for age** | Proposed status: every dose *due by the evaluation date* has been received (distinct from every dose ever). | on track |
+| **Up-to-date for age** | The **headline** status: every dose *due by the evaluation date* has been received and is valid; not-yet-due doses are not held against the patient. | on track |
+| **Fully vaccinated** | A strict, age-independent flag: every applicable series is `Complete` (every dose at every age received and valid). Distinct from up-to-date-for-age; reported as an explicit flag, not the headline term. | fully immunised for life stage |
+| **Overall status** | The headline age-relative determination: `UpToDateForAge`, `BehindForAge`, `Unvaccinated`, or `Unknown` - reported alongside the strict `fully_vaccinated` flag. | summary |
 
 ## Patient input
 
@@ -90,7 +93,7 @@ The shared vocabulary of greenbook. Terms are **bold** on first use elsewhere in
 
 - **"coverage"** was originally used broadly ("comparing coverage… two different levels"). It is now reserved strictly for the **antigen / disease** view. The schedule-adherence sense is **Conformance**. See [ADR 0001](../docs/adr/0001-product-class-conformance-vs-antigen-coverage.md).
 - **"matching"** meant *antigen overlap* in the POC; it now means **product-class** matching for conformance. Antigen overlap is retained but only feeds **Coverage** — do not call it "matching".
-- **"fully vaccinated"** is overloaded: "all applicable series `Complete`" versus "up-to-date for age". Unresolved ([queries.md](../queries.md) §2). Keep `Overall status = FullyVaccinated` for the strict all-series sense and introduce **Up-to-date for age** for the age-relative sense rather than redefining either.
+- **"fully vaccinated"** was overloaded: "all applicable series `Complete`" versus "up-to-date for age". **Resolved** ([queries.md](../queries.md) §2): the two senses are reported separately. **Up-to-date for age** is the headline age-relative status (`OverallStatus`); **Fully vaccinated** is retained as a strict, age-independent flag. A "fully immunised for life stage" status was considered and rejected as an unstable moving target. The loose clinical phrase "fully vaccinated" is therefore never the headline term here.
 - **"dose"** spans *expected* dose (defined in a series) and *recorded* dose (administered, in the record). Qualify which is meant; use **Recorded dose** / **Valid dose** for the administered side.
 - **Series vs product class** are 1:1 in the current GB data, which invites conflation. They are distinct: a series is the authoring/programme unit; a product class is the conformance key. `MMR` (one class, two series) is the canonical disambiguator.
 - **"Immunisation" vs "Immunization"** — en-GB is the domain spelling and used in our own types; the American `Immunization` is a FHIR wire-format resource name only.

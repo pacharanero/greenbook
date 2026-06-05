@@ -6,7 +6,7 @@
 # =============================================================================
 
 [jurisdiction]
-country = "GB"
+country = "UK"                          # ISO 3166 exceptionally-reserved code; chosen over the primary alpha-2 "GB" because the Green Book is UK-wide and "Great Britain" reads as excluding Northern Ireland
 country_name = "United Kingdom"
 schedule_authority = "UKHSA"
 product_coding_system = "snomed-uk-dm"

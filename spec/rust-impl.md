@@ -46,18 +46,20 @@ Bundle (Patient + [Immunization])
 [3] evaluate_per_series()
     - for each series in the schedule:
       - check eligibility (population, sex, birth cohort)
-      - determine expected doses
-      - find matching received doses (via antigen mapping)
-      - validate each dose: age at administration, interval from prior dose
+      - determine expected doses, marking each due / not-yet-due
+      - find matching received doses (by product class - see ADR 0001)
+      - validate each dose: age at administration, interval from prior dose;
+        flag out-of-schedule doses (too early / too late)
       - classify: COMPLETE | PARTIAL | NONE | NOT_APPLICABLE
 
   |
   v
 [4] aggregate()
-    - overall status: FULLY_VACCINATED | PARTIALLY_VACCINATED |
-                      UNVACCINATED | UNKNOWN
+    - headline status: UP_TO_DATE_FOR_AGE | BEHIND_FOR_AGE |
+                       UNVACCINATED | UNKNOWN
+    - fully_vaccinated flag (strict: every applicable series COMPLETE)
     - per-series breakdown
-    - per-antigen breakdown
+    - per-antigen breakdown (coverage; deferred)
 
   |
   v
@@ -100,7 +102,7 @@ pub struct Schedule {
 
 #[derive(Debug, Clone, Deserialize)]
 pub struct Jurisdiction {
-    pub country: String,           // ISO 3166-1 alpha-2
+    pub country: String,           // ISO 3166 code; "UK" (exceptionally-reserved) rather than the primary alpha-2 "GB"
     pub schedule_authority: String,
     pub product_coding_system: String,
     pub language: String,          // BCP 47
@@ -155,19 +157,23 @@ pub struct Antigen {
 ```rust
 #[derive(Debug, Clone, Serialize)]
 pub struct VaccinationStatus {
-    pub overall: OverallStatus,
+    pub status: OverallStatus,      // headline, age-relative determination
+    pub fully_vaccinated: bool,     // strict: every applicable series is Complete (all ages)
     pub evaluated_at: NaiveDate,    // date of evaluation (today, or a specified date)
     pub schedule_version: NaiveDate,
     pub by_series: HashMap<String, SeriesStatus>,
-    pub by_antigen: HashMap<String, AntigenStatus>,
+    pub by_antigen: HashMap<String, AntigenStatus>,  // coverage view; deferred
 }
 
+/// The headline answer to "is this patient correctly vaccinated for their age?"
+/// Distinct from the strict `fully_vaccinated` flag on VaccinationStatus, which
+/// asks the age-independent "have they had every dose the schedule ever defines?".
 #[derive(Debug, Clone, Serialize, PartialEq)]
 pub enum OverallStatus {
-    FullyVaccinated,
-    PartiallyVaccinated,
-    Unvaccinated,
-    Unknown,        // insufficient data to determine
+    UpToDateForAge,   // every dose due by evaluated_at has been received and is valid
+    BehindForAge,     // a dose already due is missing or only met by an out-of-schedule dose
+    Unvaccinated,     // no valid doses recorded at all
+    Unknown,          // DOB missing, or cannot distinguish "none given" from "no data"
 }
 
 #[derive(Debug, Clone, Serialize)]
@@ -176,7 +182,9 @@ pub struct SeriesStatus {
     pub display_name: String,
     pub status: SeriesCompletionStatus,
     pub doses_expected: u32,
+    pub doses_due: u32,             // of the expected doses, how many are due by evaluated_at
     pub doses_valid: u32,
+    pub up_to_date_for_age: bool,   // every dose due so far has a valid recorded dose
     pub doses_recorded: Vec<RecordedDose>,
 }
 
@@ -193,8 +201,8 @@ pub struct RecordedDose {
     pub date: NaiveDate,
     pub age_at_dose: AgeOffset,
     pub vaccine_code: String,
-    pub valid: bool,
-    pub validity_reasons: Vec<String>,  // e.g. "given too early", "interval too short"
+    pub within_schedule: bool,        // false => given outside the standard schedule
+    pub schedule_notes: Vec<String>,  // e.g. "given before earliest_age (outside standard schedule)"
 }
 ```
 
@@ -205,7 +213,8 @@ pub struct RecordedDose {
 pub fn load_schedule(path: &Path) -> Result<Schedule, ScheduleError>;
 
 /// Load the schedule version applicable for a given date (patient DOB).
-/// Searches the schedules/{country}/ directory for the correct version.
+/// Selects among the schedules/{country}-*.toml files (or schedules/{country}/
+/// once jurisdictions are split into subdirectories) for the correct version.
 pub fn load_schedule_for_date(
     schedules_dir: &Path,
     country: &str,
@@ -269,7 +278,7 @@ Validates a schedule TOML file for structural correctness, referential integrity
 ### Example rendered output
 
 ```
-NHS Routine Childhood Immunisation Schedule (GB, effective 2026-01-01)
+NHS Routine Childhood Immunisation Schedule (UK, effective 2026-01-01)
 
 Age               | Vaccines
 ------------------+------------------------------------------------------------------
@@ -293,10 +302,9 @@ greenbook/
   spec/                # specification documents
   CHANGELOG.md
   schedules/
-    gb/
-      2026-01-01.toml
+    uk-2026-01-01.toml
   products/
-    gb-snomed-dm.toml
+    uk-snomed-dm.toml
   src/
     lib.rs             # public API
     schedule.rs        # Schedule, Series, Dose, Antigen types + TOML deserialisation

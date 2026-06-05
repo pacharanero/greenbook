@@ -9,31 +9,43 @@ This document defines the data formats and evaluation semantics. It is implement
 ### Design principles
 
 - [TOML](https://toml.io/) (Tom's Obvious Minimal Language)
-- Human-readable without training; editable by clinical informaticists
+- Human-readable without training; editable by clinical informaticians, ideally with GUI tooling support
 - Strongly typed (TOML's type system prevents YAML-style ambiguities)
 - Schedule is **series-centric** for authoring; the CLI `render` command produces the **age-centric** table for publication
-- Each schedule version is a separate dated file - not a git tag
-- Files are still in git, giving a full audit trail of who changed what and when
+- Each schedule version is a separate dated file
+- Global by design with a `jurisdiction` block to determine where it's applicable.
+- Files are tracked in git, giving a full audit trail of who changed what and when
 
 ### Directory structure
 
+While only one jurisdiction has data, schedule files live flat in `schedules/`, prefixed with the jurisdiction code and named for their `valid_from` date:
+
 ```
 schedules/
-  gb/
-    2026-01-01.toml   # current
-    2020-01-01.toml
-    2015-09-01.toml
-    ...
+  uk-2026-01-01.toml   # current
+  uk-2020-01-01.toml
+  uk-2015-09-01.toml
+  ...
+products/
+  uk-snomed-dm.toml    # UK SNOMED drug extension product mapping
+```
+
+The format is global by design (the `jurisdiction` block carries the country and authority), so when a second jurisdiction is added this flattens out into per-country subdirectories without a format change:
+
+```
+schedules/
+  uk/
+    2026-01-01.toml
   us/
     2026-01-01.toml
-  au/
-    2025-07-01.toml
 products/
-  gb-snomed-dm.toml   # UK SNOMED drug extension product mapping
+  uk-snomed-dm.toml
   us-cvx.toml
 ```
 
-File names match the `valid_from` date in the `[schedule]` block.
+Either way the date portion of the file name matches the `valid_from` date in the `[schedule]` block, so a version's effective date is inferable without parsing the file.
+
+The jurisdiction code is `UK`. ISO 3166-1 alpha-2 assigns the United Kingdom the code `GB` ("United Kingdom of Great Britain and Northern Ireland"), which does include Northern Ireland - but because the label "Great Britain" reads as excluding it, this project uses the ISO 3166 exceptionally-reserved code `UK` to make the UK-wide scope of the Green Book unambiguous. (The BCP 47 language tag stays `en-GB`; there is no `en-UK`.)
 
 ### Full annotated example
 
@@ -49,7 +61,7 @@ File names match the `valid_from` date in the `[schedule]` block.
 # =============================================================================
 
 [jurisdiction]
-country = "GB"                          # ISO 3166-1 alpha-2 (https://www.iso.org/iso-3166-country-codes.html)
+country = "UK"                          # ISO 3166 exceptionally-reserved code; used instead of the primary alpha-2 "GB" so the UK-wide scope (incl. Northern Ireland) is unambiguous
 country_name = "United Kingdom"
 schedule_authority = "UKHSA"
 schedule_authority_url = "https://www.gov.uk/government/organisations/uk-health-security-agency"
@@ -353,7 +365,7 @@ snomed_description = "Human papillomavirus infection (disorder)"
 
 ---
 
-## Product Mapping File: `products/gb-snomed-dm.toml`
+## Product Mapping File: `products/uk-snomed-dm.toml`
 
 FHIR records contain product codes (SNOMED CT). The mapping file bridges each product code to two things: its `product_class` (the conformance unit the Green Book names, used to match doses to series) and the `antigens` it covers (used for the disease-coverage view). See [ADR 0001](../docs/adr/0001-product-class-conformance-vs-antigen-coverage.md).
 
@@ -494,13 +506,15 @@ Matching by product class is what prevents a 6-in-1 dose — which contains Hib,
 
 ### Dose validity (conformance)
 
-A dose belongs to a series if the product's `product_class` equals the series' `product_class`. A matched dose is valid if:
+A dose belongs to a series if the product's `product_class` equals the series' `product_class`. A matched dose is **within the standard schedule** if all of:
 
 1. The date of administration is on or after `earliest_age` (calculated from DOB).
 2. If `latest_age` is set, the date is on or before that age.
 3. The interval from the previous valid dose is >= `min_interval_from_previous`.
 
-Doses that fail validity checks are recorded with reasons but do not count toward series completion. A dose whose product class matches no series in the applicable schedule (e.g. a 5-in-1 dose against a 6-in-1 schedule) conforms to nothing in that version and is surfaced as unmatched rather than counted.
+A dose that fails any of these checks was still given - the FHIR record is evidence the event happened - but it falls **outside the standard schedule**. This can run in either direction: too early (before `earliest_age`, or short of the minimum interval) or too late (after a `latest_age` cutoff). Such a dose is recorded as received, labelled "outside standard schedule" with the specific reason, and does not count toward series completion. For doses with a hard `latest_age` cutoff - rotavirus being the clearest case, where late administration carries a real intussusception risk - not counting it is clinically required; for marginal cases the label is a flag for human review rather than a clinical ruling. "Outside standard schedule" is preferred over "invalid": the dose is a real clinical event, just not one that satisfies the course.
+
+A dose whose product class matches no series in the applicable schedule (e.g. a 5-in-1 dose against a 6-in-1 schedule) conforms to nothing in that version and is surfaced as unmatched rather than counted.
 
 ### Dose sequencing
 
@@ -508,17 +522,29 @@ Three signals can indicate which dose number a record represents: `protocolAppli
 
 ### Series completion
 
+Per series, against the doses defined for it:
+
 - `Complete` - all expected doses received and valid
 - `Partial` - at least one valid dose but fewer than expected
 - `None` - no valid doses
-- `NotApplicable` - patient not eligible for this series
+- `NotApplicable` - patient not eligible for this series (see eligibility)
+
+Each series is additionally annotated with whether each outstanding dose is **due** (its `earliest_age` is on or before `evaluated_at`) or **not yet due**. This is what separates "a dose that should have been given by now is missing" from "the patient simply hasn't reached the age for the next dose", and it drives the headline status below.
 
 ### Overall status
 
-- `FullyVaccinated` - all applicable series are `Complete`
-- `PartiallyVaccinated` - at least one applicable series is `Partial` or `None`, and at least one is `Complete` or `Partial`
-- `Unvaccinated` - all applicable series are `None` or `NotApplicable`
-- `Unknown` - patient DOB missing, or no vaccination records and cannot distinguish between genuinely unvaccinated and no data
+"Is this person fully vaccinated?" is ambiguous, so evaluation reports two complementary determinations (this resolves [queries.md](../queries.md) §2).
+
+**Up-to-date for age** is the headline, age-relative answer - "are there gaps that should have been filled by now?":
+
+- `UpToDateForAge` - every dose that is *due* by `evaluated_at` has been received and is valid; doses not yet due are not held against the patient
+- `BehindForAge` - at least one *due* dose is missing, or is only satisfied by a dose given outside the standard schedule (this is the case the retired `PartiallyVaccinated` used to cover)
+- `Unvaccinated` - no valid doses recorded at all
+- `Unknown` - patient DOB missing, or no records and the evaluator cannot distinguish genuinely unvaccinated from absent data
+
+**Fully vaccinated** is a strict, age-independent flag retained alongside the headline status: true only when every applicable series is `Complete` - every dose at every age received and valid. A correctly-vaccinated 6-month-old is `UpToDateForAge` but not yet fully vaccinated; an adult who completed the whole childhood schedule is both. Because "fully vaccinated" is loose clinical shorthand for "up to date", it is reported as an explicit, precisely-defined flag rather than as the headline term. We deliberately do *not* model a "fully immunised for life stage" status: with new vaccines added across the life course (shingles, pneumococcal for older adults, and so on) that target is a moving one requiring constant maintenance, whereas "all doses in this schedule version" is bounded and stable.
+
+Between them these cover consumer need (1) "is this child correctly vaccinated for their age?" (the headline status) and need (2) "what are the specific gaps?" (the per-series breakdown with due/not-yet-due annotations). Two further consumer needs are foreseen but out of scope for v1 - (3) a predicted future vaccination schedule and (4) detection of record errors such as duplicates - and are tracked on the [roadmap](roadmap.md).
 
 ---
 
@@ -539,7 +565,7 @@ When a patient presents late (for example a 3-year-old with no previous vaccinat
 The file-per-version approach means historical evaluation is an additive feature:
 
 1. Parse patient DOB from the FHIR bundle
-2. Call `load_schedule_for_date(schedules_dir, "gb", dob)` which selects the schedule file where `valid_from <= dob` and no successor has `valid_from <= dob`
+2. Call `load_schedule_for_date(schedules_dir, "uk", dob)` which selects the schedule file (e.g. `schedules/uk-*.toml`) where `valid_from <= dob` and no successor has `valid_from <= dob`
 3. Proceed with the same evaluation logic
 
 Schedule files for historical versions would be curated manually, working back from the current schedule using Green Book chapter revisions and JCVI/DoH publications as sources. The change history on the GOV.UK Green Book Chapter 11 page provides a useful skeleton for reconstruction.

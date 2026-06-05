@@ -5,8 +5,8 @@ use std::path::Path;
 
 #[test]
 fn six_month_old_on_schedule_evaluates_correctly() {
-    let schedule = load_schedule(Path::new("schedules/gb/2026-01-01.toml")).unwrap();
-    let products = load_product_map(Path::new("products/gb-snomed-dm.toml")).unwrap();
+    let schedule = load_schedule(Path::new("schedules/uk-2026-01-01.toml")).unwrap();
+    let products = load_product_map(Path::new("products/uk-snomed-dm.toml")).unwrap();
     let bundle = std::fs::read_to_string("tests/fixtures/six-month-fully-vaccinated.json").unwrap();
     let record = parse_fhir_bundle(&bundle).unwrap();
 
