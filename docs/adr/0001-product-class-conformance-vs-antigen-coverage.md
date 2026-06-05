@@ -33,5 +33,5 @@ Cross-time substitution (the 5-in-1 → 6-in-1 case) is resolved by the two view
 
 - The spurious INVALID booster entries disappear; queries §1 and §3 are resolved without per-report suppression hacks.
 - The product map and every schedule series gain a required `product_class` field. This is a format change; all bundled data is updated in the same change.
-- A *known* product whose class matches no series in the loaded schedule (e.g. Pediacel against the 2026 schedule) now conforms to nothing and is not counted. Surfacing such "known product, no conforming series in this schedule version" doses — alongside genuinely unknown product codes — is follow-up work tracked on the [roadmap](../../roadmap.md) (M2).
+- A *known* product whose class matches no series in the loaded schedule (e.g. Pediacel against the 2026 schedule) now conforms to nothing and is not counted. Surfacing such "known product, no conforming series in this schedule version" doses — alongside genuinely unknown product codes — is follow-up work tracked on the [roadmap](../../spec/roadmap.md) (M2).
 - Conformance now depends on the product map being complete and correctly classed. Brand variation (e.g. Infanrix Hexa and Vaxelis both being "6-in-1") is handled by assigning them the same class rather than by enumerating codes per series.

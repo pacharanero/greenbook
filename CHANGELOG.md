@@ -15,5 +15,5 @@ This changelog tracks the **crate and tooling**. Changes to schedule *content* a
 - Initial proof-of-concept: FHIR R4 bundle parser, TOML schedule and product-map loaders, age-offset arithmetic, and a per-series + overall vaccination-status evaluation engine.
 - CLI `evaluate` subcommand with human-readable report and JSON output.
 - Current GB schedule (`schedules/gb/2026-01-01.toml`) and UK SNOMED drug-extension product map (`products/gb-snomed-dm.toml`).
-- Specification documents under `spec/`, POC walkthrough in `docs/testing.md`, and a [roadmap](./roadmap.md).
+- Specification documents under `spec/`, POC walkthrough in `docs/testing.md`, and a [roadmap](./spec/roadmap.md).
 - CI running `cargo fmt --check`, `cargo clippy -- -D warnings`, and `cargo test`.

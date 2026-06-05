@@ -1,6 +1,6 @@
 # Roadmap
 
-Where greenbook is and where it goes next. This tracks the gap between the [specification](./spec/) and the implementation, and sequences the remaining work. It is a living document — edit it as decisions land. Open design questions live in [queries.md](./queries.md); answers there feed back into the spec, and the resulting work lands here.
+Where greenbook is and where it goes next. This tracks the gap between the [specification](./) and the implementation, and sequences the remaining work. It is a living document — edit it as decisions land. Open design questions live in [queries.md](../queries.md); answers there feed back into the spec, and the resulting work lands here.
 
 ## Status at a glance
 
@@ -12,7 +12,7 @@ Nothing is committed to git yet. The first milestone is to get a clean, reviewed
 
 ## Guiding principle
 
-Build the format and engine correctly for the *current* schedule so that historical versioning (v2), at-risk overrides, and catch-up rules become additive extensions rather than rewrites. Every design choice made now is judged against that test. See [spec/introduction.md](./spec/introduction.md) §"Scope for v1".
+Build the format and engine correctly for the *current* schedule so that historical versioning (v2), at-risk overrides, and catch-up rules become additive extensions rather than rewrites. Every design choice made now is judged against that test. See [spec/introduction.md](./introduction.md) §"Scope for v1".
 
 ## Milestones
 
@@ -22,37 +22,37 @@ Get the working POC onto a reviewable footing before adding behaviour.
 
 - [ ] Initial git commit of the current tree
 - [ ] `CHANGELOG.md` (referenced by the schedule `change_summary` but absent)
-- [ ] CI workflow running `cargo fmt --check`, `cargo clippy -- -D warnings`, `cargo test` (per [spec/rust-impl.md](./spec/rust-impl.md) §"Build and Tooling Conventions"; confirm latest stable action versions before pinning)
+- [ ] CI workflow running `cargo fmt --check`, `cargo clippy -- -D warnings`, `cargo test` (per [spec/rust-impl.md](./rust-impl.md) §"Build and Tooling Conventions"; confirm latest stable action versions before pinning)
 
 ### M1 — Resolve the open design questions
 
-These block clean test fixtures and correct output. They are decisions, not code — see [queries.md](./queries.md). Each needs a ruling before the dependent code is worth writing.
+These block clean test fixtures and correct output. They are decisions, not code — see [queries.md](../queries.md). Each needs a ruling before the dependent code is worth writing.
 
-- [x] §1 Dose-to-series matching — **resolved**: product-class conformance matching vs antigen coverage, [ADR 0001](./docs/adr/0001-product-class-conformance-vs-antigen-coverage.md). Implemented.
+- [x] §1 Dose-to-series matching — **resolved**: product-class conformance matching vs antigen coverage, [ADR 0001](../docs/adr/0001-product-class-conformance-vs-antigen-coverage.md). Implemented.
 - [x] §3 Suppressing irrelevant invalid doses — **resolved**: falls out of §1; no suppression needed.
 - [ ] §2 "Fully vaccinated" vs "up-to-date for age" — pick a status model
 - [ ] §5 `latest_age` semantics for late-but-given doses
 
 ### M2 — Correctness gaps in the engine
 
-The engine currently takes the happy path. Close the known divergences from [spec/standard.md](./spec/standard.md) §"Evaluation Logic".
+The engine currently takes the happy path. Close the known divergences from [spec/standard.md](./standard.md) §"Evaluation Logic".
 
-- [x] Product-class conformance matching ([ADR 0001](./docs/adr/0001-product-class-conformance-vs-antigen-coverage.md)) — 6-in-1 doses no longer falsely flagged under booster series.
+- [x] Product-class conformance matching ([ADR 0001](../docs/adr/0001-product-class-conformance-vs-antigen-coverage.md)) — 6-in-1 doses no longer falsely flagged under booster series.
 - [ ] **Enforce eligibility.** `population` and `male_born_on_or_after` are parsed but never checked, so no series is ever `NotApplicable` and HPV's sex restriction is inert (queries §4). Wire in the eligibility check, including the `gender = other|unknown` → eligible-with-uncertainty-flag rule.
 - [ ] Add the `UpToDateForAge` status (or chosen §2 model) and the per-series due / not-yet-due annotation.
-- [ ] **Dose-sequence cross-check.** Derive sequence from dates (current behaviour) but cross-check against `protocolApplied.doseNumberPositiveInt` and SNOMED signals, flagging discrepancies on the `RecordedDose` rather than silently preferring dates ([spec/standard.md](./spec/standard.md) §"Dose sequencing").
-- [ ] **Unmatched-dose reporting.** Two cases now both vanish silently: an *unknown* product code (absent from the map, see [docs/testing.md](./docs/testing.md) §7) and a *known* product whose class matches no series in the loaded schedule (e.g. 5-in-1 vs the 2026 schedule). Surface both.
+- [ ] **Dose-sequence cross-check.** Derive sequence from dates (current behaviour) but cross-check against `protocolApplied.doseNumberPositiveInt` and SNOMED signals, flagging discrepancies on the `RecordedDose` rather than silently preferring dates ([spec/standard.md](./standard.md) §"Dose sequencing").
+- [ ] **Unmatched-dose reporting.** Two cases now both vanish silently: an *unknown* product code (absent from the map, see [docs/testing.md](../docs/testing.md) §7) and a *known* product whose class matches no series in the loaded schedule (e.g. 5-in-1 vs the 2026 schedule). Surface both.
 
 ### M3 — Output completeness
 
 Bring the output up to the specced shape.
 
-- [ ] **Antigen-coverage view** (`by_antigen` / `AntigenStatus`) — the "what diseases is this child protected against?" computation, deliberately deferred when [ADR 0001](./docs/adr/0001-product-class-conformance-vs-antigen-coverage.md) split conformance from coverage. Aggregates the `antigens` of every product received, independent of series.
+- [ ] **Antigen-coverage view** (`by_antigen` / `AntigenStatus`) — the "what diseases is this child protected against?" computation, deliberately deferred when [ADR 0001](../docs/adr/0001-product-class-conformance-vs-antigen-coverage.md) split conformance from coverage. Aggregates the `antigens` of every product received, independent of series.
 - [ ] Reconcile types with the spec where they have drifted (e.g. `AgeOffset` vs a separate `Interval`; whether `AgeOffset` needs `Ord` — `render` will require sorting by age).
 
 ### M4 — The rest of the CLI
 
-Only `evaluate` exists. The other commands are specced in [spec/rust-impl.md](./spec/rust-impl.md) §"CLI".
+Only `evaluate` exists. The other commands are specced in [spec/rust-impl.md](./rust-impl.md) §"CLI".
 
 - [ ] `validate <schedule>` — structural + referential + logical-consistency checks (sequential dose numbers, interval present where dose > 1). Natural next command; reuses existing validation.
 - [ ] `render <schedule> [--format table|markdown|html]` — series-centric → age-centric pivot. **This is the command that demonstrates the core thesis: the publication PDF generated from the data, not the reverse.**
@@ -61,28 +61,28 @@ Only `evaluate` exists. The other commands are specced in [spec/rust-impl.md](./
 
 ### M5 — Test coverage
 
-The spec lists nine fixtures ([spec/rust-impl.md](./spec/rust-impl.md) §"Crate Structure"); one exists. Build them out — several deliberately exercise structures that v2 features will lean on.
+The spec lists nine fixtures ([spec/rust-impl.md](./rust-impl.md) §"Crate Structure"); one exists. Build them out — several deliberately exercise structures that v2 features will lean on.
 
 - [ ] `fully_vaccinated`, `missing_menb`, `unvaccinated`, `partial_hpv`
 - [ ] `sex_unknown_hpv` (depends on M2 eligibility)
 - [ ] `dose_sequence_mismatch` (depends on M2 cross-check)
 - [ ] `product_5in1_to_6in1` — historical Pediacel dose vs current 6-in-1 schedule
-- [ ] `product_mmrv_to_mmr` — lossy substitution in the opposite direction; **requires adding the MMRV product and a `varicella` antigen** to the registry/map ([spec/standard.md](./spec/standard.md) §"Product Mapping File")
+- [ ] `product_mmrv_to_mmr` — lossy substitution in the opposite direction; **requires adding the MMRV product and a `varicella` antigen** to the registry/map ([spec/standard.md](./standard.md) §"Product Mapping File")
 - [ ] `catch_up_age_3` — late presenter; exercises the eligibility structure against the catch-up case ahead of M-future
-- [ ] Fold the [test-data/](./test-data/) MMR catch-up scenarios into integration tests
+- [ ] Fold the [test-data/](../test-data/) MMR catch-up scenarios into integration tests
 
 ### M6 — Schedule content gaps
 
 Gaps in the *data* (not the engine) found under programmatic scrutiny. The Green Book has never been machine-checked like this, so expect more.
 
-- [ ] **Pre-school booster missing.** The render example in [spec/rust-impl.md](./spec/rust-impl.md) lists a "4-in-1 pre-school booster" (DTaP/IPV) at 3y4m, but no such series exists in `schedules/gb/2026-01-01.toml` — only MMR dose 2. Add the series, the `4-in-1` product class, and the pre-school booster product(s).
+- [ ] **Pre-school booster missing.** The render example in [spec/rust-impl.md](./rust-impl.md) lists a "4-in-1 pre-school booster" (DTaP/IPV) at 3y4m, but no such series exists in `schedules/gb/2026-01-01.toml` — only MMR dose 2. Add the series, the `4-in-1` product class, and the pre-school booster product(s).
 
 ## Deferred (designed for, explicitly not v1)
 
 These are out of scope now but the format and engine must not preclude them — that is the whole point of the v1 design discipline.
 
-- **Historical versioning (v2).** `load_schedule_for_date(dir, country, date)` selecting the schedule where `valid_from <= dob` with no nearer successor. Then curate ~8–12 historical GB versions back to ~1990. See [spec/standard.md](./spec/standard.md) §"Historical Versioning" and [spec/introduction.md](./spec/introduction.md).
-- **At-risk / overriding rules.** DNS-MX-style numerical priority on eligibility rules; higher-priority matching rule overrides the primary schedule. [spec/standard.md](./spec/standard.md) §"Future extensions".
+- **Historical versioning (v2).** `load_schedule_for_date(dir, country, date)` selecting the schedule where `valid_from <= dob` with no nearer successor. Then curate ~8–12 historical GB versions back to ~1990. See [spec/standard.md](./standard.md) §"Historical Versioning" and [spec/introduction.md](./introduction.md).
+- **At-risk / overriding rules.** DNS-MX-style numerical priority on eligibility rules; higher-priority matching rule overrides the primary schedule. [spec/standard.md](./standard.md) §"Future extensions".
 - **Catch-up schedules.** Distinct from primary-schedule evaluation; v1 only flags incomplete series.
 - **Multi-jurisdiction.** The `schedules/<country>/` and `products/<coding-system>.toml` layout is already shaped for `us`/`au`; no non-GB data yet.
 
