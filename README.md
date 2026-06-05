@@ -2,9 +2,11 @@
 
 A Rust library and CLI that evaluates a patient's FHIR vaccination history against a computable, versioned representation of the NHS routine childhood immunisation schedule (the [Green Book](https://www.gov.uk/government/publications/immunisation-schedule-the-green-book-chapter-11)), reporting whether they are fully vaccinated, partially vaccinated, or unvaccinated - per antigen series and in aggregate.
 
-For the UK, the childhood vaccination schedule is currently published as human-readable PDF files that serve as the **primary source of truth**. As of 2026 there is no computable version of the schedule. This prototype is an attempt to explore the design space for a computable schedule format and evaluation engine, with the long-term goal of creating a versioned, computable Green Book that can be maintained in parallel with the human-readable version and eventually replace it as the upstream primary publication and 'source of truth', with downstream PDFs being generated from the computable version rather than the other way around.
+For the UK, the childhood vaccination schedule is currently published as human-readable PDF files that serve as the **primary source of truth**. As of 2026 there is no computable version of the schedule. This prototype is an attempt to explore a proof-of-concept for a **computable schedule format** and **evaluation engine**, with the long-term goal of creating a versioned, computable Green Book that can be maintained in parallel with the human-readable version and eventually replace it as the upstream primary publication and 'source of truth', with downstream PDFs being generated from the computable version rather than the other way around.
 
-The long-term goal is that clinical authors at UKHSA could author schedule changes directly in this format, replacing the current workflow where a PDF is published and code is written as a lossy derivative of it.
+### What is the long-term potential of getting this right?
+
+The long-term goal is that vaccination and public health experts could eventually author schedule changes **directly** in a computable format, and all downstream publications - PDFs, websites, and of course clinical digital tools - would be generated from this one 'upstream' and trusted computable source. It would replace the current 'digital paper' workflow where a PDF is published from a Word document and clinical code has to be written as a (potentially inaccurate) reverse-engineered derivative of it.
 
 See [spec/](./spec/) for the full specification, [docs/testing.md](./docs/testing.md) for a walkthrough of the POC, and [queries.md](./queries.md) for open design questions.
 
