@@ -8,9 +8,9 @@ This changelog tracks the **crate and tooling**. Changes to schedule *content* a
 
 ### Changed
 
-- Conformance matching is now by **product class** rather than antigen overlap, separating "schedule conformance" from "antigen coverage" ([ADR 0001](./docs/adr/0001-product-class-conformance-vs-antigen-coverage.md)). Product map entries and schedule series now carry a required `product_class` field. This fixes 6-in-1 doses being falsely flagged INVALID under the Hib/MenC and Td/IPV booster series (resolves queries §1 and §3).
-- Schedule and product-map files moved to a flat, jurisdiction-prefixed layout (`schedules/uk-2026-01-01.toml`, `products/uk-snomed-dm.toml`) and the jurisdiction code set to `UK` (ISO 3166 exceptionally-reserved, chosen over `GB` so the UK-wide scope incl. Northern Ireland is unambiguous). Resolves queries §7.
-- Spec now defines the resolved status model — `UpToDateForAge` as the headline status alongside a strict `fully_vaccinated` flag (queries §2) — and the "outside standard schedule" terminology for doses given too early or too late (queries §5). These are folded into the spec; the engine implementation is tracked on the [roadmap](./spec/roadmap.md) (M2).
+- Conformance matching is now by **product class** rather than antigen overlap, separating "schedule conformance" from "antigen coverage" ([ADR 0001](./docs/adr/0001-product-class-conformance-vs-antigen-coverage.md)). Product map entries and schedule series now carry a required `product_class` field. This fixes 6-in-1 doses being falsely flagged INVALID under the Hib/MenC and Td/IPV booster series.
+- Schedule and product-map files moved to a flat, jurisdiction-prefixed layout (`schedules/uk-2026-01-01.toml`, `products/uk-snomed-dm.toml`) and the jurisdiction code set to `UK` (ISO 3166 exceptionally-reserved, chosen over `GB` so the UK-wide scope incl. Northern Ireland is unambiguous).
+- Spec now defines the resolved status model — `UpToDateForAge` as the headline status alongside a strict `fully_vaccinated` flag — and the "outside standard schedule" terminology for doses given too early or too late. These are folded into the spec; the engine implementation is tracked on the [roadmap](./spec/roadmap.md) (M2).
 
 ### Added
 

@@ -41,8 +41,7 @@ greenbook/
     download-green-book.sh   - utility to fetch source PDFs from gov.uk
   pdf/
     green-book-chapter-11-2026-03-30.pdf   - downloaded source PDF (gitignored)
-  spec/                      - the specification documents
-  queries.md                 - open questions raised during POC build
+  spec/                      - the specification documents (incl. roadmap)
 ```
 
 ## 2. Fetch the source Green Book PDF (optional)
@@ -117,14 +116,14 @@ If you omit `--evaluated-at` it defaults to today; the same fixture will give di
 
 For the human-readable report, the salient lines are:
 
-- `Overall status: PARTIALLY_VACCINATED` — technically correct but clinically misleading for an on-schedule infant. This is why the status model is being reworked so the headline answer is **up-to-date for age** (see [queries.md](../queries.md) §2, resolved); the engine change is tracked on the [roadmap](../spec/roadmap.md) (M2). The current code still reports the strict status.
+- `Overall status: PARTIALLY_VACCINATED` — technically correct but clinically misleading for an on-schedule infant. This is why the status model is being reworked so the headline answer is **up-to-date for age** (resolved in [spec/standard.md](../spec/standard.md) §"Overall status"); the engine change is tracked on the [roadmap](../spec/roadmap.md) (M2). The current code still reports the strict status.
 - `[COMPLETE   ] 6-in-1 (3/3 doses)` — three valid doses, all on or after `earliest_age`.
 - `[COMPLETE   ] Rotavirus (2/2 doses)` — both doses given before the 14w 6d / 23w 6d cutoffs.
 - `[PARTIAL    ] MenB (2/3 doses)` — third dose isn't due until 12 months.
 - `[PARTIAL    ] PCV (1/2 doses)` — second dose isn't due until 12 months.
 - `[NONE       ] Hib/MenC booster, MMR (×2), HPV, Td/IPV` — all due later than 6 months.
 
-The booster series (Hib/MenC, Td/IPV) show no doses and no spurious `INVALID` entries: conformance now matches doses to series by **product class**, so a 6-in-1 dose is never dragged into a booster series via shared antigens. This resolved [queries.md](../queries.md) §1 — see [ADR 0001](adr/0001-product-class-conformance-vs-antigen-coverage.md).
+The booster series (Hib/MenC, Td/IPV) show no doses and no spurious `INVALID` entries: conformance now matches doses to series by **product class**, so a 6-in-1 dose is never dragged into a booster series via shared antigens. See [ADR 0001](adr/0001-product-class-conformance-vs-antigen-coverage.md) for the conformance-vs-coverage decision behind this.
 
 ## 7. Try changing the inputs
 
@@ -143,4 +142,4 @@ Open `schedules/uk-2026-01-01.toml` directly. Every series is one `[[series]]` b
 
 ## 9. Next steps
 
-See [queries.md](../queries.md) for the design questions the POC raised; most are now resolved and folded into the [spec](../spec/) and [roadmap](../spec/roadmap.md). The next implementation work is M2 (eligibility enforcement, the up-to-date-for-age status, and unmatched-dose reporting).
+The design questions the POC raised are now resolved and folded into the [spec](../spec/) and [roadmap](../spec/roadmap.md) (see the roadmap's M1 for the record). The next implementation work is M2 (eligibility enforcement, the up-to-date-for-age status, and unmatched-dose reporting).

@@ -8,7 +8,7 @@ For the UK, the childhood vaccination schedule is currently published as human-r
 
 The long-term goal is that vaccination and public health experts could eventually author schedule changes **directly** in a computable format, and all downstream publications - PDFs, websites, and of course clinical digital tools - would be generated from this one 'upstream' and trusted computable source. It would replace the current 'digital paper' workflow where a PDF is published from a Word document and clinical code has to be written as a (potentially inaccurate) reverse-engineered derivative of it.
 
-See [spec/](./spec/) for the full specification, [docs/testing.md](./docs/testing.md) for a walkthrough of the POC, and [queries.md](./queries.md) for open design questions.
+See [spec/](./spec/) for the full specification and [roadmap](./spec/roadmap.md), and [docs/testing.md](./docs/testing.md) for a walkthrough of the POC.
 
 ---
 

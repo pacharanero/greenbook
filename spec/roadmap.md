@@ -1,6 +1,6 @@
 # Roadmap
 
-Where greenbook is and where it goes next. This tracks the gap between the [specification](./) and the implementation, and sequences the remaining work. It is a living document — edit it as decisions land. Open design questions live in [queries.md](../queries.md); answers there feed back into the spec, and the resulting work lands here.
+Where greenbook is and where it goes next. This tracks the gap between the [specification](./) and the implementation, and sequences the remaining work. It is a living document — edit it as decisions land. The design questions raised during the POC are resolved and recorded in M1 below; their answers feed back into the spec, and the resulting work lands in the later milestones.
 
 ## Status at a glance
 
@@ -8,7 +8,7 @@ The v1 POC core is working and green: `cargo test` passes, `cargo clippy --all-t
 
 What this means: the file format and evaluation pipeline are proven end-to-end on the happy path. The remaining v1 work is correctness (eligibility, dose-matching), completeness (the other CLI commands and the `by_antigen` breakdown), and breadth of test coverage — none of it requires rearchitecting.
 
-The baseline is committed and CI is green (M0 done). The design questions in [queries.md](../queries.md) are now resolved; the remaining work is implementing the decisions (M2 onward).
+The baseline is committed and CI is green (M0 done). The POC design questions are now resolved (recorded in M1 below); the remaining work is implementing the decisions (M2 onward).
 
 ## Guiding principle
 
@@ -26,7 +26,7 @@ Get the working POC onto a reviewable footing before adding behaviour.
 
 ### M1 — Resolve the open design questions
 
-These block clean test fixtures and correct output. They are decisions, not code — see [queries.md](../queries.md). Each needs a ruling before the dependent code is worth writing.
+These were decisions, not code — each needed a ruling before the dependent code was worth writing. All are now resolved; the rulings are recorded below and folded into the spec.
 
 - [x] §1 Dose-to-series matching — **resolved**: product-class conformance matching vs antigen coverage, [ADR 0001](../docs/adr/0001-product-class-conformance-vs-antigen-coverage.md). Implemented.
 - [x] §3 Suppressing irrelevant invalid doses — **resolved**: falls out of §1; no suppression needed.
@@ -41,7 +41,7 @@ These block clean test fixtures and correct output. They are decisions, not code
 The engine currently takes the happy path. Close the known divergences from [spec/standard.md](./standard.md) §"Evaluation Logic".
 
 - [x] Product-class conformance matching ([ADR 0001](../docs/adr/0001-product-class-conformance-vs-antigen-coverage.md)) — 6-in-1 doses no longer falsely flagged under booster series.
-- [ ] **Enforce eligibility.** `population` and `male_born_on_or_after` are parsed but never checked, so no series is ever `NotApplicable` and HPV's sex restriction is inert (queries §4). Wire in the eligibility check, including the `gender = other|unknown` → eligible-with-uncertainty-flag rule.
+- [ ] **Enforce eligibility.** `population` and `male_born_on_or_after` are parsed but never checked, so no series is ever `NotApplicable` and HPV's sex restriction is inert (M1 §4). Wire in the eligibility check, including the `gender = other|unknown` → eligible-with-uncertainty-flag rule.
 - [ ] **Adopt the resolved status model (§2).** Replace the current `OverallStatus` (`FullyVaccinated`/`PartiallyVaccinated`/`Unvaccinated`/`Unknown`) with the headline age-relative enum `UpToDateForAge`/`BehindForAge`/`Unvaccinated`/`Unknown`, add the strict `fully_vaccinated: bool` to `VaccinationStatus`, and add the per-series due / not-yet-due annotation (`doses_due`, `up_to_date_for_age`). See [spec/standard.md](./standard.md) §"Overall status".
 - [ ] **Out-of-schedule labelling (§5).** Rename `RecordedDose.valid`/`validity_reasons` to `within_schedule`/`schedule_notes`, and report rule-breaking doses (too early or too late) as "outside standard schedule" rather than "invalid".
 - [ ] **Dose-sequence cross-check.** Derive sequence from dates (current behaviour) but cross-check against `protocolApplied.doseNumberPositiveInt` and SNOMED signals, flagging discrepancies on the `RecordedDose` rather than silently preferring dates ([spec/standard.md](./standard.md) §"Dose sequencing").
@@ -53,8 +53,8 @@ Bring the output up to the specced shape.
 
 - [ ] **Antigen-coverage view** (`by_antigen` / `AntigenStatus`) — the "what diseases is this child protected against?" computation, deliberately deferred when [ADR 0001](../docs/adr/0001-product-class-conformance-vs-antigen-coverage.md) split conformance from coverage. Aggregates the `antigens` of every product received, independent of series.
 - [ ] Reconcile types with the spec where they have drifted (e.g. `AgeOffset` vs a separate `Interval`; whether `AgeOffset` needs `Ord` — `render` will require sorting by age).
-- [ ] **Predicted future schedule** (consumer need 3 from queries §2). Project the doses a patient has not yet reached the age for, as a forward-looking "what's next and when" list (assuming no schedule change). Useful to parents and planners.
-- [ ] **Record-error detection** (consumer need 4 from queries §2). Surface likely data errors in the record itself — duplicate doses, implausibly-spaced administrations, doses before birth — distinct from schedule non-conformance.
+- [ ] **Predicted future schedule** (consumer need 3 from M1 §2). Project the doses a patient has not yet reached the age for, as a forward-looking "what's next and when" list (assuming no schedule change). Useful to parents and planners.
+- [ ] **Record-error detection** (consumer need 4 from M1 §2). Surface likely data errors in the record itself — duplicate doses, implausibly-spaced administrations, doses before birth — distinct from schedule non-conformance.
 
 ### M4 — The rest of the CLI
 

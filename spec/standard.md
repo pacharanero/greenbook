@@ -533,7 +533,7 @@ Each series is additionally annotated with whether each outstanding dose is **du
 
 ### Overall status
 
-"Is this person fully vaccinated?" is ambiguous, so evaluation reports two complementary determinations (this resolves [queries.md](../queries.md) §2).
+"Is this person fully vaccinated?" is ambiguous, so evaluation reports two complementary determinations.
 
 **Up-to-date for age** is the headline, age-relative answer - "are there gaps that should have been filled by now?":
 
