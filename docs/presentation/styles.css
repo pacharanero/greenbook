@@ -1,0 +1,329 @@
+/* greenbook presentation theme
+ *
+ * A document-like palette nodding to the literal "Green Book":
+ * warm paper background, deep ink text, forest green as the primary accent,
+ * and a warm terracotta reserved for edge-cases / warnings.
+ *
+ * Font sizes use pt (points) for predictable, slide-fixed sizing.
+ */
+
+@import url('https://fonts.googleapis.com/css2?family=Spectral:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap');
+
+:root {
+  /* Backgrounds */
+  --background-color: #F6F4EC;              /* warm paper */
+  --section-divider-bg: #16573F;           /* deep forest green for dividers */
+
+  /* Typography */
+  --heading-font: "Spectral", Georgia, serif;
+  --body-font: "Inter", Helvetica, sans-serif;
+  --base-font-size: 32px;
+  --text-size: 16pt;
+  --h1-size: 46pt;
+  --h2-size: 33pt;
+  --h3-size: 22pt;
+  --footnote-size: 11pt;
+
+  /* Colour palette */
+  --paper: #F6F4EC;
+  --ink: #1B2A24;
+  --green: #1E6F52;
+  --green-dark: #16573F;
+  --slate: #46555C;
+  --amber: #C2602F;
+  --cream: #F4F1E4;
+
+  --primary-color: #1E6F52;    /* forest green */
+  --secondary-color: #C2602F;  /* terracotta - edge cases / warnings */
+  --text-color: #1B2A24;       /* deep ink */
+  --muted-color: #6E7A72;      /* sage grey */
+  --line-color: #1E6F52;
+
+  /* Layout */
+  --slide-padding: 64px;
+  --slide-padding-top: 44px;
+  --content-gap: 26px;
+  --box-radius: 10px;
+}
+
+/* ===========================================
+   BASE
+   =========================================== */
+
+.reveal {
+  font-family: var(--body-font);
+  font-size: var(--base-font-size);
+}
+
+.reveal strong,
+.reveal b { font-weight: 700; }
+
+.reveal-viewport { background-color: var(--background-color); }
+
+.reveal-viewport.is-section-divider .slide-background.present {
+  background-color: var(--section-divider-bg) !important;
+}
+
+.reveal h1,
+.reveal h2,
+.reveal h3,
+.reveal h4,
+.reveal h5,
+.reveal h6 {
+  font-family: var(--heading-font);
+  text-transform: none;
+  color: var(--text-color);
+  font-weight: 600;
+  line-height: 1.15;
+}
+
+.reveal h1 { font-size: var(--h1-size); }
+.reveal h2 {
+  font-size: var(--h2-size);
+  margin-bottom: 0;
+  color: var(--green-dark);
+}
+.reveal h3 { font-size: var(--h3-size); color: var(--green-dark); }
+
+.reveal p,
+.reveal li,
+.reveal td,
+.reveal th,
+.reveal blockquote {
+  font-size: var(--text-size);
+  color: var(--text-color);
+  line-height: 1.5;
+}
+
+/* Slide title gets a thin green rule underneath */
+.reveal .slides section > h2 {
+  flex-shrink: 0;
+  margin: 0;
+  padding-bottom: 12px;
+  border-bottom: 3px solid var(--green);
+}
+
+/* ===========================================
+   LISTS
+   =========================================== */
+
+.reveal ul { list-style: none; padding-left: 0; margin: 14px 0; }
+
+.reveal ul li {
+  position: relative;
+  padding-left: 26px;
+  margin-bottom: 12px;
+}
+
+.reveal ul li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0.55em;
+  width: 9px;
+  height: 9px;
+  background: var(--green);
+  border-radius: 2px;            /* small square ticks, document-like */
+  transform: rotate(45deg);
+}
+
+.reveal ul ul li::before { background: var(--muted-color); width: 7px; height: 7px; }
+
+.reveal blockquote p { font-size: inherit; }
+
+/* ===========================================
+   SLIDE LAYOUT
+   =========================================== */
+
+.reveal .slides section {
+  height: 100%;
+  display: flex !important;
+  flex-direction: column !important;
+  padding: var(--slide-padding-top) var(--slide-padding) var(--slide-padding) var(--slide-padding) !important;
+  box-sizing: border-box;
+  text-align: left;
+}
+
+.reveal .slides section.stack { padding: 0 !important; }
+
+.reveal .slides section > .content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  padding-top: var(--content-gap);
+  text-align: left;
+}
+
+.reveal .slides section > .footnote {
+  position: absolute;
+  bottom: 16px;
+  left: var(--slide-padding);
+  right: var(--slide-padding);
+  font-size: var(--footnote-size);
+  color: var(--muted-color);
+}
+
+/* ===========================================
+   SECTION DIVIDERS - light text on forest green
+   =========================================== */
+
+.reveal .slides section.section-divider {
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: center !important;
+  align-items: center !important;
+  text-align: center;
+}
+
+.reveal .slides section.section-divider h1 {
+  font-size: 54pt;
+  text-align: center;
+  color: var(--cream);
+}
+
+.reveal .slides section.section-divider p {
+  font-size: 20pt;
+  color: #BFD8C9;
+}
+
+.reveal .slides section.section-divider .kicker {
+  color: #8FBBA6;
+  text-transform: uppercase;
+  letter-spacing: 0.22em;
+  font-size: 14pt;
+  font-family: var(--body-font);
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+/* ===========================================
+   TEXT UTILITIES
+   =========================================== */
+
+.text-lg { font-size: 18pt !important; }
+.text-xl { font-size: 20pt !important; }
+.text-2xl { font-size: 24pt !important; }
+.text-3xl { font-size: 28pt !important; }
+.text-4xl { font-size: 32pt !important; }
+.text-muted { color: var(--muted-color) !important; }
+.text-center { text-align: center !important; }
+.text-uppercase { text-transform: uppercase; letter-spacing: 0.1em; }
+.font-light { font-weight: 300; }
+.font-bold { font-weight: 600; }
+.green { color: var(--green) !important; }
+.amber { color: var(--secondary-color) !important; }
+
+/* ===========================================
+   COMPONENTS
+   =========================================== */
+
+/* Ubiquitous-language term chip - used inline within <p>/<li> */
+.term {
+  font-family: var(--body-font);
+  font-weight: 600;
+  font-style: normal;          /* stay upright even inside an italic quote */
+  font-size: 0.88em;
+  color: var(--green-dark);
+  background: #E3EDE6;
+  border: 1px solid #C4D8CC;
+  border-radius: 6px;
+  padding: 1px 9px;
+  white-space: nowrap;
+}
+.term.amber { color: #8A3F18; background: #F4E2D6; border-color: #E2C2AC; }
+
+/* Card with a green left accent */
+.card {
+  background: #FFFFFF;
+  border: 1px solid #E4E1D4;
+  border-left: 6px solid var(--green);
+  border-radius: var(--box-radius);
+  padding: 18px 22px;
+  box-shadow: 0 1px 3px rgba(27, 42, 36, 0.06);
+}
+.card.amber { border-left-color: var(--secondary-color); }
+.card h3 { margin-top: 0; }
+.card p:last-child, .card ul:last-child { margin-bottom: 0; }
+
+/* Big number stat */
+.stat .num {
+  font-family: var(--heading-font);
+  font-size: 40pt;
+  font-weight: 700;
+  color: var(--green);
+  line-height: 1;
+}
+.stat .num.amber { color: var(--secondary-color); }
+
+/* Terminal / output block */
+.terminal {
+  background: #14201B;
+  border-radius: var(--box-radius);
+  padding: 18px 22px;
+  font-family: "SFMono-Regular", "Consolas", "Liberation Mono", monospace;
+  box-shadow: 0 2px 10px rgba(27, 42, 36, 0.18);
+}
+.terminal p,
+.terminal pre {
+  font-family: inherit;
+  font-size: 13pt;
+  line-height: 1.45;
+  color: #DCE5DE;
+  margin: 0;
+  white-space: pre;
+}
+.terminal .ok { color: #6FB98F; }
+.terminal .warn { color: #E59866; }
+.terminal .key { color: #9FD3BE; }
+.terminal .dim { color: #7E8B83; }
+
+/* Status pill */
+.pill {
+  display: inline-block;
+  font-family: var(--body-font);
+  font-weight: 600;
+  font-size: 0.8em;
+  border-radius: 999px;
+  padding: 2px 14px;
+  letter-spacing: 0.02em;
+}
+/* color !important so the .green/.amber text utilities (also !important) don't
+   repaint the pill text the same colour as its background. */
+.pill.green { color: #FFFFFF !important; background: var(--green); }
+.pill.amber { color: #FFFFFF !important; background: var(--secondary-color); }
+.pill.grey  { color: #FFFFFF !important; background: var(--slate); }
+
+/* Flow arrow between boxes */
+.arrow {
+  font-family: var(--body-font);
+  color: var(--green);
+  font-weight: 700;
+  font-size: 22pt;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Simple key->value definition row */
+.defrow { border-bottom: 1px solid #E4E1D4; padding: 10px 0; }
+.defrow:last-child { border-bottom: none; }
+
+/* Pull-quote */
+.reveal blockquote {
+  border-left: 4px solid var(--green);
+  padding-left: 20px;
+  margin: 18px 0 0;
+  font-style: italic;
+  background: none;
+  box-shadow: none;
+  width: 100%;
+  max-width: none;
+  color: var(--green-dark);
+}
+
+/* Lead paragraph on dividers / hero slides */
+.lead { font-size: 21pt; line-height: 1.45; }
+
+.reveal .slides section .footnote a,
+.reveal a { color: var(--green); text-decoration: none; border-bottom: 1px solid #BcCcC4; }

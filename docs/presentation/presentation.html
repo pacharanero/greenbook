@@ -1,0 +1,347 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>greenbook - a computable Green Book</title>
+
+  <!-- Reveal.js core -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reset.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.css">
+
+  <!-- Font Awesome for icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+  <!-- Custom styles -->
+  <link rel="stylesheet" href="styles.css">
+
+  <!-- Chart.js for data visualization -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+  <div class="reveal">
+    <div class="slides">
+
+      <section id="title" class="section-divider" data-state="is-section-divider">
+        <p class="kicker">UK childhood immunisation</p>
+        <h1>greenbook</h1>
+        <p class="lead">Turning the Green Book from a PDF into a computable, versioned source of truth - and an engine that can actually read it.</p>
+      </section>
+
+      <section id="divider-1" class="section-divider" data-state="is-section-divider">
+        <p class="kicker">Where we are</p>
+        <h1>Today, the schedule is a document</h1>
+      </section>
+
+      <section id="slide-3">
+        <h2>The Green Book is a PDF</h2>
+        <div class="content">
+          <p>The UK childhood immunisation schedule - <span class="term">Green Book</span> Chapter 11 - is published as human-readable PDFs on GOV.UK. As of 2026 there is <strong>no computable version</strong>. The PDF is the <span class="term">source of truth</span>.</p>
+          <p class="text-muted" style="margin-top: 6px;">So every digital system that needs the schedule re-implements it by hand from the PDF - a lossy, error-prone derivative. We call this <strong>"digital paper"</strong>:</p>
+          <div style="display: grid; grid-template-columns: 1fr auto 1fr auto 1fr; gap: 14px; align-items: stretch; margin-top: 22px;">
+            <div class="card"><h3>Word document</h3><p>Authored by experts, but only as prose.</p></div>
+            <div class="arrow">&rarr;</div>
+            <div class="card"><h3>PDF on GOV.UK</h3><p>The published, authoritative artefact.</p></div>
+            <div class="arrow">&rarr;</div>
+            <div class="card amber"><h3>Hand-written code</h3><p>Each vendor reverse-engineers the rules. Diverges, drifts, breaks.</p></div>
+          </div>
+        </div>
+      </section>
+
+      <section id="slide-4">
+        <h2>"Is this child fully vaccinated?"</h2>
+        <div class="content">
+          <p class="text-lg">A deceptively hard question. To answer it you have to know three separate things:</p>
+          <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; margin-top: 20px;">
+            <div class="card"><p class="stat"><span class="num">1</span></p><p>Which <strong>schedule</strong> applied when they were born - and what was in scope by the time each dose was due.</p></div>
+            <div class="card"><p class="stat"><span class="num">2</span></p><p>What they <strong>actually received</strong> - the recorded doses, from possibly several sources.</p></div>
+            <div class="card"><p class="stat"><span class="num">3</span></p><p>Whether what they received <strong>satisfies</strong> the schedule that applied to them.</p></div>
+          </div>
+          <p class="text-muted" style="margin-top: 22px;">And "fully vaccinated" turns out not to mean one thing - we will come back to that.</p>
+        </div>
+      </section>
+
+      <section id="slide-5">
+        <h2>The schedule is a moving target</h2>
+        <div class="content">
+          <p>A child born in <strong>1998</strong> has a genuinely different "complete" schedule than one born in <strong>2010</strong> or <strong>2020</strong>. The schedule is not one document but a series of dated snapshots.</p>
+          <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px 18px; margin: 20px 0;">
+            <p><strong class="green">1992</strong> &middot; Hib introduced</p>
+            <p><strong class="green">1999</strong> &middot; MenC introduced</p>
+            <p><strong class="green">2006</strong> &middot; PCV introduced</p>
+            <p><strong class="green">2013</strong> &middot; Rotavirus introduced</p>
+            <p><strong class="green">2015</strong> &middot; MenB introduced</p>
+            <p><strong class="green">2017</strong> &middot; 5-in-1 &rarr; 6-in-1</p>
+            <p><strong class="green">2019</strong> &middot; HPV extended to boys</p>
+            <p><strong class="green">2020</strong> &middot; PCV 3+0 &rarr; 2+1</p>
+          </div>
+          <p>This is a <strong>valid-time</strong> problem: evaluating someone born in 2003 needs the schedule <em>as it stood in 2003</em>. No open-source project anywhere solves this for a national schedule in a principled, versioned way.</p>
+        </div>
+      </section>
+
+      <section id="divider-2" class="section-divider" data-state="is-section-divider">
+        <p class="kicker">Where we're going</p>
+        <h1>Flip the source of truth</h1>
+      </section>
+
+      <section id="slide-7">
+        <h2>One trusted upstream source</h2>
+        <div class="content">
+          <p>What if the <strong>computable</strong> schedule were the source of truth, and the PDF, the website, and clinical tools were all <strong>generated from it</strong>?</p>
+          <div style="display: grid; grid-template-columns: 1fr; gap: 18px; margin-top: 18px;">
+            <div class="card amber">
+              <h3>Today - "digital paper"</h3>
+              <p>Word document &rarr; PDF &rarr; <strong>each system re-implements the rules by hand</strong>. The code is a derivative of the document, and may be wrong.</p>
+            </div>
+            <div class="card">
+              <h3>greenbook - one upstream source</h3>
+              <p>Experts author the <span class="term">Schedule</span> directly in a computable form &rarr; the PDF, websites, and clinical systems are all <strong>rendered downstream from the same trusted data</strong>.</p>
+            </div>
+          </div>
+          <p class="text-muted" style="margin-top: 16px;">Build it correctly for the current schedule first, so historical versions become an additive extension - not a rewrite.</p>
+        </div>
+      </section>
+
+      <section id="divider-3" class="section-divider" data-state="is-section-divider">
+        <p class="kicker">The domain model</p>
+        <h1>A shared language</h1>
+        <p>The words we use, used precisely - the same in the spec, the code, and this talk.</p>
+      </section>
+
+      <section id="slide-9">
+        <h2>Schedule &rarr; Series &rarr; Dose</h2>
+        <div class="content">
+          <p>The schedule is built as a nested structure, authored series-by-series:</p>
+          <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-top: 18px;">
+            <div class="card">
+              <h3>Schedule</h3>
+              <p>A versioned set of recommended immunisations for one <span class="term">Jurisdiction</span>, effective from a date.</p>
+            </div>
+            <div class="card">
+              <h3>Series</h3>
+              <p>One vaccination programme within it - "6-in-1 primary", "MMR second dose" - an ordered set of doses.</p>
+            </div>
+            <div class="card">
+              <h3>Dose</h3>
+              <p>One expected administration, with target / earliest / latest age and a minimum interval.</p>
+            </div>
+          </div>
+          <p style="margin-top: 20px;">Authored <strong>series-centric</strong>; the familiar <strong>age-centric</strong> table is <span class="term">render</span>ed from it for publication.</p>
+        </div>
+      </section>
+
+      <section id="slide-10">
+        <h2>Products and antigens</h2>
+        <div class="content">
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
+            <div class="card">
+              <h3>Antigen</h3>
+              <p>A <strong>disease target</strong> that vaccination protects against - diphtheria, Hib, measles.</p>
+            </div>
+            <div class="card">
+              <h3>Product</h3>
+              <p>A specific <strong>marketed vaccine</strong>, identified by a SNOMED code - e.g. Infanrix Hexa.</p>
+            </div>
+          </div>
+          <p style="margin-top: 22px;">One <span class="term">Product</span> covers one or more <span class="term">Antigen</span>s. The <span class="term">product map</span> records that bridge:</p>
+          <div class="card" style="margin-top: 14px;">
+            <p><strong>Infanrix Hexa</strong> (6-in-1) &rarr; diphtheria &middot; tetanus &middot; pertussis &middot; polio &middot; Hib &middot; hepatitis B</p>
+          </div>
+        </div>
+      </section>
+
+      <section id="slide-11">
+        <h2>Product class - the unit the Green Book names</h2>
+        <div class="content">
+          <p>The Green Book does not name brands. It names a <span class="term">Product class</span>: "6-in-1", "MMR", "Td/IPV".</p>
+          <ul style="margin-top: 10px;">
+            <li>A product class <strong>groups interchangeable products</strong> - Infanrix Hexa and Vaxelis are both <span class="term">6-in-1</span>.</li>
+            <li>It is the <strong>conformance key</strong>: how a recorded dose is matched to a series.</li>
+            <li>One class can serve <strong>several series</strong> - <span class="term">MMR</span> maps to both the first-dose and second-dose series; the ages tell them apart.</li>
+          </ul>
+          <blockquote style="margin-top: 16px;">A <span class="term">Series</span> is the programme unit. A <span class="term">Product class</span> is the conformance key. Don't conflate them.</blockquote>
+        </div>
+      </section>
+
+      <section id="divider-4" class="section-divider" data-state="is-section-divider">
+        <p class="kicker">The key insight</p>
+        <h1>Two questions, not one</h1>
+      </section>
+
+      <section id="slide-13">
+        <h2>Conformance vs coverage</h2>
+        <div class="content">
+          <p>Two different clinical questions, with two different matching rules:</p>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-top: 16px;">
+            <div class="card">
+              <h3>Conformance</h3>
+              <p><em>"Did the patient get the doses the Green Book named, at valid ages?"</em></p>
+              <p>Matched by <span class="term">Product class</span>. Answered <strong>per series</strong>.</p>
+            </div>
+            <div class="card">
+              <h3>Coverage</h3>
+              <p><em>"What diseases is the patient protected against?"</em></p>
+              <p>Computed across the <span class="term">Antigen</span>s of every product received. Answered <strong>per antigen</strong>.</p>
+            </div>
+          </div>
+          <p class="text-muted" style="margin-top: 20px;">Collapsing these two into one - using antigen overlap to answer both - was the original bug.</p>
+        </div>
+      </section>
+
+      <section id="slide-14">
+        <h2>Why it matters: the 6-in-1 trap</h2>
+        <div class="content">
+          <p>A 6-in-1 dose contains Hib, tetanus, diphtheria and polio - antigens that <em>also</em> appear in later booster series.</p>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-top: 14px;">
+            <div class="card amber">
+              <h3>Match by antigen overlap <span class="pill amber">wrong</span></h3>
+              <p>The 6-in-1 dose is dragged into the Hib/MenC and Td/IPV booster series and flagged "invalid - given too early". Clinically nonsense: it is a primary dose, not a failed booster.</p>
+            </div>
+            <div class="card">
+              <h3>Match by product class <span class="pill green">right</span></h3>
+              <p>A 6-in-1 dose conforms <strong>only</strong> to the 6-in-1 series. Hib protection is still real - but that is the separate <span class="term">coverage</span> question, not conformance.</p>
+            </div>
+          </div>
+          <p style="margin-top: 18px;"><strong>Two questions, two answers.</strong> Hib coverage: satisfied. Hib/MenC booster conformance: not yet.</p>
+        </div>
+      </section>
+
+      <section id="divider-5" class="section-divider" data-state="is-section-divider">
+        <p class="kicker">Answering the real question</p>
+        <h1>"Fully vaccinated?" - it depends</h1>
+      </section>
+
+      <section id="slide-16">
+        <h2>Two honest answers</h2>
+        <div class="content">
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
+            <div class="card">
+              <h3>Up-to-date for age <span class="pill green">headline</span></h3>
+              <p>Every dose <strong>due by now</strong> has been given. A perfectly on-schedule 6-month-old is <span class="term">up-to-date for age</span> - even though MMR and HPV still lie ahead.</p>
+              <p class="text-muted">UpToDateForAge &middot; BehindForAge &middot; Unvaccinated &middot; Unknown</p>
+            </div>
+            <div class="card">
+              <h3>Fully vaccinated <span class="pill grey">strict flag</span></h3>
+              <p>Every dose at <strong>every age</strong> has been given. That same 6-month-old is <em>not</em> fully vaccinated - and that is the correct answer.</p>
+            </div>
+          </div>
+          <p class="text-muted" style="margin-top: 20px;">We rejected a "fully immunised for life stage" status: with new adult vaccines (shingles, pneumococcal) it is an unstable moving target.</p>
+        </div>
+      </section>
+
+      <section id="slide-17">
+        <h2>Honest about messy records</h2>
+        <div class="content">
+          <p>Real records are not tidy. Two cases that naive tools hide, greenbook surfaces:</p>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-top: 14px;">
+            <div class="card amber">
+              <h3>Outside standard schedule</h3>
+              <p>A dose given <strong>too early or too late</strong> is recorded as received but does not count toward completion - <strong>labelled, not hidden</strong>, and not harshly called "invalid". It was a real clinical event.</p>
+            </div>
+            <div class="card amber">
+              <h3>Unmatched dose</h3>
+              <p>A dose whose product class fits <strong>no series here</strong> (a 5-in-1 against the 2026 schedule), or an unknown code - <strong>surfaced, not silently dropped</strong>.</p>
+            </div>
+          </div>
+          <p class="text-muted" style="margin-top: 18px;">An unmatched 5-in-1 today would conform under <span class="term">historical versioning</span> to the schedule that was valid when it was given.</p>
+        </div>
+      </section>
+
+      <section id="divider-6" class="section-divider" data-state="is-section-divider">
+        <p class="kicker">Proof of concept</p>
+        <h1>It runs today</h1>
+      </section>
+
+      <section id="slide-19">
+        <h2>From a FHIR record to a clinical answer</h2>
+        <div class="content">
+          <p>Give the engine a patient's <span class="term">FHIR bundle</span> and a <span class="term">Schedule</span>; it returns the headline status and the per-series gaps.</p>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 14px;">
+            <div class="terminal">
+<pre><span class="dim">$ greenbook evaluate ...
+      six-month-infant.json</span>
+
+Up-to-date status: <span class="key">UP_TO_DATE_FOR_AGE</span>
+Fully vaccinated:  no
+
+[COMPLETE] 6-in-1    3/3  <span class="ok">up to date</span>
+[COMPLETE] Rotavirus 2/2  <span class="ok">up to date</span>
+[PARTIAL ] MenB      2/2  <span class="ok">up to date</span>
+[NONE    ] MMR       0/0  <span class="ok">up to date</span></pre>
+            </div>
+            <div class="terminal">
+<pre><span class="dim">$ greenbook evaluate ...
+      behind-toddler.json</span>
+
+Up-to-date status: <span class="warn">BEHIND_FOR_AGE</span>
+Fully vaccinated:  no
+
+[COMPLETE] 6-in-1   3/3  <span class="ok">up to date</span>
+[PARTIAL ] MenB     2/3  <span class="warn">BEHIND</span>
+[NONE    ] Hib/MenC 0/1  <span class="warn">BEHIND</span>
+[NONE    ] MMR #1   0/1  <span class="warn">BEHIND</span></pre>
+            </div>
+          </div>
+          <p class="text-muted" style="margin-top: 14px;">Same engine, same schedule. The on-schedule infant is up to date; the toddler's catch-up worklist falls out automatically.</p>
+        </div>
+      </section>
+
+      <section id="slide-20">
+        <h2>Where this goes</h2>
+        <div class="content">
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 22px;">
+            <div class="card">
+              <h3>Historical versioning</h3>
+              <p>Evaluate against the schedule that applied <strong>at the patient's birth</strong> - the hard, valuable part. The file-per-version design makes it additive.</p>
+            </div>
+            <div class="card">
+              <h3>render</h3>
+              <p>Generate the published <strong>age-centric table</strong> from the data - proving the thesis: the PDF comes from the data, not the data from the PDF.</p>
+            </div>
+            <div class="card">
+              <h3>A live web demo</h3>
+              <p>Set a date of birth, pick doses from a menu, and watch the evaluation update in <strong>real time</strong>.</p>
+            </div>
+            <div class="card">
+              <h3>Beyond the UK</h3>
+              <p>The format is <strong>global by design</strong> - a jurisdiction block and per-coding-system product maps. Other countries can follow.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="slide-21" class="section-divider" data-state="is-section-divider">
+        <p class="kicker">greenbook</p>
+        <h1>The computable, versioned<br>Green Book does not exist.</h1>
+        <p class="lead" style="color: #F4F1E4;">This project creates it.</p>
+        <p style="color: #8FBBA6; margin-top: 26px;">Rust library &amp; CLI &middot; AGPL-3.0 &middot; github.com/pacharanero/greenbook</p>
+      </section>
+
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/reveal.js-plugins@latest/chart/plugin.js"></script>
+  <script>
+    Reveal.initialize({
+      width: 1280,
+      height: 720,
+      margin: 0,
+      controls: true,
+      progress: true,
+      slideNumber: false,
+      hash: true,
+      transition: 'slide',
+      center: false,
+      plugins: [ RevealChart ],
+      chart: {
+        defaults: Object.assign({
+          color: 'rgba(0, 0, 0, 0.8)',
+          borderColor: 'rgba(0, 0, 0, 0.8)',
+          devicePixelRatio: 2
+        }, window.location.search.includes('export') ? { animation: false } : {})
+      }
+    });
+  </script>
+</body>
+</html>

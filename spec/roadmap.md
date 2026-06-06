@@ -79,7 +79,7 @@ Four demonstration fixtures are now bundled and covered by integration tests: `s
 
 ### Demonstration and documentation
 
-* [ ] Reveal.js presentation of the entire 'thought chain' of the project - explaining to a general clinical/ttechnical audience the chain from the current Green Book state of affairs through the concepts of schedule, products, antigens, and coverage/conformance, using our ubiquitous language throughout. Use the /revealjs skill to make this.
+* [x] Reveal.js presentation of the entire 'thought chain' of the project - explaining to a general clinical/technical audience the chain from the current Green Book state of affairs through the concepts of schedule, products, antigens, and coverage/conformance, using our ubiquitous language throughout. Built with the revealjs skill: [docs/presentation/](../docs/presentation/).
 * [ ] Web-based demo which allows the user to set the patient's DOB, select doses from a menu of products, and see the evaluation report update in real time. This is the most direct way to demonstrate the value of the computable schedule and engine to a non-technical audience. The demo should have some 'presets' which help to demonstrate the various features and edge cases of the engine.
 
 ### M6 — Schedule content gaps
