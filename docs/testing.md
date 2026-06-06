@@ -114,27 +114,25 @@ If you omit `--evaluated-at` it defaults to today; the same fixture will give di
 
 ## 6. What you should see
 
-For the human-readable report, the salient lines are:
+The README [Walkthrough](../README.md#walkthrough) is the canonical, annotated tour of the output across several demonstration fixtures. In brief, for this on-schedule infant the salient lines are:
 
-- `Overall status: PARTIALLY_VACCINATED` — technically correct but clinically misleading for an on-schedule infant. This is why the status model is being reworked so the headline answer is **up-to-date for age** (resolved in [spec/standard.md](../spec/standard.md) §"Overall status"); the engine change is tracked on the [roadmap](../spec/roadmap.md) (M2). The current code still reports the strict status.
-- `[COMPLETE   ] 6-in-1 (3/3 doses)` — three valid doses, all on or after `earliest_age`.
-- `[COMPLETE   ] Rotavirus (2/2 doses)` — both doses given before the 14w 6d / 23w 6d cutoffs.
-- `[PARTIAL    ] MenB (2/3 doses)` — third dose isn't due until 12 months.
-- `[PARTIAL    ] PCV (1/2 doses)` — second dose isn't due until 12 months.
-- `[NONE       ] Hib/MenC booster, MMR (×2), HPV, Td/IPV` — all due later than 6 months.
+- `Up-to-date status: UP_TO_DATE_FOR_AGE` — the headline, age-relative answer: every dose due so far has been given. Distinct from `Fully vaccinated: no`, the strict "every dose at every age" flag, which is correctly `no` for a 6-month-old.
+- `[COMPLETE   ] 6-in-1 (3/3 due, 3 total) - up to date` — three valid doses, all on or after `earliest_age`.
+- `[PARTIAL    ] MenB (2/2 due, 3 total) - up to date` — dose 3 isn't due until 12 months, so the patient is still up to date despite the series being incomplete.
+- `[NONE       ] MMR (first dose) (0/0 due, 1 total) - up to date` — nothing due yet.
 
-The booster series (Hib/MenC, Td/IPV) show no doses and no spurious `INVALID` entries: conformance now matches doses to series by **product class**, so a 6-in-1 dose is never dragged into a booster series via shared antigens. See [ADR 0001](adr/0001-product-class-conformance-vs-antigen-coverage.md) for the conformance-vs-coverage decision behind this.
+The booster series (Hib/MenC, Td/IPV) show no doses and no spurious `OUT-OF-SCHEDULE` entries: conformance matches doses to series by **product class**, so a 6-in-1 dose is never dragged into a booster series via shared antigens. See [ADR 0001](adr/0001-product-class-conformance-vs-antigen-coverage.md) for the conformance-vs-coverage decision behind this.
 
 ## 7. Try changing the inputs
 
-Quick experiments to confirm the engine is doing real work, not pattern matching:
+Quick experiments to confirm the engine is doing real work, not pattern matching. The other bundled fixtures (`behind-for-age-toddler.json`, `out-of-schedule-doses.json`, `unmatched-doses.json`) already show these effects; you can also edit `six-month-fully-vaccinated.json` yourself:
 
 | Change | Expected effect |
 |---|---|
-| Edit the fixture's `birthDate` to 2024-04-29 (2-year-old) | MMR-primary, Hib/MenC, MenB dose 3, PCV dose 2 should now show as `NONE` because they were due but not given. Overall stays `PARTIALLY_VACCINATED`. |
-| Edit a dose date so 6-in-1 dose 2 is given on 2025-12-29 (only 5 days after dose 1) | That dose should be flagged `INVALID` with reason "interval from previous dose < 4 weeks". |
+| Edit the fixture's `birthDate` to 2024-04-29 (2-year-old) | MMR-primary, Hib/MenC, MenB dose 3, PCV dose 2 are now due but missing, so they show as `BEHIND` and the headline becomes `BEHIND_FOR_AGE`. |
+| Edit a dose date so 6-in-1 dose 2 is given on 2025-12-29 (only 5 days after dose 1) | That dose is flagged `OUT-OF-SCHEDULE` with reason "interval from previous dose < 4 weeks", and does not count toward completion. |
 | Delete the rotavirus dose 1 entry from the fixture | `rotavirus-primary` flips from `Complete` to `Partial` (1/2 doses). |
-| Change a vaccineCode to a SNOMED code not in `products/uk-snomed-dm.toml` | The dose silently disappears from the evaluation — no series matches it. (Worth adding an "unknown product code" warning in a follow-up.) |
+| Change a vaccineCode to a SNOMED code not in `products/uk-snomed-dm.toml` | The dose appears in the `Unmatched doses` section as an "unknown product code" rather than disappearing silently. |
 
 ## 8. Inspecting the schedule itself
 
@@ -142,4 +140,4 @@ Open `schedules/uk-2026-01-01.toml` directly. Every series is one `[[series]]` b
 
 ## 9. Next steps
 
-The design questions the POC raised are now resolved and folded into the [spec](../spec/) and [roadmap](../spec/roadmap.md) (see the roadmap's M1 for the record). The next implementation work is M2 (eligibility enforcement, the up-to-date-for-age status, and unmatched-dose reporting).
+The design questions the POC raised are now resolved and folded into the [spec](../spec/) and [roadmap](../spec/roadmap.md) (see the roadmap's M1 for the record). Most of M2 is now implemented (eligibility enforcement, the up-to-date-for-age status model, out-of-schedule labelling, and unmatched-dose reporting). The next steps are the dose-sequence cross-check (M2) and the other CLI commands - `validate` and `render` (M4).

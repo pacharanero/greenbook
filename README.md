@@ -8,7 +8,156 @@ For the UK, the childhood vaccination schedule is currently published as human-r
 
 The long-term goal is that vaccination and public health experts could eventually author schedule changes **directly** in a computable format, and all downstream publications - PDFs, websites, and of course clinical digital tools - would be generated from this one 'upstream' and trusted computable source. It would replace the current 'digital paper' workflow where a PDF is published from a Word document and clinical code has to be written as a (potentially inaccurate) reverse-engineered derivative of it.
 
-See [spec/](./spec/) for the full specification and [roadmap](./spec/roadmap.md), and [docs/testing.md](./docs/testing.md) for a walkthrough of the POC.
+See [spec/](./spec/) for the full specification and [roadmap](./spec/roadmap.md). The Walkthrough below takes you from a clean checkout to a running demonstration; [docs/testing.md](./docs/testing.md) has further input-tweaking experiments.
+
+---
+
+## Walkthrough
+
+This walks through everything from installation to a working demonstration of the evaluator's features. Every command is run from the repository root.
+
+### Prerequisites
+
+- A [Rust](https://rustup.rs/) toolchain (edition 2021; `cargo`/`rustc` 1.93+ tested).
+- `git`.
+
+### 1. Get the code and build
+
+```sh
+git clone https://github.com/pacharanero/greenbook.git
+cd greenbook
+cargo build
+```
+
+The first build pulls a handful of crates (chrono, serde, toml, serde_json, clap, thiserror) and takes a few seconds; later builds are incremental.
+
+### 2. Run the test suite
+
+```sh
+cargo test
+```
+
+You should see three unit tests (age parsing and date arithmetic) and one integration test (`six_month_old_on_schedule_evaluates_correctly`) pass.
+
+### 3. The `evaluate` command
+
+The evaluator takes three inputs - a schedule, a product map, and a patient's FHIR bundle - and prints a report:
+
+```sh
+cargo run --bin greenbook -- evaluate <schedule.toml> <product-map.toml> <bundle.json> \
+  [--evaluated-at YYYY-MM-DD] [--format report|json]
+```
+
+To get a `greenbook` binary on your `PATH` instead of using `cargo run`, install it: `cargo install --path .`, then call `greenbook evaluate ...` directly.
+
+The bundled inputs are:
+
+- `schedules/uk-2026-01-01.toml` - the current UK schedule
+- `products/uk-snomed-dm.toml` - the SNOMED UK drug-extension product → class/antigen map
+- `tests/fixtures/*.json` - the demonstration patients used below
+
+The examples below pass `--evaluated-at 2026-04-29` so the output is deterministic regardless of today's date. Omit it to evaluate as of today.
+
+### Demo 1 - up to date for age
+
+A 6-month-old who has had every dose due so far. The headline answer is **up to date for age**, even though later doses (MMR, HPV, the boosters) have not been given - they are not due yet.
+
+```sh
+cargo run --quiet --bin greenbook -- evaluate \
+  schedules/uk-2026-01-01.toml products/uk-snomed-dm.toml \
+  tests/fixtures/six-month-fully-vaccinated.json --evaluated-at 2026-04-29
+```
+
+```
+Up-to-date status: UP_TO_DATE_FOR_AGE
+Fully vaccinated:  no (strict: every eligible series complete)
+
+By series:
+---------
+  [COMPLETE   ] 6-in-1 (3/3 due, 3 total) - up to date
+  [COMPLETE   ] Rotavirus (2/2 due, 2 total) - up to date
+  [PARTIAL    ] MenB (2/2 due, 3 total) - up to date
+  [PARTIAL    ] PCV (pneumococcal) (1/1 due, 2 total) - up to date
+  [NONE       ] Hib/MenC booster (0/0 due, 1 total) - up to date
+  [NONE       ] MMR (first dose) (0/0 due, 1 total) - up to date
+  ... (further not-yet-due series) ...
+```
+
+Note the two distinct answers: the patient is **up to date for age**, but not **fully vaccinated** in the strict "every dose at every age" sense - that is correct for a 6-month-old. `n/m due, k total` reads as "n valid doses out of m due so far, k in the whole series".
+
+### Demo 2 - behind for age, with the specific gaps
+
+An 18-month-old who had the primary infant doses but missed every 12-month appointment. The headline flips to **behind for age**, and the per-series breakdown shows exactly which doses are overdue.
+
+```sh
+cargo run --quiet --bin greenbook -- evaluate \
+  schedules/uk-2026-01-01.toml products/uk-snomed-dm.toml \
+  tests/fixtures/behind-for-age-toddler.json --evaluated-at 2026-04-29
+```
+
+```
+Up-to-date status: BEHIND_FOR_AGE
+
+By series:
+---------
+  [COMPLETE   ] 6-in-1 (3/3 due, 3 total) - up to date
+  [COMPLETE   ] Rotavirus (2/2 due, 2 total) - up to date
+  [PARTIAL    ] MenB (2/3 due, 3 total) - BEHIND
+  [PARTIAL    ] PCV (pneumococcal) (1/2 due, 2 total) - BEHIND
+  [NONE       ] Hib/MenC booster (0/1 due, 1 total) - BEHIND
+  [NONE       ] MMR (first dose) (0/1 due, 1 total) - BEHIND
+  ... (teenage series, not yet due) ...
+```
+
+The series marked `BEHIND` are the catch-up worklist: MenB dose 3, PCV dose 2, the Hib/MenC booster, and MMR dose 1.
+
+### Demo 3 - doses given outside the standard schedule
+
+Doses that were given but break an age or interval rule are recorded and labelled **outside standard schedule** rather than silently passed or harshly called "invalid". Here a 6-in-1 second dose is given a week too soon, and a rotavirus dose is given after its hard cutoff.
+
+```sh
+cargo run --quiet --bin greenbook -- evaluate \
+  schedules/uk-2026-01-01.toml products/uk-snomed-dm.toml \
+  tests/fixtures/out-of-schedule-doses.json --evaluated-at 2026-04-29
+```
+
+```
+  [PARTIAL    ] 6-in-1 (1/3 due, 3 total) - BEHIND
+      - ok              2025-12-24  dose 1  (1mo 3w 4d)  [Infanrix Hexa vaccine (product)]
+      - OUT-OF-SCHEDULE  2025-12-31  dose 2  (2mo 2d)  [Infanrix Hexa vaccine (product)]
+          ! given before earliest_age 10 weeks (2026-01-07) - outside standard schedule
+          ! interval from previous dose < 4 weeks (needs to be on/after 2026-01-21) - outside standard schedule
+  [NONE       ] Rotavirus (0/2 due, 2 total) - BEHIND
+      - OUT-OF-SCHEDULE  2026-03-01  dose 1  (4mo 1d)  [Rotarix vaccine (product)]
+          ! given after latest_age 14 weeks 6 days (2026-02-10) - outside standard schedule
+```
+
+### Demo 4 - doses that match no series
+
+A record can contain doses that belong to no series in the loaded schedule - an unknown product code, or a known product whose class the current schedule no longer uses (a Pediacel 5-in-1 dose against the 2026 6-in-1 schedule). These are surfaced in their own section instead of vanishing.
+
+```sh
+cargo run --quiet --bin greenbook -- evaluate \
+  schedules/uk-2026-01-01.toml products/uk-snomed-dm.toml \
+  tests/fixtures/unmatched-doses.json --evaluated-at 2026-04-29
+```
+
+```
+Unmatched doses:
+---------------
+  - 2026-01-21  [Pediacel vaccine (product)]  (product class "5-in-1" has no series in this schedule version)
+  - 2026-01-21  [Unknown investigational vaccine]  (unknown product code (not in the product map))
+```
+
+### Machine-readable output
+
+Pass `--format json` to any of the above for the full structured result (every series, every recorded dose with its `within_schedule` flag and notes, and the unmatched doses) suitable for piping into other tools:
+
+```sh
+cargo run --quiet --bin greenbook -- evaluate \
+  schedules/uk-2026-01-01.toml products/uk-snomed-dm.toml \
+  tests/fixtures/six-month-fully-vaccinated.json --evaluated-at 2026-04-29 --format json
+```
 
 ---
 

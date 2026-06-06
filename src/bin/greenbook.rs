@@ -86,25 +86,51 @@ fn print_report(status: &VaccinationStatus, record: &greenbook::VaccinationRecor
     println!("Greenbook evaluation");
     println!("====================");
     if let Some(id) = &record.patient_id {
-        println!("Patient:          {}", id);
+        println!("Patient:           {}", id);
     }
-    println!("DOB:              {}", record.dob);
-    println!("Evaluated at:     {}", status.evaluated_at);
-    println!("Schedule version: {}", status.schedule_version);
-    println!("Overall status:   {}", overall_label(status.overall));
+    println!("DOB:               {}", record.dob);
+    println!("Evaluated at:      {}", status.evaluated_at);
+    println!("Schedule version:  {}", status.schedule_version);
+    // The headline answer is age-relative ("are there gaps that should be filled
+    // by now?"). The strict flag answers the separate "had everything ever?".
+    println!("Up-to-date status: {}", overall_label(status.status));
+    println!(
+        "Fully vaccinated:  {} (strict: every eligible series complete)",
+        if status.fully_vaccinated { "yes" } else { "no" }
+    );
     println!();
     println!("By series:");
     println!("---------");
     for s in &status.by_series {
+        // Show valid-of-due so the reader sees progress against what is *due*,
+        // with the series total in parentheses.
+        let age_note = if s.eligible && s.up_to_date_for_age {
+            "up to date"
+        } else if s.eligible {
+            "BEHIND"
+        } else {
+            "not applicable"
+        };
         println!(
-            "  [{}] {} ({}/{} doses)",
+            "  [{}] {} ({}/{} due, {} total) - {}",
             series_label(s.status),
             s.display_name,
             s.doses_valid,
+            s.doses_due,
             s.doses_expected,
+            age_note,
         );
+        for n in &s.notes {
+            println!("      note: {}", n);
+        }
         for d in &s.doses_recorded {
-            let mark = if d.valid { "ok" } else { "INVALID" };
+            // "ok" = within the standard schedule; "OUT-OF-SCHEDULE" = given but
+            // too early/late/short-interval, so it does not count (see §5).
+            let mark = if d.within_schedule {
+                "ok            "
+            } else {
+                "OUT-OF-SCHEDULE"
+            };
             let dose_n = d
                 .assigned_dose_number
                 .map(|n| format!("dose {}", n))
@@ -117,17 +143,32 @@ fn print_report(status: &VaccinationStatus, record: &greenbook::VaccinationRecor
                 d.age_at_dose,
                 d.display.as_deref().unwrap_or(&d.vaccine_code),
             );
-            for r in &d.validity_reasons {
+            for r in &d.schedule_notes {
                 println!("          ! {}", r);
             }
+        }
+    }
+
+    // Doses that matched no series at all - surfaced rather than dropped.
+    if !status.unmatched_doses.is_empty() {
+        println!();
+        println!("Unmatched doses:");
+        println!("---------------");
+        for u in &status.unmatched_doses {
+            println!(
+                "  - {}  [{}]  ({})",
+                u.date,
+                u.display.as_deref().unwrap_or(&u.vaccine_code),
+                u.reason,
+            );
         }
     }
 }
 
 fn overall_label(o: OverallStatus) -> &'static str {
     match o {
-        OverallStatus::FullyVaccinated => "FULLY_VACCINATED",
-        OverallStatus::PartiallyVaccinated => "PARTIALLY_VACCINATED",
+        OverallStatus::UpToDateForAge => "UP_TO_DATE_FOR_AGE",
+        OverallStatus::BehindForAge => "BEHIND_FOR_AGE",
         OverallStatus::Unvaccinated => "UNVACCINATED",
         OverallStatus::Unknown => "UNKNOWN",
     }

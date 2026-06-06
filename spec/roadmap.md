@@ -4,11 +4,11 @@ Where greenbook is and where it goes next. This tracks the gap between the [spec
 
 ## Status at a glance
 
-The v1 POC core is working and green: `cargo test` passes, `cargo clippy --all-targets -- -D warnings` is clean. The engine parses a FHIR R4 bundle, loads a TOML schedule and product map, and produces a per-series and overall classification with a human-readable and JSON report. One schedule version (`uk-2026-01-01.toml`), one product map, and one fixture are bundled.
+The v1 POC core is working and green: `cargo test` passes, `cargo clippy --all-targets -- -D warnings` is clean. The engine parses a FHIR R4 bundle, loads a TOML schedule and product map, and produces the up-to-date-for-age status, per-series breakdown, out-of-schedule flags, and unmatched-dose list, as a human-readable or JSON report. One schedule version (`uk-2026-01-01.toml`), one product map, and four demonstration fixtures are bundled (see the README [Walkthrough](../README.md#walkthrough)).
 
-What this means: the file format and evaluation pipeline are proven end-to-end on the happy path. The remaining v1 work is correctness (eligibility, dose-matching), completeness (the other CLI commands and the `by_antigen` breakdown), and breadth of test coverage — none of it requires rearchitecting.
+What this means: the file format and evaluation pipeline are proven end-to-end, and the M1 decisions are now implemented in the engine. The remaining v1 work is the dose-sequence cross-check, the other CLI commands and the `by_antigen` breakdown, and broader test coverage — none of it requires rearchitecting.
 
-The baseline is committed and CI is green (M0 done). The POC design questions are now resolved (recorded in M1 below); the remaining work is implementing the decisions (M2 onward).
+The baseline is committed and CI is green (M0 done), the POC design questions are resolved (M1), and most of M2 is implemented. The remaining work is M2's dose-sequence cross-check, then M3/M4.
 
 ## Guiding principle
 
@@ -41,11 +41,11 @@ These were decisions, not code — each needed a ruling before the dependent cod
 The engine currently takes the happy path. Close the known divergences from [spec/standard.md](./standard.md) §"Evaluation Logic".
 
 - [x] Product-class conformance matching ([ADR 0001](../docs/adr/0001-product-class-conformance-vs-antigen-coverage.md)) — 6-in-1 doses no longer falsely flagged under booster series.
-- [ ] **Enforce eligibility.** `population` and `male_born_on_or_after` are parsed but never checked, so no series is ever `NotApplicable` and HPV's sex restriction is inert (M1 §4). Wire in the eligibility check, including the `gender = other|unknown` → eligible-with-uncertainty-flag rule.
-- [ ] **Adopt the resolved status model (§2).** Replace the current `OverallStatus` (`FullyVaccinated`/`PartiallyVaccinated`/`Unvaccinated`/`Unknown`) with the headline age-relative enum `UpToDateForAge`/`BehindForAge`/`Unvaccinated`/`Unknown`, add the strict `fully_vaccinated: bool` to `VaccinationStatus`, and add the per-series due / not-yet-due annotation (`doses_due`, `up_to_date_for_age`). See [spec/standard.md](./standard.md) §"Overall status".
-- [ ] **Out-of-schedule labelling (§5).** Rename `RecordedDose.valid`/`validity_reasons` to `within_schedule`/`schedule_notes`, and report rule-breaking doses (too early or too late) as "outside standard schedule" rather than "invalid".
+- [x] **Enforce eligibility.** `population` and `male_born_on_or_after` are now checked: ineligible series are `NotApplicable` and excluded from the overall status, and a `gender = other|unknown` patient on a sex-restricted series is treated as eligible with an `eligibility_uncertain` flag (M1 §4).
+- [x] **Adopt the resolved status model (§2).** `OverallStatus` is now the headline age-relative enum `UpToDateForAge`/`BehindForAge`/`Unvaccinated`/`Unknown`, `VaccinationStatus` carries the strict `fully_vaccinated: bool`, and each series carries `doses_due` and `up_to_date_for_age`. See [spec/standard.md](./standard.md) §"Overall status".
+- [x] **Out-of-schedule labelling (§5).** `RecordedDose` now uses `within_schedule`/`schedule_notes`; rule-breaking doses (too early or too late) are reported as "outside standard schedule" rather than "invalid".
+- [x] **Unmatched-dose reporting.** `VaccinationStatus.unmatched_doses` surfaces both an *unknown* product code and a *known* product whose class matches no series in the loaded schedule (e.g. 5-in-1 vs the 2026 schedule).
 - [ ] **Dose-sequence cross-check.** Derive sequence from dates (current behaviour) but cross-check against `protocolApplied.doseNumberPositiveInt` and SNOMED signals, flagging discrepancies on the `RecordedDose` rather than silently preferring dates ([spec/standard.md](./standard.md) §"Dose sequencing").
-- [ ] **Unmatched-dose reporting.** Two cases now both vanish silently: an *unknown* product code (absent from the map, see [docs/testing.md](../docs/testing.md) §7) and a *known* product whose class matches no series in the loaded schedule (e.g. 5-in-1 vs the 2026 schedule). Surface both.
 
 ### M3 — Output completeness
 
@@ -67,15 +67,20 @@ Only `evaluate` exists. The other commands are specced in [spec/rust-impl.md](./
 
 ### M5 — Test coverage
 
-The spec lists nine fixtures ([spec/rust-impl.md](./rust-impl.md) §"Crate Structure"); one exists. Build them out — several deliberately exercise structures that v2 features will lean on.
+Four demonstration fixtures are now bundled and covered by integration tests: `six-month-fully-vaccinated` (up-to-date for age), `behind-for-age-toddler` (behind, with gaps), `out-of-schedule-doses` (§5 labelling), and `unmatched-doses` (unknown + superseded products). Remaining fixtures from the spec's list — several deliberately exercise structures that v2 features will lean on:
 
-- [ ] `fully_vaccinated`, `missing_menb`, `unvaccinated`, `partial_hpv`
-- [ ] `sex_unknown_hpv` (depends on M2 eligibility)
-- [ ] `dose_sequence_mismatch` (depends on M2 cross-check)
+- [ ] `partial_hpv` and an explicit `unvaccinated` older child
+- [ ] `sex_unknown_hpv` — exercises the M2 `eligibility_uncertain` flag
+- [ ] `dose_sequence_mismatch` (depends on the M2 dose-sequence cross-check)
 - [ ] `product_5in1_to_6in1` — historical Pediacel dose vs current 6-in-1 schedule
 - [ ] `product_mmrv_to_mmr` — lossy substitution in the opposite direction; **requires adding the MMRV product and a `varicella` antigen** to the registry/map ([spec/standard.md](./standard.md) §"Product Mapping File")
 - [ ] `catch_up_age_3` — late presenter; exercises the eligibility structure against the catch-up case ahead of M-future
 - [ ] Fold the [test-data/](../test-data/) MMR catch-up scenarios into integration tests
+
+### Demonstration and documentation
+
+* [ ] Reveal.js presentation of the entire 'thought chain' of the project - explaining to a general clinical/ttechnical audience the chain from the current Green Book state of affairs through the concepts of schedule, products, antigens, and coverage/conformance, using our ubiquitous language throughout. Use the /revealjs skill to make this.
+* [ ] Web-based demo which allows the user to set the patient's DOB, select doses from a menu of products, and see the evaluation report update in real time. This is the most direct way to demonstrate the value of the computable schedule and engine to a non-technical audience. The demo should have some 'presets' which help to demonstrate the various features and edge cases of the engine.
 
 ### M6 — Schedule content gaps
 

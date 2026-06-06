@@ -1,0 +1,45 @@
+{
+  "comment": "An infant whose record contains one valid 6-in-1 dose plus two doses that match no series in the 2026 schedule: a Pediacel (5-in-1) dose - a known product whose class the current schedule no longer uses - and a made-up SNOMED code absent from the product map. Demonstrates the 'unmatched doses' section, which surfaces doses that would otherwise vanish silently. Evaluate at 2026-04-29.",
+  "resourceType": "Bundle",
+  "type": "collection",
+  "entry": [
+    {
+      "resource": {
+        "resourceType": "Patient",
+        "id": "infant-mixed",
+        "birthDate": "2025-10-29",
+        "gender": "male"
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Immunization",
+        "status": "completed",
+        "vaccineCode": { "coding": [{ "system": "http://snomed.info/sct", "code": "39114911000001105", "display": "Infanrix Hexa vaccine (product)" }] },
+        "patient": { "reference": "Patient/infant-mixed" },
+        "occurrenceDateTime": "2025-12-24",
+        "protocolApplied": [{ "doseNumberPositiveInt": 1 }]
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Immunization",
+        "status": "completed",
+        "vaccineCode": { "coding": [{ "system": "http://snomed.info/sct", "code": "9743801000001106", "display": "Pediacel vaccine (product)" }] },
+        "patient": { "reference": "Patient/infant-mixed" },
+        "occurrenceDateTime": "2026-01-21",
+        "protocolApplied": [{ "doseNumberPositiveInt": 2 }]
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Immunization",
+        "status": "completed",
+        "vaccineCode": { "coding": [{ "system": "http://snomed.info/sct", "code": "11111111000001100", "display": "Unknown investigational vaccine" }] },
+        "patient": { "reference": "Patient/infant-mixed" },
+        "occurrenceDateTime": "2026-01-21",
+        "protocolApplied": [{ "doseNumberPositiveInt": 1 }]
+      }
+    }
+  ]
+}

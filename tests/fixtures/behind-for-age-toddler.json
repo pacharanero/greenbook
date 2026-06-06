@@ -1,0 +1,95 @@
+{
+  "comment": "An 18-month-old who had the primary infant doses but missed every 12-month appointment: Hib/MenC booster, MMR dose 1, MenB dose 3, PCV dose 2. Demonstrates the BEHIND_FOR_AGE headline and the per-series gap breakdown. Evaluate at 2026-04-29 (age ~18 months). The 'comment' field is ignored by the parser.",
+  "resourceType": "Bundle",
+  "type": "collection",
+  "entry": [
+    {
+      "resource": {
+        "resourceType": "Patient",
+        "id": "toddler-1",
+        "birthDate": "2024-10-29",
+        "gender": "male"
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Immunization",
+        "status": "completed",
+        "vaccineCode": { "coding": [{ "system": "http://snomed.info/sct", "code": "39114911000001105", "display": "Infanrix Hexa vaccine (product)" }] },
+        "patient": { "reference": "Patient/toddler-1" },
+        "occurrenceDateTime": "2024-12-24",
+        "protocolApplied": [{ "doseNumberPositiveInt": 1 }]
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Immunization",
+        "status": "completed",
+        "vaccineCode": { "coding": [{ "system": "http://snomed.info/sct", "code": "7374211000001102", "display": "Rotarix vaccine (product)" }] },
+        "patient": { "reference": "Patient/toddler-1" },
+        "occurrenceDateTime": "2024-12-24",
+        "protocolApplied": [{ "doseNumberPositiveInt": 1 }]
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Immunization",
+        "status": "completed",
+        "vaccineCode": { "coding": [{ "system": "http://snomed.info/sct", "code": "12672211000001104", "display": "Bexsero vaccine (product)" }] },
+        "patient": { "reference": "Patient/toddler-1" },
+        "occurrenceDateTime": "2024-12-24",
+        "protocolApplied": [{ "doseNumberPositiveInt": 1 }]
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Immunization",
+        "status": "completed",
+        "vaccineCode": { "coding": [{ "system": "http://snomed.info/sct", "code": "39114911000001105", "display": "Infanrix Hexa vaccine (product)" }] },
+        "patient": { "reference": "Patient/toddler-1" },
+        "occurrenceDateTime": "2025-01-21",
+        "protocolApplied": [{ "doseNumberPositiveInt": 2 }]
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Immunization",
+        "status": "completed",
+        "vaccineCode": { "coding": [{ "system": "http://snomed.info/sct", "code": "7374211000001102", "display": "Rotarix vaccine (product)" }] },
+        "patient": { "reference": "Patient/toddler-1" },
+        "occurrenceDateTime": "2025-01-21",
+        "protocolApplied": [{ "doseNumberPositiveInt": 2 }]
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Immunization",
+        "status": "completed",
+        "vaccineCode": { "coding": [{ "system": "http://snomed.info/sct", "code": "14473901000001100", "display": "Prevenar 13 vaccine (product)" }] },
+        "patient": { "reference": "Patient/toddler-1" },
+        "occurrenceDateTime": "2025-01-21",
+        "protocolApplied": [{ "doseNumberPositiveInt": 1 }]
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Immunization",
+        "status": "completed",
+        "vaccineCode": { "coding": [{ "system": "http://snomed.info/sct", "code": "39114911000001105", "display": "Infanrix Hexa vaccine (product)" }] },
+        "patient": { "reference": "Patient/toddler-1" },
+        "occurrenceDateTime": "2025-02-18",
+        "protocolApplied": [{ "doseNumberPositiveInt": 3 }]
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Immunization",
+        "status": "completed",
+        "vaccineCode": { "coding": [{ "system": "http://snomed.info/sct", "code": "12672211000001104", "display": "Bexsero vaccine (product)" }] },
+        "patient": { "reference": "Patient/toddler-1" },
+        "occurrenceDateTime": "2025-02-18",
+        "protocolApplied": [{ "doseNumberPositiveInt": 2 }]
+      }
+    }
+  ]
+}
