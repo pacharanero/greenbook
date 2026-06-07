@@ -10,16 +10,20 @@ Open `presentation.html` in any browser - no build step. The slides load reveal.
 
 - `presentation.html` - the slides
 - `styles.css` - the theme (paper background, forest-green accents, terracotta for edge-cases)
+- `edit.js` - a small reveal-aware in-browser text editor (see below)
 
 ## Edit the wording in the browser
 
-If the revealjs skill is installed, you can click-to-edit text inline:
-
 ```sh
-node <skill-path>/scripts/edit-html.js docs/presentation/presentation.html
+node docs/presentation/edit.js
 ```
 
-Click any text to edit, `Esc` to deselect, then Save. `Ctrl+C` stops the server.
+This serves the deck at `http://localhost:3456` with every text element made editable. Click any text to edit it, `Esc` to deselect, then **Save**; `Ctrl+C` stops the server. Navigate slides first (arrow keys) to reach the text you want - only the visible slide is editable at a time.
+
+It is a project-local editor rather than the generic revealjs-skill one because reveal.js needs two special accommodations, both handled here:
+
+- **Clean save.** Reveal.js mutates the DOM heavily at runtime (injected backgrounds/controls, `present`/`past`/`future` classes, inline transforms, aria attributes). Serialising that live DOM writes all of it back to the file. `edit.js` instead reads the pristine file, copies in only your edited text, and saves that - so the git diff is just your wording changes. (HTML entities like `&rarr;` are normalised to their characters on the first save; this is idempotent thereafter.)
+- **Editing under a scaled transform.** Reveal scales the slides to fit the window with a CSS `transform`, and `contenteditable` misbehaves under that (mis-placed caret, clicks not landing) - especially in Firefox. `edit.js` pins reveal to scale 1 while editing so the caret behaves.
 
 ## Export to PDF
 
