@@ -4,7 +4,7 @@ A [reveal.js](https://revealjs.com/) deck explaining the project's thought chain
 
 ## View it
 
-Open `presentation.html` in any browser - no build step. The slides load reveal.js, the fonts, and Font Awesome from CDNs, so an internet connection is needed the first time. Arrow keys navigate; press `F` for fullscreen, `S` for speaker notes, `Esc` for the slide overview.
+Run `s/present` from the repo root to serve the slides and open them in your browser, or just open `presentation.html` directly - no build step. The slides load reveal.js, the fonts, and Font Awesome from CDNs, so an internet connection is needed the first time. Arrow keys navigate; press `F` for fullscreen, `S` for speaker notes, `Esc` for the slide overview.
 
 ## Files
 

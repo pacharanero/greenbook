@@ -11,13 +11,7 @@ It is intended to be shown after the [presentation](../presentation/): the prese
 
 ## View it
 
-Open `index.html` in any browser - no build step, no server, no network. All data is embedded in `data.js`, so it also works unchanged from `file://`, a static server, or GitHub Pages.
-
-To serve it locally (handy if you want a URL):
-
-```sh
-python3 -m http.server -d docs/demo 8000   # then visit http://localhost:8000
-```
+Run `s/demo` from the repo root to serve the demo and open it in your browser, or just open `index.html` directly - no build step, no network. All data is embedded in `data.js`, so it also works unchanged from `file://`, a static server, or GitHub Pages.
 
 ## How it works
 

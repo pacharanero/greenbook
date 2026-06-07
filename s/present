@@ -1,0 +1,26 @@
+#!/usr/bin/env bash
+# Serve the reveal.js presentation locally and open it in a browser.
+#
+# The slides work from file:// too, but serving them matches how they are
+# published (GitHub Pages) and avoids any browser file:// quirks.
+#
+# Usage:
+#   s/present            # serve on port 8001 and open the slides
+#   PORT=9000 s/present  # use a different port
+#
+# Ctrl+C stops the server.
+
+set -euo pipefail
+
+ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+DIR="$ROOT/docs/presentation"
+PORT="${PORT:-8001}"
+URL="http://localhost:$PORT/presentation.html"
+
+echo "Serving presentation at $URL"
+echo "Press Ctrl+C to stop."
+
+# Open the browser shortly after the server starts. Tolerant of missing openers.
+( sleep 1; (xdg-open "$URL" || open "$URL" || sensible-browser "$URL") >/dev/null 2>&1 || true ) &
+
+exec python3 -m http.server "$PORT" --directory "$DIR"
