@@ -1,0 +1,186 @@
+/* greenbook demo - a scientific/admin dashboard theme.
+ * Cool light background, white panels, fine borders, monospace for data values.
+ * System fonts only (no network), so it works offline and on GitHub Pages. */
+
+:root {
+  --bg: #EDF1F2;
+  --panel: #FFFFFF;
+  --panel-2: #F7F9F9;
+  --border: #D7DFE0;
+  --ink: #16221E;
+  --muted: #6A7A74;
+  --faint: #93A19B;
+
+  --green: #1E6F52;
+  --green-d: #14503A;
+  --teal: #2C7A7B;
+  --amber: #C2602F;
+  --red: #B23A3A;
+
+  --chip-bg: #EAF1ED;
+  --chip-bd: #CADCD2;
+
+  --ui: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --mono: ui-monospace, "SF Mono", "SFMono-Regular", Menlo, Consolas, "Liberation Mono", monospace;
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; }
+body {
+  font-family: var(--ui);
+  color: var(--ink);
+  background: var(--bg);
+  font-size: 14px;
+  -webkit-font-smoothing: antialiased;
+}
+
+.app { display: grid; grid-template-columns: 270px 1fr; min-height: 100%; }
+
+/* ---------- Sidebar ---------- */
+.sidebar {
+  background: #11221C;
+  color: #D7E4DD;
+  padding: 22px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 26px;
+}
+.brand-mark { font-size: 22px; font-weight: 700; letter-spacing: -.01em; color: #FFFFFF; }
+.brand-sub { font-size: 12px; color: #7FAE99; margin-top: 2px; }
+
+.side-label {
+  font-size: 11px; text-transform: uppercase; letter-spacing: .14em;
+  color: #6E9684; margin-bottom: 10px;
+}
+.preset-list { display: flex; flex-direction: column; gap: 8px; }
+.preset {
+  display: flex; flex-direction: column; gap: 2px; text-align: left;
+  width: 100%; cursor: pointer;
+  background: #18302700; border: 1px solid #2A4036; border-radius: 8px;
+  padding: 10px 12px; color: #D7E4DD; font-family: var(--ui);
+  transition: background .12s, border-color .12s;
+}
+.preset:hover { background: #1B342A; }
+.preset.active { background: #1E6F52; border-color: #2E8B68; }
+.preset.active .preset-hint { color: #CDE7DC; }
+.preset-name { font-size: 14px; font-weight: 600; color: #FFFFFF; }
+.preset-hint { font-size: 12px; color: #87AD9C; line-height: 1.3; }
+.preset--soon { cursor: default; opacity: .6; }
+.preset--soon:hover { background: transparent; }
+
+.side-foot {
+  margin-top: auto; font-size: 12px; color: #6E9684; line-height: 1.7;
+  border-top: 1px solid #233A30; padding-top: 14px;
+}
+.side-foot .mono { font-family: var(--mono); color: #9FC4B4; }
+
+/* ---------- Main ---------- */
+.main { padding: 22px 26px 40px; overflow: auto; }
+
+/* Topbar: patient summary + headline result */
+.topbar {
+  display: flex; justify-content: space-between; align-items: flex-start; gap: 24px;
+  background: var(--panel); border: 1px solid var(--border); border-radius: 12px;
+  padding: 18px 20px; margin-bottom: 16px;
+}
+.patient h1 { font-size: 18px; margin: 0 0 8px; font-weight: 700; }
+.facts { display: flex; flex-wrap: wrap; gap: 8px 18px; }
+.fact { font-size: 13px; color: var(--muted); }
+.fact b { color: var(--ink); font-weight: 600; }
+.fact .mono { font-family: var(--mono); }
+
+.headline { text-align: right; min-width: 240px; }
+.headline .status-pill {
+  display: inline-block; font-size: 15px; font-weight: 700; color: #fff;
+  padding: 7px 16px; border-radius: 999px; letter-spacing: .01em;
+}
+.headline .sub { font-size: 12.5px; color: var(--muted); margin-top: 8px; }
+.headline .sub b { color: var(--ink); }
+
+/* status colours */
+.s-up_to_date_for_age, .b-green { background: var(--green); }
+.s-behind_for_age, .b-amber { background: var(--amber); }
+.s-unvaccinated, .b-red { background: var(--red); }
+.s-unknown, .b-muted { background: var(--faint); }
+
+/* KPI strip */
+.kpis { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 16px; }
+.kpi { background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 14px 16px; }
+.kpi .k-label { font-size: 11px; text-transform: uppercase; letter-spacing: .12em; color: var(--muted); }
+.kpi .k-value { font-size: 26px; font-weight: 700; margin-top: 6px; line-height: 1; font-variant-numeric: tabular-nums; }
+.kpi .k-value small { font-size: 14px; color: var(--muted); font-weight: 600; }
+.kpi .k-note { font-size: 12px; color: var(--muted); margin-top: 5px; }
+.kpi.accent .k-value { color: var(--green); }
+.kpi.accent.warn .k-value { color: var(--amber); }
+
+/* Panels */
+.panels { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.panel { background: var(--panel); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+.panel.wide { grid-column: 1 / -1; }
+.panel-head {
+  display: flex; align-items: center; gap: 10px;
+  padding: 12px 16px; border-bottom: 1px solid var(--border); background: var(--panel-2);
+}
+.panel-step {
+  width: 22px; height: 22px; border-radius: 6px; background: var(--green); color: #fff;
+  font-size: 12px; font-weight: 700; display: flex; align-items: center; justify-content: center;
+}
+.panel-title { font-size: 13px; font-weight: 700; }
+.panel-title .muted { color: var(--muted); font-weight: 500; }
+.panel-body { padding: 8px 16px 16px; }
+
+/* Tables */
+table.tbl { width: 100%; border-collapse: collapse; }
+.tbl th {
+  text-align: left; font-size: 10.5px; text-transform: uppercase; letter-spacing: .08em;
+  color: var(--muted); font-weight: 600; padding: 8px 8px; border-bottom: 1px solid var(--border);
+}
+.tbl td { padding: 9px 8px; border-bottom: 1px solid #EEF2F1; font-size: 13px; vertical-align: top; }
+.tbl tr:last-child td { border-bottom: none; }
+.mono { font-family: var(--mono); }
+.tbl td.mono { white-space: nowrap; }
+.code { font-family: var(--mono); font-size: 12px; color: var(--muted); }
+.num { font-variant-numeric: tabular-nums; }
+
+/* Chips */
+.chip {
+  display: inline-block; font-size: 11px; line-height: 1.5; padding: 1px 7px; margin: 1px 2px 1px 0;
+  border-radius: 5px; background: var(--chip-bg); color: var(--green-d); border: 1px solid var(--chip-bd);
+}
+.chip.cls { font-weight: 700; font-family: var(--mono); }
+.chip.ant { background: #EEF1F2; color: #3C4A45; border-color: #DBE2E1; font-family: var(--mono); }
+.chip.ant.off { background: #F4F6F6; color: #AEB8B4; border-color: #E6EAEA; }
+.chip.ant.on { background: #E7F1EC; color: var(--green-d); border-color: #C5DCCF; }
+
+/* Badges */
+.badge { display: inline-block; font-size: 11px; font-weight: 700; padding: 2px 9px; border-radius: 999px; color: #fff; white-space: nowrap; }
+.badge.ok { background: var(--green); }
+.badge.warn { background: var(--amber); }
+.badge.muted { background: var(--faint); }
+.badge.red { background: var(--red); }
+.badge.teal { background: var(--teal); }
+.badge.ghost { background: #EEF2F1; color: var(--muted); }
+
+/* Coverage grid */
+.cov-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; }
+.cov-item {
+  display: flex; align-items: center; gap: 8px; padding: 8px 10px; border: 1px solid var(--border);
+  border-radius: 8px; font-size: 13px; background: var(--panel-2);
+}
+.cov-item.on { background: #EAF3EE; border-color: #C7DDD0; }
+.cov-dot { width: 9px; height: 9px; border-radius: 50%; background: #C4CCC9; flex: none; }
+.cov-item.on .cov-dot { background: var(--green); }
+.cov-name { font-weight: 600; }
+.cov-item.off .cov-name { color: var(--muted); font-weight: 500; }
+
+/* Notes list */
+.notes { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.notes li { display: flex; gap: 10px; align-items: flex-start; font-size: 13px; }
+.notes .when { font-family: var(--mono); font-size: 12px; color: var(--muted); white-space: nowrap; }
+.empty { color: var(--faint); font-size: 13px; padding: 6px 0; }
+
+.row-out td { background: #FBF3EE; }
+.row-unmatched td { background: #FBEEEE; }
+.dose-reason { font-size: 12px; color: var(--amber); margin-top: 3px; }
+.dose-reason.red { color: var(--red); }
+.uncertain { font-size: 11px; color: var(--amber); }

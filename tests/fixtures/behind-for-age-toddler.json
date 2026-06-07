@@ -1,5 +1,5 @@
 {
-  "comment": "An 18-month-old who had the primary infant doses but missed every 12-month appointment: Hib/MenC booster, MMR dose 1, MenB dose 3, PCV dose 2. Demonstrates the BEHIND_FOR_AGE headline and the per-series gap breakdown. Evaluate at 2026-04-29 (age ~18 months). The 'comment' field is ignored by the parser.",
+  "comment": "An 18-month-old who had the primary infant doses but missed every 12-month appointment: Hib/MenC booster, MMR dose 1, MenB dose 3, PCV dose 2. Demonstrates the BEHIND_FOR_AGE headline and the per-series gap breakdown. Evaluate at 2026-04-29 (age ~18 months).",
   "resourceType": "Bundle",
   "type": "collection",
   "entry": [

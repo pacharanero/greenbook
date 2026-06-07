@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>greenbook - schedule evaluation demo</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="app">
+    <!-- Sidebar: scenario presets (our test fixtures). Built for a future
+         "Custom patient" mode that sets the same record state. -->
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-mark">greenbook</div>
+        <div class="brand-sub">schedule evaluation engine</div>
+      </div>
+
+      <div class="side-section">
+        <div class="side-label">Scenario</div>
+        <div id="presetList" class="preset-list"></div>
+      </div>
+
+      <div class="side-section">
+        <div class="side-label">Custom patient</div>
+        <button class="preset preset--soon" disabled>
+          <span class="preset-name">Build your own</span>
+          <span class="preset-hint">Set DOB &amp; doses - coming soon</span>
+        </button>
+      </div>
+
+      <div class="side-foot" id="sideFoot"></div>
+    </aside>
+
+    <!-- Main dashboard -->
+    <main class="main">
+      <header class="topbar" id="topbar"></header>
+      <section class="kpis" id="kpis"></section>
+      <section class="panels" id="panels"></section>
+    </main>
+  </div>
+
+  <script src="data.js"></script>
+  <script src="engine.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

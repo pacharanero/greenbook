@@ -80,7 +80,7 @@ Four demonstration fixtures are now bundled and covered by integration tests: `s
 ### Demonstration and documentation
 
 * [x] Reveal.js presentation of the entire 'thought chain' of the project - explaining to a general clinical/technical audience the chain from the current Green Book state of affairs through the concepts of schedule, products, antigens, and coverage/conformance, using our ubiquitous language throughout. Built with the revealjs skill: [docs/presentation/](../docs/presentation/).
-* [ ] Web-based demo which allows the user to set the patient's DOB, select doses from a menu of products, and see the evaluation report update in real time. This is the most direct way to demonstrate the value of the computable schedule and engine to a non-technical audience. The demo should have some 'presets' which help to demonstrate the various features and edge cases of the engine.
+* [~] Web-based demo ([docs/demo/](../docs/demo/)). **Done:** a dashboard-style static site (plain HTML/JS, GitHub-Pages-ready) with the test fixtures as presets, showing the layers of the logic - recorded doses decomposed into product class and antigens, conformance by series, antigen coverage, and the headline status. Built on a JavaScript port of the Rust engine (`docs/demo/engine.js`), validated to match the Rust output on every fixture. **Still to come:** the "Custom patient" mode - let the user set DOB and select doses from a menu of products and see the report update in real time. The view is already record-driven (`renderScenario(record, evaluatedAt)`) so this is purely additive.
 
 ### M6 — Schedule content gaps
 
