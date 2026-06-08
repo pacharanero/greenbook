@@ -40,9 +40,36 @@
   const antigenChip = (id, on) =>
     `<span class="chip ant ${on ? 'on' : 'off'}" title="${esc((antigenById.get(id) || {}).display_name || id)}">${esc(id)}</span>`;
 
+  // A representative product for each schedule class, used by the custom builder
+  // when a scheduled dose is ticked (e.g. class "6-in-1" -> Infanrix Hexa).
+  const repProductByClass = new Map();
+  for (const p of products.product) if (!repProductByClass.has(p.product_class)) repProductByClass.set(p.product_class, p);
+
+  const shortName = (d) => String(d || '').replace(/\s+vaccine\s+\(product\)$/i, '');
+  function abbreviateAge(str) {
+    const o = G.parseAgeOffset(str);
+    if (o.years) return o.years + 'y' + (o.months ? o.months + 'm' : '');
+    if (o.months) return o.months + 'mo';
+    if (o.weeks) return o.weeks + 'w';
+    return o.days + 'd';
+  }
+  const AGE_PRESETS = [['new', 'Newborn'], ['w8', '8 weeks'], ['w16', '16 weeks'], ['m12', '1 year'], ['m18', '18 months'], ['m40', '3y 4m'], ['m144', '12 years'], ['m168', '14 years']];
+
   // --- State & selection ----------------------------------------------------
 
   let currentId = fixtures[0].id;
+
+  // Custom-patient state. The whole view is record-driven, so this just feeds
+  // buildCustomRecord() -> the same renderScenario pipeline as the presets.
+  const CUSTOM = '__custom__';
+  const todayISO = new Date().toISOString().slice(0, 10);
+  const customState = {
+    dob: G.fmtDate(G.addMonths(G.parseDate(todayISO), -18)), // ~18-month-old by default
+    evaluatedAt: todayISO,
+    gender: 'female',
+    scheduleDoses: new Set(), // keys "<seriesId>#<doseNumber>" the child has had
+    extraDoses: [],           // { code, display, date } off-schedule / unknown doses
+  };
 
   function buildSidebar() {
     document.getElementById('presetList').innerHTML = fixtures
@@ -80,6 +107,8 @@
     document.querySelectorAll('.preset[data-id]').forEach((b) =>
       b.classList.toggle('active', b.dataset.id === currentId)
     );
+    if (currentId === CUSTOM) { renderCustom(); return; }
+    document.getElementById('builder').innerHTML = ''; // hide the builder for presets
     const fx = fixtures.find((f) => f.id === currentId);
     renderScenario(fx.record, fx.evaluatedAt, fx);
   }
@@ -259,6 +288,143 @@
       </section>`;
   }
   const emptyRow = (cols, msg) => `<tr><td colspan="${cols}"><span class="empty">${esc(msg)}</span></td></tr>`;
+
+  // --- Custom patient mode --------------------------------------------------
+
+  // The date a ticked schedule dose is recorded at: its target-age date once
+  // that has been reached, otherwise the evaluation date (i.e. given as soon as
+  // it became due). Returns null if the dose is not yet due - using earliest_age
+  // so this matches the engine's notion of "due". Keeping these aligned means a
+  // dose is tickable exactly when the engine would otherwise flag it as a gap.
+  function customDoseDate(dose, dobD, evalD) {
+    const earliest = G.ageOffsetToDate(dose.earliest_age || dose.target_age, dobD);
+    if (earliest.getTime() > evalD.getTime()) return null;
+    const target = G.ageOffsetToDate(dose.target_age, dobD);
+    return target.getTime() <= evalD.getTime() ? target : evalD;
+  }
+
+  // Turn the builder controls into a record the engine understands. Ticked
+  // schedule doses become an on-time dose of the series' representative product;
+  // a tick only counts if that dose is actually due by the evaluation date.
+  function buildCustomRecord() {
+    const dobD = G.parseDate(customState.dob);
+    const evalD = G.parseDate(customState.evaluatedAt);
+    const imms = [];
+    for (const series of schedule.series) {
+      const rep = repProductByClass.get(series.product_class);
+      if (!rep) continue;
+      for (const dose of series.dose) {
+        const date = customDoseDate(dose, dobD, evalD);
+        if (date && customState.scheduleDoses.has(series.id + '#' + dose.number)) {
+          imms.push({ date: G.fmtDate(date), vaccine_code: rep.code, display: rep.display, dose_number: dose.number });
+        }
+      }
+    }
+    for (const e of customState.extraDoses) imms.push({ date: e.date, vaccine_code: e.code, display: e.display, dose_number: null });
+    imms.sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : 0));
+    const gender = customState.gender === 'unknown' ? null : customState.gender;
+    return { patientId: 'custom', dob: customState.dob, gender, immunisations: imms };
+  }
+
+  function renderCustom() {
+    const record = buildCustomRecord();
+    const evaluatedAt = customState.evaluatedAt;
+    const result = G.evaluate(record, schedule, products, evaluatedAt);
+    renderTopbar(record, evaluatedAt, result, { label: 'Custom patient' });
+    renderBuilder(record);
+    renderKpis(record, result);
+    renderPanels(record, result);
+  }
+
+  function renderBuilder() {
+    const dobD = G.parseDate(customState.dob);
+    const evalD = G.parseDate(customState.evaluatedAt);
+
+    const sexSel = ['female', 'male', 'other', 'unknown']
+      .map((g) => `<option value="${g}" ${customState.gender === g ? 'selected' : ''}>${g[0].toUpperCase() + g.slice(1)}</option>`).join('');
+    const presets = AGE_PRESETS.map(([code, label]) => `<button class="age-btn" data-age="${code}">${esc(label)}</button>`).join('');
+
+    // Schedule checklist - one row per series, a chip per dose. Not-yet-due doses
+    // are disabled, so increasing the age unlocks more of the schedule.
+    const doseRows = schedule.series.map((series) => {
+      const chips = series.dose.map((dose) => {
+        const key = series.id + '#' + dose.number;
+        const due = customDoseDate(dose, dobD, evalD) !== null;
+        const on = due && customState.scheduleDoses.has(key);
+        const title = due ? `Dose ${dose.number} - target ${esc(dose.target_age)}` : `Dose ${dose.number} - not due until ${esc(dose.target_age)}`;
+        return `<button class="dosechip ${on ? 'on' : ''}" data-dose="${key}" ${due ? '' : 'disabled'} title="${title}">${esc(abbreviateAge(dose.target_age))}</button>`;
+      }).join('');
+      return `<div class="dose-series"><span class="ds-name">${esc(series.display_name)} <span class="chip cls">${esc(series.product_class)}</span></span><span class="ds-doses">${chips}</span></div>`;
+    }).join('');
+
+    const productOpts = products.product
+      .map((p) => `<option value="${esc(p.code)}">${esc(shortName(p.display))} (${esc(p.product_class)})</option>`).join('')
+      + `<option value="__unknown__">Unknown product (made-up code)</option>`;
+    const extraList = customState.extraDoses.length
+      ? customState.extraDoses.map((e, i) => `<div class="extra-item"><button class="rm" data-rm="${i}" title="remove">&times;</button><span class="mono">${esc(e.date)}</span><span>${esc(shortName(e.display))}</span></div>`).join('')
+      : '<div class="empty">None. Add one here to try a too-early / too-late dose, or an off-schedule product (e.g. Pediacel 5-in-1).</div>';
+
+    const body = `
+      <div class="builder-row">
+        <label class="field"><span>Date of birth</span><input type="date" id="dob" value="${esc(customState.dob)}"></label>
+        <label class="field"><span>Evaluate at</span><input type="date" id="evalAt" value="${esc(customState.evaluatedAt)}"></label>
+        <label class="field"><span>Sex</span><select id="sex">${sexSel}</select></label>
+        <div class="field"><span>Quick age</span><div class="age-presets">${presets}</div></div>
+      </div>
+      <div class="builder-sub">Doses given <span class="hint">tap the appointments this child attended - only doses due by the evaluation date are selectable</span></div>
+      <div class="dose-grid">${doseRows}</div>
+      <div class="builder-sub">Off-schedule or unknown doses <span class="hint">for edge cases - any product on any date</span></div>
+      <div class="extra-add">
+        <select id="extraProduct">${productOpts}</select>
+        <input type="date" id="extraDate" value="${esc(customState.evaluatedAt)}">
+        <button class="btn" id="extraAdd">Add dose</button>
+      </div>
+      <div class="extra-list">${extraList}</div>`;
+
+    document.getElementById('builder').innerHTML = `
+      <section class="panel builder-panel">
+        <div class="panel-head"><span class="panel-step">&#9998;</span><span class="panel-title">Build a patient <span class="muted">&middot; set age &amp; doses; everything below updates live</span></span></div>
+        <div class="panel-body">${body}</div>
+      </section>`;
+    attachBuilder();
+  }
+
+  function attachBuilder() {
+    const b = document.getElementById('builder');
+    b.querySelector('#dob').addEventListener('change', (e) => { customState.dob = e.target.value; renderCustom(); });
+    b.querySelector('#evalAt').addEventListener('change', (e) => { customState.evaluatedAt = e.target.value; renderCustom(); });
+    b.querySelector('#sex').addEventListener('change', (e) => { customState.gender = e.target.value; renderCustom(); });
+    b.querySelectorAll('[data-age]').forEach((btn) => btn.addEventListener('click', () => setAge(btn.dataset.age)));
+    b.querySelectorAll('[data-dose]').forEach((btn) => btn.addEventListener('click', () => {
+      const k = btn.dataset.dose;
+      if (customState.scheduleDoses.has(k)) customState.scheduleDoses.delete(k); else customState.scheduleDoses.add(k);
+      renderCustom();
+    }));
+    b.querySelector('#extraAdd').addEventListener('click', addExtra);
+    b.querySelectorAll('[data-rm]').forEach((btn) => btn.addEventListener('click', () => { customState.extraDoses.splice(Number(btn.dataset.rm), 1); renderCustom(); }));
+  }
+
+  // Quick-age buttons set DOB relative to the evaluation date.
+  function setAge(code) {
+    const evalD = G.parseDate(customState.evaluatedAt);
+    let dob;
+    if (code === 'new') dob = evalD;
+    else if (code[0] === 'w') dob = G.addDays(evalD, -7 * parseInt(code.slice(1), 10));
+    else dob = G.addMonths(evalD, -parseInt(code.slice(1), 10));
+    customState.dob = G.fmtDate(dob);
+    renderCustom();
+  }
+
+  function addExtra() {
+    const sel = document.getElementById('extraProduct').value;
+    const date = document.getElementById('extraDate').value;
+    if (!date) return;
+    let code, display;
+    if (sel === '__unknown__') { code = '00000000000000000'; display = 'Unknown product'; }
+    else { const p = productIndex.get(sel); code = p.code; display = p.display; }
+    customState.extraDoses.push({ code, display, date });
+    renderCustom();
+  }
 
   buildSidebar();
   render();

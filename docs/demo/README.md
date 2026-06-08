@@ -1,6 +1,6 @@
 # greenbook demo
 
-An interactive, dashboard-style demo of the evaluation engine. Pick a scenario (one of the bundled test fixtures) and see the **layers of the logic** that produce the result:
+An interactive, dashboard-style demo of the evaluation engine. Pick a preset scenario (one of the bundled test fixtures) or **Build your own** patient - set the age and tick the doses given - and see the **layers of the logic** that produce the result:
 
 1. **Recorded doses** decomposed into their **product class** and **antigens** (the product map);
 2. **Conformance by series** - which doses count, matched by product class, with out-of-schedule and unmatched flags;
@@ -22,9 +22,11 @@ The demo is plain HTML/CSS/JS:
 - `data.js` - the schedule, product map, and the demo patients, generated from the canonical files (see below).
 - `app.js` - the dashboard wiring.
 
-### Designed for live editing
+### Build your own (live editing)
 
-The whole view is driven by one function, `renderScenario(record, evaluatedAt)`. Presets are just one way to produce a `record`. The planned "Custom patient" mode (set a date of birth, tick the doses given) only needs to build a `record` from form controls and call the same function - nothing downstream changes.
+The whole view is driven by one function, `renderScenario(record, evaluatedAt)`. Presets are one way to produce a `record`; the **Build your own** mode is another. It lets you set a date of birth, evaluation date and sex, tick the scheduled doses the child has had (only doses that are *due* by the evaluation date are selectable, so raising the age unlocks more of the schedule), and add off-schedule or unknown doses for edge cases. Each change rebuilds the `record` and re-runs the same pipeline, so everything below updates live.
+
+> **Known limitation surfaced here:** if you tick both MMR doses, you will see spurious "out of schedule" flags. That is because the `MMR` product class is shared by two series and the engine currently matches each dose against both. It is a real engine issue (not a demo bug) - see the roadmap (M2, "one product class shared by several series").
 
 ## Regenerating the data
 
