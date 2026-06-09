@@ -1,0 +1,42 @@
+#!/usr/bin/env bash
+# Start the greenbook presentation + demo locally with Docker.
+#
+# Spins up one small nginx container (see docker-compose.yml) that serves both
+# apps. Once it is up, open http://localhost:8080/ and pick the presentation or
+# the demo. This is the easiest way to run both without installing anything but
+# Docker.
+#
+# Usage:
+#   s/up        # start; press Ctrl+C to stop
+#
+# Requires Docker (Docker Desktop, or Docker Engine + the Compose plugin).
+
+set -euo pipefail
+
+ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+cd "$ROOT"
+
+URL="http://localhost:8080/"
+
+if ! command -v docker >/dev/null 2>&1; then
+  echo "Docker is not installed. Install it from https://www.docker.com/ and try again." >&2
+  exit 1
+fi
+
+# Prefer the modern `docker compose`; fall back to the older `docker-compose`.
+if docker compose version >/dev/null 2>&1; then
+  COMPOSE=(docker compose)
+elif command -v docker-compose >/dev/null 2>&1; then
+  COMPOSE=(docker-compose)
+else
+  echo "Docker Compose is not available. Update Docker (Desktop) and try again." >&2
+  exit 1
+fi
+
+echo "Starting greenbook (presentation + demo) at $URL"
+echo "Press Ctrl+C to stop."
+
+# Open the browser once nginx has had a moment to start. Tolerant of no opener.
+( sleep 2; (xdg-open "$URL" || open "$URL" || sensible-browser "$URL") >/dev/null 2>&1 || true ) &
+
+exec "${COMPOSE[@]}" up

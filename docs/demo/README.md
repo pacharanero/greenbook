@@ -11,7 +11,7 @@ It is intended to be shown after the [presentation](../presentation/): the prese
 
 ## View it
 
-Run `s/demo` from the repo root to serve the demo and open it in your browser, or just open `index.html` directly - no build step, no network. All data is embedded in `data.js`, so it also works unchanged from `file://`, a static server, or GitHub Pages.
+Run `s/demo` from the repo root to serve the demo and open it in your browser, or just open `index.html` directly - no build step, no network. (To run the demo and the [presentation](../presentation/) together in one Docker container, use `s/up` instead - it serves both at http://localhost:8080/.) All data is embedded in `data.js`, so it also works unchanged from `file://`, a static server, or GitHub Pages.
 
 ## How it works
 

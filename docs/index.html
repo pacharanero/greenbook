@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>greenbook</title>
+  <style>
+    :root { --green: #1E6F52; --green-d: #14503A; --ink: #16221E; --muted: #6A7A74; --paper: #F6F4EC; }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; min-height: 100vh; display: flex; align-items: center; justify-content: center;
+      background: var(--paper); color: var(--ink);
+      font-family: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    }
+    .wrap { width: 100%; max-width: 760px; padding: 40px 24px; }
+    h1 { font-size: 40px; margin: 0; letter-spacing: -0.01em; }
+    .tag { color: var(--muted); font-size: 17px; margin: 8px 0 32px; line-height: 1.5; }
+    .cards { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+    @media (max-width: 560px) { .cards { grid-template-columns: 1fr; } }
+    a.card {
+      display: block; text-decoration: none; color: inherit; background: #fff;
+      border: 1px solid #E4E1D4; border-left: 6px solid var(--green); border-radius: 12px;
+      padding: 22px 24px; transition: box-shadow .12s, transform .12s;
+    }
+    a.card:hover { box-shadow: 0 6px 20px rgba(27,42,36,.10); transform: translateY(-2px); }
+    a.card h2 { margin: 0 0 6px; font-size: 20px; color: var(--green-d); }
+    a.card p { margin: 0; color: var(--muted); font-size: 14px; line-height: 1.5; }
+    .foot { margin-top: 28px; color: var(--muted); font-size: 13px; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>greenbook</h1>
+    <p class="tag">A computable, versioned representation of the NHS childhood immunisation schedule, and an engine that evaluates a patient's vaccination history against it.</p>
+    <div class="cards">
+      <a class="card" href="presentation/presentation.html">
+        <h2>Presentation &rarr;</h2>
+        <p>The thinking behind the project, from the Green Book today to the domain model and the engine.</p>
+      </a>
+      <a class="card" href="demo/">
+        <h2>Interactive demo &rarr;</h2>
+        <p>A dashboard that evaluates example patients - or build your own and watch the result update live.</p>
+      </a>
+    </div>
+    <p class="foot">Tip: show the presentation first, then switch to the demo.</p>
+  </div>
+</body>
+</html>

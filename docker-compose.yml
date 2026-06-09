@@ -1,0 +1,16 @@
+# Serve the greenbook presentation and demo together, locally, in one small
+# container. Both are static files living under docs/, so a single nginx serving
+# that folder is all it takes - no build step, no image to maintain.
+#
+# Start it:   s/up            (or: docker compose up)
+# Then open:  http://localhost:8080/
+# Stop it:    Ctrl+C          (or: docker compose down)
+
+services:
+  web:
+    image: nginx:1.30.2-alpine   # pinned stable; bump deliberately
+    container_name: greenbook
+    ports:
+      - "8080:80"
+    volumes:
+      - ./docs:/usr/share/nginx/html:ro
