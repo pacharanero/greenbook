@@ -55,11 +55,19 @@ function parseBundle(bundle) {
     .map((i) => {
       const coding = (i.vaccineCode?.coding || []).find((c) => c.code);
       if (!coding) throw new Error('immunisation missing vaccineCode');
+      // SNOMED procedure code from the UKCore-VaccinationProcedure extension
+      // (distinct from the dm+d product code): duplicate signal + dose cross-check.
+      const procExt = (i.extension || []).find(
+        (e) => e.url === 'https://fhir.hl7.org.uk/StructureDefinition/Extension-UKCore-VaccinationProcedure'
+      );
+      const procCoding = (procExt?.valueCodeableConcept?.coding || []).find((c) => c.code);
       return {
         date: String(i.occurrenceDateTime).slice(0, 10),
         vaccine_code: coding.code,
         display: coding.display || null,
         dose_number: (i.protocolApplied || []).map((p) => p.doseNumberPositiveInt).find((n) => n != null) ?? null,
+        procedure_code: procCoding?.code ?? null,
+        procedure_display: procCoding?.display ?? null,
       };
     })
     .sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : 0));
@@ -78,6 +86,9 @@ const LABELS = {
   'behind-for-age-toddler': 'Behind-for-age toddler',
   'out-of-schedule-doses': 'Doses outside the schedule',
   'unmatched-doses': 'Unknown & superseded products',
+  'mmr-both-doses': 'Both MMR doses',
+  'duplicate-echo': 'Duplicate "echo" dose',
+  'dose-number-mismatch': 'Mis-keyed dose number',
 };
 
 // All presets are evaluated at this date so the demo is deterministic (it is the

@@ -162,6 +162,8 @@ pub struct VaccinationStatus {
     pub evaluated_at: NaiveDate,    // date of evaluation (today, or a specified date)
     pub schedule_version: NaiveDate,
     pub by_series: HashMap<String, SeriesStatus>,
+    pub unmatched_doses: Vec<UnmatchedDose>,         // matched no series at all
+    pub duplicate_doses: Vec<DuplicateDose>,         // echoes (same procedure code)
     pub by_antigen: HashMap<String, AntigenStatus>,  // coverage view; deferred
 }
 
@@ -201,8 +203,21 @@ pub struct RecordedDose {
     pub date: NaiveDate,
     pub age_at_dose: AgeOffset,
     pub vaccine_code: String,
+    pub assigned_dose_number: Option<u32>,  // which dose slot it filled, by date order
     pub within_schedule: bool,        // false => given outside the standard schedule
     pub schedule_notes: Vec<String>,  // e.g. "given before earliest_age (outside standard schedule)"
+    pub flags: Vec<String>,           // soft cross-check warnings, e.g. dose number disagrees with date order
+}
+
+/// A recorded dose dropped as a likely duplicate "echo" of an earlier dose with
+/// the same procedure code (see standard.md §"Duplicate doses").
+#[derive(Debug, Clone, Serialize)]
+pub struct DuplicateDose {
+    pub date: NaiveDate,
+    pub vaccine_code: String,
+    pub display: Option<String>,
+    pub procedure_code: Option<String>,
+    pub duplicate_of: NaiveDate,      // the kept dose this one echoes
 }
 ```
 

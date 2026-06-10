@@ -26,7 +26,7 @@ The demo is plain HTML/CSS/JS:
 
 The whole view is driven by one function, `renderScenario(record, evaluatedAt)`. Presets are one way to produce a `record`; the **Build your own** mode is another. It lets you set a date of birth, evaluation date and sex, tick the scheduled doses the child has had (only doses that are *due* by the evaluation date are selectable, so raising the age unlocks more of the schedule), and add off-schedule or unknown doses for edge cases. Each change rebuilds the `record` and re-runs the same pipeline, so everything below updates live.
 
-> **Known limitation surfaced here:** if you tick both MMR doses, you will see spurious "out of schedule" flags. That is because the `MMR` product class is shared by two series and the engine currently matches each dose against both. It is a real engine issue (not a demo bug) - see the roadmap (M2, "one product class shared by several series").
+The presets also exercise the dose-sequencing logic: **Both MMR doses** (one product class, two series - allocated correctly, no spurious flags), **Duplicate "echo" dose** (the same jab recorded twice with different dates but the same procedure code), and **Mis-keyed dose number** (recorded as dose 2 but it is dose 1 by date - flagged, not trusted).
 
 ## Regenerating the data
 

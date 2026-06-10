@@ -10,14 +10,26 @@
 //!
 //! Antigen *coverage* ("what diseases are they protected against?") is a separate,
 //! deferred computation and is not produced here yet.
+//!
+//! **Dose sequencing.** A product class can serve more than one series (e.g. `MMR`
+//! → first-dose and second-dose series). Such a class is treated as one programme:
+//! its doses are allocated across the class's series slots in **date order**, which
+//! is the one signal a human can't mis-key. The recorded `protocolApplied` dose
+//! number and any dose encoded in the SNOMED procedure code are **cross-checks**
+//! that raise a flag on disagreement, never overriding the date-based allocation.
+//!
+//! **Duplicates ("echoes").** The same physical vaccination is often recorded twice
+//! from different systems with different dates. Where two records share the same
+//! procedure code they are taken to be the same act; the earliest is kept and the
+//! rest reported as duplicates rather than counted as extra doses.
 
 use crate::error::EvaluationError;
 use crate::fhir::{Immunisation, VaccinationRecord};
 use crate::products::ProductMap;
-use crate::schedule::{Eligibility, Schedule, Series};
+use crate::schedule::{Dose, Eligibility, Schedule, Series};
 use chrono::{Datelike, Months, NaiveDate};
 use serde::Serialize;
-use std::collections::HashSet;
+use std::collections::{HashMap, HashSet};
 
 /// The full result of evaluating one patient against one schedule.
 #[derive(Debug, Clone, Serialize)]
@@ -38,6 +50,9 @@ pub struct VaccinationStatus {
     /// code or a known product whose class no series in this schedule asks for.
     /// These would otherwise vanish silently from the report.
     pub unmatched_doses: Vec<UnmatchedDose>,
+    /// Recorded doses dropped as likely duplicates ("echoes") of an earlier dose
+    /// with the same procedure code. Reported, not counted.
+    pub duplicate_doses: Vec<DuplicateDose>,
 }
 
 /// The headline answer to "is this patient correctly vaccinated for their age?".
@@ -113,8 +128,8 @@ pub struct RecordedDose {
     pub age_at_dose: String,
     pub vaccine_code: String,
     pub display: Option<String>,
-    /// Which dose number in the series this was taken to be, if it landed within
-    /// the expected count.
+    /// Which dose number in the series this was taken to be (by date order), if it
+    /// landed within the expected count.
     pub assigned_dose_number: Option<u32>,
     /// True when the dose falls *within* the standard schedule (right age,
     /// interval met, not past any cutoff). False means "outside standard
@@ -123,6 +138,10 @@ pub struct RecordedDose {
     /// When `within_schedule` is false, the specific reasons (too early, too
     /// late, interval too short, ...). Empty when the dose is fine.
     pub schedule_notes: Vec<String>,
+    /// Soft cross-check warnings that do *not* affect validity - notably when the
+    /// recorded dose number (FHIR `protocolApplied` or the SNOMED procedure code)
+    /// disagrees with the position derived from dates. Surfaced for human review.
+    pub flags: Vec<String>,
 }
 
 /// A recorded dose that belongs to no series in the loaded schedule.
@@ -136,6 +155,18 @@ pub struct UnmatchedDose {
     pub reason: String,
 }
 
+/// A recorded dose dropped as a likely duplicate of an earlier dose.
+#[derive(Debug, Clone, Serialize)]
+pub struct DuplicateDose {
+    pub date: NaiveDate,
+    pub vaccine_code: String,
+    pub display: Option<String>,
+    /// The procedure code shared with the kept dose (the duplicate signal).
+    pub procedure_code: Option<String>,
+    /// The date of the earlier dose this one duplicates.
+    pub duplicate_of: NaiveDate,
+}
+
 /// Evaluate a vaccination record against a schedule.
 pub fn evaluate(
     record: &VaccinationRecord,
@@ -143,14 +174,51 @@ pub fn evaluate(
     product_map: &ProductMap,
     evaluated_at: NaiveDate,
 ) -> Result<VaccinationStatus, EvaluationError> {
-    // Evaluate each series independently. Order is preserved so the report reads
-    // top-to-bottom in schedule (roughly chronological) order.
-    let mut series_statuses = Vec::with_capacity(schedule.series.len());
-    for series in &schedule.series {
-        series_statuses.push(evaluate_series(series, record, product_map, evaluated_at));
+    // 1. Drop duplicate "echoes" before anything else, so the same physical jab
+    //    recorded twice from two systems isn't counted as two doses.
+    let (kept, duplicate_doses) = detect_duplicates(&record.immunisations);
+
+    // 2. Group the schedule's series by product class, preserving the order in
+    //    which each class first appears. A class with several series (e.g. MMR)
+    //    is evaluated as one programme so its doses are allocated across the
+    //    series rather than matched against each independently.
+    let mut class_order: Vec<&str> = Vec::new();
+    let mut class_series: HashMap<&str, Vec<&Series>> = HashMap::new();
+    for s in &schedule.series {
+        let class = s.product_class.as_str();
+        if !class_series.contains_key(class) {
+            class_order.push(class);
+        }
+        class_series.entry(class).or_default().push(s);
     }
 
-    let unmatched = find_unmatched_doses(record, schedule, product_map);
+    // 3. Evaluate each class group; collect the per-series results.
+    let mut series_statuses: Vec<SeriesStatus> = Vec::with_capacity(schedule.series.len());
+    for class in &class_order {
+        let group = &class_series[*class];
+        let class_doses: Vec<&Immunisation> = kept
+            .iter()
+            .copied()
+            .filter(|imm| product_map.class_for(&imm.vaccine_code) == Some(*class))
+            .collect();
+        series_statuses.extend(evaluate_class_group(
+            group,
+            &class_doses,
+            record,
+            evaluated_at,
+        ));
+    }
+
+    // 4. Restore original schedule order for the report.
+    let order: HashMap<&str, usize> = schedule
+        .series
+        .iter()
+        .enumerate()
+        .map(|(i, s)| (s.id.as_str(), i))
+        .collect();
+    series_statuses.sort_by_key(|st| order[st.series_id.as_str()]);
+
+    let unmatched = find_unmatched_doses(&kept, schedule, product_map);
     let status = aggregate(&series_statuses);
 
     // "Fully vaccinated" is the strict sense: every series the patient is
@@ -168,96 +236,93 @@ pub fn evaluate(
         schedule_version: schedule.schedule.valid_from,
         by_series: series_statuses,
         unmatched_doses: unmatched,
+        duplicate_doses,
     })
 }
 
-/// Evaluate a single series: check eligibility, match doses by product class,
-/// validate each dose, and classify completion and up-to-date-for-age.
-fn evaluate_series(
-    series: &Series,
+/// Detect duplicate "echoes": records sharing a procedure code are the same act.
+/// The earliest is kept; the rest are reported as duplicates. Records with no
+/// procedure code are always kept (we have no duplicate signal for them).
+///
+/// `immunisations` is assumed date-sorted (the FHIR parser sorts), so the first
+/// occurrence of a procedure code is the earliest.
+fn detect_duplicates(immunisations: &[Immunisation]) -> (Vec<&Immunisation>, Vec<DuplicateDose>) {
+    let mut seen: HashMap<&str, NaiveDate> = HashMap::new();
+    let mut kept: Vec<&Immunisation> = Vec::new();
+    let mut duplicates: Vec<DuplicateDose> = Vec::new();
+
+    for imm in immunisations {
+        match imm.procedure_code.as_deref() {
+            Some(code) => match seen.get(code) {
+                Some(first_date) => duplicates.push(DuplicateDose {
+                    date: imm.date,
+                    vaccine_code: imm.vaccine_code.clone(),
+                    display: imm.display.clone(),
+                    procedure_code: imm.procedure_code.clone(),
+                    duplicate_of: *first_date,
+                }),
+                None => {
+                    seen.insert(code, imm.date);
+                    kept.push(imm);
+                }
+            },
+            None => kept.push(imm),
+        }
+    }
+    (kept, duplicates)
+}
+
+/// Evaluate all series that share one product class as a single programme,
+/// allocating the class's recorded doses across the series' dose slots by date.
+fn evaluate_class_group(
+    group: &[&Series],
+    class_doses: &[&Immunisation],
     record: &VaccinationRecord,
-    product_map: &ProductMap,
     evaluated_at: NaiveDate,
-) -> SeriesStatus {
-    // --- Eligibility -------------------------------------------------------
-    // Decide first whether the patient is even in scope. An ineligible series is
-    // NotApplicable and contributes nothing to the overall status.
-    let elig = check_eligibility(&series.eligibility, record);
-    let mut notes: Vec<String> = Vec::new();
-    if let Some(note) = elig.note {
-        notes.push(note);
-    }
-
-    let doses_expected = series.dose.len() as u32;
-
-    // How many of the defined doses are *due* by the evaluation date? A dose is
-    // due once its earliest_age (or target_age, if no earliest is set) has been
-    // reached. This is what lets us say "up to date for age" rather than
-    // penalising a child for a dose they are simply too young to have had.
-    let doses_due = series
-        .dose
+) -> Vec<SeriesStatus> {
+    // Eligibility per series in the group.
+    let eligs: Vec<EligibilityOutcome> = group
         .iter()
-        .filter(|dose| {
-            let due_at = dose
-                .earliest_age
-                .unwrap_or(dose.target_age)
-                .to_date(record.dob);
-            due_at <= evaluated_at
-        })
-        .count() as u32;
-
-    if !elig.eligible {
-        // Not in scope: report the shape but mark NotApplicable and do no matching.
-        return SeriesStatus {
-            series_id: series.id.clone(),
-            display_name: series.display_name.clone(),
-            status: SeriesCompletionStatus::NotApplicable,
-            eligible: false,
-            eligibility_uncertain: elig.uncertain,
-            doses_expected,
-            doses_due,
-            doses_valid: 0,
-            up_to_date_for_age: true, // not applicable => nothing outstanding
-            doses_recorded: Vec::new(),
-            notes,
-        };
-    }
-
-    // --- Dose matching (conformance) --------------------------------------
-    // Conformance matching is by product class, not antigen overlap: a dose
-    // belongs to this series only if the Green Book names its product for this
-    // programme. This is what stops a 6-in-1 dose (which contains Hib) from
-    // being dragged into the Hib/MenC booster series. See docs/adr/0001.
-    let mut matched: Vec<&Immunisation> = record
-        .immunisations
-        .iter()
-        .filter(|imm| {
-            product_map.class_for(&imm.vaccine_code) == Some(series.product_class.as_str())
-        })
+        .map(|s| check_eligibility(&s.eligibility, record))
         .collect();
-    matched.sort_by_key(|i| i.date);
 
-    // Walk the matched doses in date order, assigning each to the next expected
-    // dose slot and checking it against that slot's age/interval rules.
-    let mut recorded: Vec<RecordedDose> = Vec::new();
+    // Build the ordered list of dose slots from the *eligible* series, sorted by
+    // the date each dose is targeted at. Each slot remembers which series it
+    // belongs to (index into `group`).
+    struct Slot<'a> {
+        gi: usize,
+        dose: &'a Dose,
+    }
+    let mut slots: Vec<Slot> = Vec::new();
+    for (gi, s) in group.iter().enumerate() {
+        if eligs[gi].eligible {
+            for dose in &s.dose {
+                slots.push(Slot { gi, dose });
+            }
+        }
+    }
+    slots.sort_by_key(|sl| sl.dose.target_age.to_date(record.dob));
+
+    // The series an "extra" dose (beyond all slots) is attached to: the last
+    // eligible series in the group.
+    let last_eligible_gi = (0..group.len()).rev().find(|&gi| eligs[gi].eligible);
+
+    // Walk the class's doses in date order, assigning each to the next slot.
+    let mut recorded_by_gi: Vec<Vec<RecordedDose>> = vec![Vec::new(); group.len()];
     let mut last_valid_date: Option<NaiveDate> = None;
-    let mut next_dose_idx: usize = 0;
 
-    for imm in &matched {
+    for (i, imm) in class_doses.iter().enumerate() {
         let mut schedule_notes: Vec<String> = Vec::new();
+        let mut flags: Vec<String> = Vec::new();
         let mut within_schedule = true;
         let mut assigned: Option<u32> = None;
 
-        if next_dose_idx >= series.dose.len() {
-            // More doses of this class than the series defines.
-            within_schedule = false;
-            schedule_notes.push("extra dose beyond the expected count for this series".into());
-        } else {
-            let dose = &series.dose[next_dose_idx];
-            assigned = Some(dose.number);
+        let target_gi = if i < slots.len() {
+            let slot = &slots[i];
+            assigned = Some(slot.dose.number);
 
-            // Too early: before the earliest age the dose may be given.
-            if let Some(earliest) = dose.earliest_age {
+            // Too early.
+            if let Some(earliest) = slot.dose.earliest_age {
                 let earliest_date = earliest.to_date(record.dob);
                 if imm.date < earliest_date {
                     within_schedule = false;
@@ -267,9 +332,8 @@ fn evaluate_series(
                     ));
                 }
             }
-            // Too late: after a hard cutoff (e.g. rotavirus). Clinically this
-            // dose must not count toward completion.
-            if let Some(latest) = dose.latest_age {
+            // Too late (hard cutoff).
+            if let Some(latest) = slot.dose.latest_age {
                 let latest_date = latest.to_date(record.dob);
                 if imm.date > latest_date {
                     within_schedule = false;
@@ -279,8 +343,9 @@ fn evaluate_series(
                     ));
                 }
             }
-            // Interval too short since the previous *valid* dose.
-            if let (Some(min_int), Some(prev)) = (dose.min_interval_from_previous, last_valid_date)
+            // Interval too short since the previous *valid* dose in this programme.
+            if let (Some(min_int), Some(prev)) =
+                (slot.dose.min_interval_from_previous, last_valid_date)
             {
                 let earliest_by_interval = min_int.to_date(prev);
                 if imm.date < earliest_by_interval {
@@ -291,9 +356,39 @@ fn evaluate_series(
                     ));
                 }
             }
-        }
 
-        recorded.push(RecordedDose {
+            // Cross-check the date-derived dose number against the recorded
+            // signals. Disagreement is flagged for review, never overriding.
+            if let Some(recorded_n) = imm.dose_number {
+                if recorded_n != slot.dose.number {
+                    flags.push(format!(
+                        "recorded dose number {} disagrees with position-by-date (dose {}) - sequence may be mis-keyed",
+                        recorded_n, slot.dose.number
+                    ));
+                }
+            }
+            if let Some(proc_n) = dose_from_procedure(imm.procedure_display.as_deref()) {
+                if proc_n != slot.dose.number {
+                    flags.push(format!(
+                        "procedure code indicates dose {} but by date this is dose {}",
+                        proc_n, slot.dose.number
+                    ));
+                }
+            }
+
+            slot.gi
+        } else {
+            // More doses of this class than the programme defines.
+            within_schedule = false;
+            schedule_notes.push("extra dose beyond the expected count for this class".into());
+            // Attach to the last eligible series so it is still reported.
+            match last_eligible_gi {
+                Some(gi) => gi,
+                None => continue, // no eligible series in the group; ignore
+            }
+        };
+
+        recorded_by_gi[target_gi].push(RecordedDose {
             date: imm.date,
             age_at_dose: age_between(record.dob, imm.date),
             vaccine_code: imm.vaccine_code.clone(),
@@ -301,42 +396,99 @@ fn evaluate_series(
             assigned_dose_number: assigned,
             within_schedule,
             schedule_notes,
+            flags,
         });
 
-        // Only an in-schedule dose advances the course and counts as the
-        // baseline for the next dose's interval check.
         if within_schedule {
             last_valid_date = Some(imm.date);
-            next_dose_idx += 1;
         }
     }
 
-    let doses_valid = recorded.iter().filter(|d| d.within_schedule).count() as u32;
+    // Build a SeriesStatus for each series in the group.
+    group
+        .iter()
+        .enumerate()
+        .map(|(gi, s)| {
+            let elig = &eligs[gi];
+            let notes: Vec<String> = elig.note.clone().into_iter().collect();
+            let doses_expected = s.dose.len() as u32;
+            let doses_due = doses_due_for(s, record.dob, evaluated_at);
 
-    let status = if doses_valid >= doses_expected {
-        SeriesCompletionStatus::Complete
-    } else if doses_valid > 0 {
-        SeriesCompletionStatus::Partial
-    } else {
-        SeriesCompletionStatus::None
-    };
+            if !elig.eligible {
+                return SeriesStatus {
+                    series_id: s.id.clone(),
+                    display_name: s.display_name.clone(),
+                    status: SeriesCompletionStatus::NotApplicable,
+                    eligible: false,
+                    eligibility_uncertain: elig.uncertain,
+                    doses_expected,
+                    doses_due,
+                    doses_valid: 0,
+                    up_to_date_for_age: true,
+                    doses_recorded: Vec::new(),
+                    notes,
+                };
+            }
 
-    // Up to date for age: we have a valid dose for every dose due so far.
-    let up_to_date_for_age = doses_valid >= doses_due;
+            let recorded = std::mem::take(&mut recorded_by_gi[gi]);
+            let doses_valid = recorded.iter().filter(|d| d.within_schedule).count() as u32;
+            let status = if doses_valid >= doses_expected {
+                SeriesCompletionStatus::Complete
+            } else if doses_valid > 0 {
+                SeriesCompletionStatus::Partial
+            } else {
+                SeriesCompletionStatus::None
+            };
 
-    SeriesStatus {
-        series_id: series.id.clone(),
-        display_name: series.display_name.clone(),
-        status,
-        eligible: true,
-        eligibility_uncertain: elig.uncertain,
-        doses_expected,
-        doses_due,
-        doses_valid,
-        up_to_date_for_age,
-        doses_recorded: recorded,
-        notes,
+            SeriesStatus {
+                series_id: s.id.clone(),
+                display_name: s.display_name.clone(),
+                status,
+                eligible: true,
+                eligibility_uncertain: elig.uncertain,
+                doses_expected,
+                doses_due,
+                doses_valid,
+                up_to_date_for_age: doses_valid >= doses_due,
+                doses_recorded: recorded,
+                notes,
+            }
+        })
+        .collect()
+}
+
+/// How many of a series' defined doses are *due* by the evaluation date. A dose
+/// is due once its `earliest_age` (or `target_age`, if no earliest is set) is
+/// reached.
+fn doses_due_for(series: &Series, dob: NaiveDate, evaluated_at: NaiveDate) -> u32 {
+    series
+        .dose
+        .iter()
+        .filter(|dose| {
+            let due_at = dose.earliest_age.unwrap_or(dose.target_age).to_date(dob);
+            due_at <= evaluated_at
+        })
+        .count() as u32
+}
+
+/// Parse a dose number from a SNOMED procedure code's display text, e.g.
+/// "Administration of second dose of ... vaccine (procedure)" -> 2. The *first*
+/// dose is often recorded with the generic administration code (no "first" in
+/// it), so a `None` here just means "no explicit dose stated".
+fn dose_from_procedure(display: Option<&str>) -> Option<u32> {
+    let d = display?.to_ascii_lowercase();
+    for (word, n) in [
+        ("first", 1u32),
+        ("second", 2),
+        ("third", 3),
+        ("fourth", 4),
+        ("fifth", 5),
+    ] {
+        if d.contains(&format!("{} dose", word)) {
+            return Some(n);
+        }
     }
+    None
 }
 
 /// Outcome of an eligibility check for one series.
@@ -462,9 +614,9 @@ fn male_cohort_outcome(
 }
 
 /// Collect recorded doses that belong to no series in the schedule, so they are
-/// reported rather than silently dropped.
+/// reported rather than silently dropped. Operates on the de-duplicated set.
 fn find_unmatched_doses(
-    record: &VaccinationRecord,
+    kept: &[&Immunisation],
     schedule: &Schedule,
     product_map: &ProductMap,
 ) -> Vec<UnmatchedDose> {
@@ -476,7 +628,7 @@ fn find_unmatched_doses(
         .collect();
 
     let mut unmatched = Vec::new();
-    for imm in &record.immunisations {
+    for imm in kept {
         match product_map.class_for(&imm.vaccine_code) {
             // Code isn't in the product map at all.
             None => unmatched.push(UnmatchedDose {

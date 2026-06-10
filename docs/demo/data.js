@@ -443,49 +443,144 @@ window.GREENBOOK = {
             "date": "2024-12-24",
             "vaccine_code": "39114911000001105",
             "display": "Infanrix Hexa vaccine (product)",
-            "dose_number": 1
+            "dose_number": 1,
+            "procedure_code": null,
+            "procedure_display": null
           },
           {
             "date": "2024-12-24",
             "vaccine_code": "7374211000001102",
             "display": "Rotarix vaccine (product)",
-            "dose_number": 1
+            "dose_number": 1,
+            "procedure_code": null,
+            "procedure_display": null
           },
           {
             "date": "2024-12-24",
             "vaccine_code": "12672211000001104",
             "display": "Bexsero vaccine (product)",
-            "dose_number": 1
+            "dose_number": 1,
+            "procedure_code": null,
+            "procedure_display": null
           },
           {
             "date": "2025-01-21",
             "vaccine_code": "39114911000001105",
             "display": "Infanrix Hexa vaccine (product)",
-            "dose_number": 2
+            "dose_number": 2,
+            "procedure_code": null,
+            "procedure_display": null
           },
           {
             "date": "2025-01-21",
             "vaccine_code": "7374211000001102",
             "display": "Rotarix vaccine (product)",
-            "dose_number": 2
+            "dose_number": 2,
+            "procedure_code": null,
+            "procedure_display": null
           },
           {
             "date": "2025-01-21",
             "vaccine_code": "14473901000001100",
             "display": "Prevenar 13 vaccine (product)",
-            "dose_number": 1
+            "dose_number": 1,
+            "procedure_code": null,
+            "procedure_display": null
           },
           {
             "date": "2025-02-18",
             "vaccine_code": "39114911000001105",
             "display": "Infanrix Hexa vaccine (product)",
-            "dose_number": 3
+            "dose_number": 3,
+            "procedure_code": null,
+            "procedure_display": null
           },
           {
             "date": "2025-02-18",
             "vaccine_code": "12672211000001104",
             "display": "Bexsero vaccine (product)",
-            "dose_number": 2
+            "dose_number": 2,
+            "procedure_code": null,
+            "procedure_display": null
+          }
+        ]
+      }
+    },
+    {
+      "id": "dose-number-mismatch",
+      "label": "Mis-keyed dose number",
+      "description": "A single MMR dose given at 12 months, but recorded with protocolApplied dose number 2 - a human mis-key (it is plainly the first MMR dose by date). The engine allocates it to MMR dose 1 by date and raises a soft flag for review, without changing validity. Demonstrates the dose-sequence cross-check. Evaluate at 2026-04-29.",
+      "evaluatedAt": "2026-04-29",
+      "record": {
+        "patientId": "miskey",
+        "dob": "2022-10-29",
+        "gender": "female",
+        "immunisations": [
+          {
+            "date": "2023-10-29",
+            "vaccine_code": "9324201000001104",
+            "display": "Priorix vaccine (product)",
+            "dose_number": 2,
+            "procedure_code": null,
+            "procedure_display": null
+          }
+        ]
+      }
+    },
+    {
+      "id": "duplicate-echo",
+      "label": "Duplicate \"echo\" dose",
+      "description": "The same physical 6-in-1 first dose recorded twice from two systems with different dates - an 'echo'. Both carry the same VaccinationProcedure procedure code, which is the duplicate signal. The engine keeps the earliest (2025-12-24) and reports the later record (2026-01-10) as a duplicate rather than counting it as a second dose. Evaluate at 2026-04-29.",
+      "evaluatedAt": "2026-04-29",
+      "record": {
+        "patientId": "echo-infant",
+        "dob": "2025-10-29",
+        "gender": "male",
+        "immunisations": [
+          {
+            "date": "2025-12-24",
+            "vaccine_code": "39114911000001105",
+            "display": "Infanrix Hexa vaccine (product)",
+            "dose_number": 1,
+            "procedure_code": "170370008",
+            "procedure_display": "Administration of first dose of six component vaccine (procedure)"
+          },
+          {
+            "date": "2026-01-10",
+            "vaccine_code": "39114911000001105",
+            "display": "Infanrix Hexa vaccine (product)",
+            "dose_number": 1,
+            "procedure_code": "170370008",
+            "procedure_display": "Administration of first dose of six component vaccine (procedure)"
+          }
+        ]
+      }
+    },
+    {
+      "id": "mmr-both-doses",
+      "label": "Both MMR doses",
+      "description": "Both MMR doses given on time. MMR is one product class serving two series (first dose at 12 months, second at 3y4m). This fixture proves the class-as-one-programme allocation: dose 1 fills mmr-primary, dose 2 fills mmr-second, each Complete, with no spurious 'extra dose' or 'too early' flags. Each carries a VaccinationProcedure procedure code that agrees with date order. Evaluate at 2026-04-29 (age ~3y6m).",
+      "evaluatedAt": "2026-04-29",
+      "record": {
+        "patientId": "preschooler",
+        "dob": "2022-10-29",
+        "gender": "female",
+        "immunisations": [
+          {
+            "date": "2023-10-29",
+            "vaccine_code": "9324201000001104",
+            "display": "Priorix vaccine (product)",
+            "dose_number": 1,
+            "procedure_code": "170433008",
+            "procedure_display": "Administration of first dose of measles, mumps and rubella vaccine (procedure)"
+          },
+          {
+            "date": "2026-02-15",
+            "vaccine_code": "9324201000001104",
+            "display": "Priorix vaccine (product)",
+            "dose_number": 2,
+            "procedure_code": "170434002",
+            "procedure_display": "Administration of second dose of measles, mumps and rubella vaccine (procedure)"
           }
         ]
       }
@@ -504,19 +599,25 @@ window.GREENBOOK = {
             "date": "2025-12-24",
             "vaccine_code": "39114911000001105",
             "display": "Infanrix Hexa vaccine (product)",
-            "dose_number": 1
+            "dose_number": 1,
+            "procedure_code": null,
+            "procedure_display": null
           },
           {
             "date": "2025-12-31",
             "vaccine_code": "39114911000001105",
             "display": "Infanrix Hexa vaccine (product)",
-            "dose_number": 2
+            "dose_number": 2,
+            "procedure_code": null,
+            "procedure_display": null
           },
           {
             "date": "2026-03-01",
             "vaccine_code": "7374211000001102",
             "display": "Rotarix vaccine (product)",
-            "dose_number": 1
+            "dose_number": 1,
+            "procedure_code": null,
+            "procedure_display": null
           }
         ]
       }
@@ -535,49 +636,65 @@ window.GREENBOOK = {
             "date": "2025-12-24",
             "vaccine_code": "39114911000001105",
             "display": "Infanrix Hexa vaccine (product)",
-            "dose_number": 1
+            "dose_number": 1,
+            "procedure_code": null,
+            "procedure_display": null
           },
           {
             "date": "2025-12-24",
             "vaccine_code": "7374211000001102",
             "display": "Rotarix vaccine (product)",
-            "dose_number": 1
+            "dose_number": 1,
+            "procedure_code": null,
+            "procedure_display": null
           },
           {
             "date": "2025-12-24",
             "vaccine_code": "12672211000001104",
             "display": "Bexsero vaccine (product)",
-            "dose_number": 1
+            "dose_number": 1,
+            "procedure_code": null,
+            "procedure_display": null
           },
           {
             "date": "2026-01-21",
             "vaccine_code": "39114911000001105",
             "display": "Infanrix Hexa vaccine (product)",
-            "dose_number": 2
+            "dose_number": 2,
+            "procedure_code": null,
+            "procedure_display": null
           },
           {
             "date": "2026-01-21",
             "vaccine_code": "7374211000001102",
             "display": "Rotarix vaccine (product)",
-            "dose_number": 2
+            "dose_number": 2,
+            "procedure_code": null,
+            "procedure_display": null
           },
           {
             "date": "2026-01-21",
             "vaccine_code": "14473901000001100",
             "display": "Prevenar 13 vaccine (product)",
-            "dose_number": 1
+            "dose_number": 1,
+            "procedure_code": null,
+            "procedure_display": null
           },
           {
             "date": "2026-02-18",
             "vaccine_code": "39114911000001105",
             "display": "Infanrix Hexa vaccine (product)",
-            "dose_number": 3
+            "dose_number": 3,
+            "procedure_code": null,
+            "procedure_display": null
           },
           {
             "date": "2026-02-18",
             "vaccine_code": "12672211000001104",
             "display": "Bexsero vaccine (product)",
-            "dose_number": 2
+            "dose_number": 2,
+            "procedure_code": null,
+            "procedure_display": null
           }
         ]
       }
@@ -596,19 +713,25 @@ window.GREENBOOK = {
             "date": "2025-12-24",
             "vaccine_code": "39114911000001105",
             "display": "Infanrix Hexa vaccine (product)",
-            "dose_number": 1
+            "dose_number": 1,
+            "procedure_code": null,
+            "procedure_display": null
           },
           {
             "date": "2026-01-21",
             "vaccine_code": "9743801000001106",
             "display": "Pediacel vaccine (product)",
-            "dose_number": 2
+            "dose_number": 2,
+            "procedure_code": null,
+            "procedure_display": null
           },
           {
             "date": "2026-01-21",
             "vaccine_code": "11111111000001100",
             "display": "Unknown investigational vaccine",
-            "dose_number": 1
+            "dose_number": 1,
+            "procedure_code": null,
+            "procedure_display": null
           }
         ]
       }

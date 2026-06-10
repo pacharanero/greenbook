@@ -516,9 +516,23 @@ A dose that fails any of these checks was still given - the FHIR record is evide
 
 A dose whose product class matches no series in the applicable schedule (e.g. a 5-in-1 dose against a 6-in-1 schedule) conforms to nothing in that version and is surfaced as unmatched rather than counted.
 
+### One product class, several series
+
+A product class can serve more than one series - the clearest case is `MMR`, which maps to both the first-dose (`mmr-primary`) and second-dose (`mmr-second`) series. Such series are evaluated **as one programme**: the class's recorded doses are allocated across the programme's dose slots (ordered by target age) one dose per slot, in **date order**. So the earliest MMR dose fills MMR dose 1, the next fills MMR dose 2, and `min_interval_from_previous` for dose 2 is measured from dose 1. Matching each series independently against every dose of the class - which would flag a correctly-vaccinated child's dose 2 as an "extra" under the first-dose series and their dose 1 as "too early" under the second - is wrong, and is not what the engine does.
+
 ### Dose sequencing
 
-Three signals can indicate which dose number a record represents: `protocolApplied.doseNumberPositiveInt` in the FHIR record, dose-sequence information embedded in the SNOMED product code, and the relative ordering of dates. None of these is fully reliable on its own across UK source systems. The evaluator derives dose sequence from dates as the primary signal, cross-checks it against the FHIR and SNOMED signals where present, and flags any discrepancy on the resulting `RecordedDose` rather than silently preferring one source.
+Which physical dose is dose 1, dose 2, ...? Three signals can indicate it, none reliable alone across UK source systems:
+
+- the **date** of administration (relative order);
+- `protocolApplied.doseNumberPositiveInt` in the FHIR record;
+- the SNOMED **procedure** code (in the [`UKCore-VaccinationProcedure`](https://fhir.hl7.org.uk/StructureDefinition/Extension-UKCore-VaccinationProcedure) extension, distinct from the dm+d *product* code in `vaccineCode`), whose concept can name the dose - e.g. "Administration of *second dose* of ...". Note the *first* dose is often recorded with the generic administration code, so the procedure code reliably indicates dose 2+ but not always dose 1.
+
+The recorded dose number and procedure code are **entered by people**, who can get them wrong. So **date order is authoritative** for allocation, and the other two are cross-checks: a disagreement raises a soft `flag` on the `RecordedDose` (it does not affect validity) for human review, rather than overriding the dates.
+
+### Duplicate doses ("echoes")
+
+The Immunisation API draws on several upstream systems, and the same physical vaccination is frequently recorded **twice with different dates** - e.g. one system digitally notifies the dose, and a GP surgery separately keys it in by hand using the date the paper notification arrived. Counting both would inflate the course. Where two records carry the **same procedure code** they are taken to be the same act: the earliest is kept and the rest are reported as `duplicate_doses` rather than counted. (Records without a procedure code carry no duplicate signal and are all kept.)
 
 ### Series completion
 

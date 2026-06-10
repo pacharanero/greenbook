@@ -34,7 +34,11 @@ The shared vocabulary of greenbook. Terms are **bold** on first use elsewhere in
 | **Valid dose** | A recorded dose that falls within the standard schedule for its assigned series (on or after `earliest_age`, interval met, not past `latest_age`). Counts toward completion. | counted dose |
 | **Outside standard schedule** | A recorded dose that was given but breaks an age or interval rule - too early *or* too late. Recorded as received; does not count toward completion. Preferred over "invalid", because the dose is a real clinical event. | invalid dose |
 | **Unmatched dose** | A recorded dose whose product class fits no series in the applicable schedule, or whose code is unknown. | orphan dose |
-| **Dose sequencing** | Determining which dose number a recorded dose represents. | dose numbering |
+| **Dose sequencing** | Determining which dose number a recorded dose represents. **Date order is authoritative**; the recorded dose number and procedure code are cross-checks that **flag** disagreement, not override. | dose numbering |
+| **Procedure code** | The SNOMED *procedure* code (UKCore-VaccinationProcedure extension) recorded at administration, which can name the dose ("...second dose..."). Distinct from the dm+d **product** code. Human-entered. | vaccination procedure |
+| **Duplicate dose / echo** | The same physical vaccination recorded twice from different systems, often with different dates. Detected by a shared **procedure code**; the earliest is kept, the rest reported as duplicates, not counted. | repeat dose |
+| **Flag** | A soft cross-check warning on a recorded dose (e.g. recorded dose number disagrees with date order). Does *not* affect validity; surfaced for human review. | error, warning |
+| **Programme** | All series sharing one **product class** (e.g. the two `MMR` series), evaluated together so the class's doses are allocated across the series' slots by date - one dose per slot. | course |
 | **Due / not-yet-due** | Whether an expected dose's age has been reached by the evaluation date. The split that makes "up-to-date for age" computable. | overdue |
 | **Series completion status** | A series' standing: `Complete`, `Partial`, `None`, or `NotApplicable`. | series result |
 | **Up-to-date for age** | The **headline** status: every dose *due by the evaluation date* has been received and is valid; not-yet-due doses are not held against the patient. | on track |

@@ -1,0 +1,36 @@
+{
+  "comment": "The same physical 6-in-1 first dose recorded twice from two systems with different dates - an 'echo'. Both carry the same VaccinationProcedure procedure code, which is the duplicate signal. The engine keeps the earliest (2025-12-24) and reports the later record (2026-01-10) as a duplicate rather than counting it as a second dose. Evaluate at 2026-04-29.",
+  "resourceType": "Bundle",
+  "type": "collection",
+  "entry": [
+    { "resource": { "resourceType": "Patient", "id": "echo-infant", "birthDate": "2025-10-29", "gender": "male" } },
+    {
+      "resource": {
+        "resourceType": "Immunization",
+        "status": "completed",
+        "extension": [{
+          "url": "https://fhir.hl7.org.uk/StructureDefinition/Extension-UKCore-VaccinationProcedure",
+          "valueCodeableConcept": { "coding": [{ "system": "http://snomed.info/sct", "code": "170370008", "display": "Administration of first dose of six component vaccine (procedure)" }] }
+        }],
+        "vaccineCode": { "coding": [{ "system": "http://snomed.info/sct", "code": "39114911000001105", "display": "Infanrix Hexa vaccine (product)" }] },
+        "patient": { "reference": "Patient/echo-infant" },
+        "occurrenceDateTime": "2025-12-24",
+        "protocolApplied": [{ "doseNumberPositiveInt": 1 }]
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Immunization",
+        "status": "completed",
+        "extension": [{
+          "url": "https://fhir.hl7.org.uk/StructureDefinition/Extension-UKCore-VaccinationProcedure",
+          "valueCodeableConcept": { "coding": [{ "system": "http://snomed.info/sct", "code": "170370008", "display": "Administration of first dose of six component vaccine (procedure)" }] }
+        }],
+        "vaccineCode": { "coding": [{ "system": "http://snomed.info/sct", "code": "39114911000001105", "display": "Infanrix Hexa vaccine (product)" }] },
+        "patient": { "reference": "Patient/echo-infant" },
+        "occurrenceDateTime": "2026-01-10",
+        "protocolApplied": [{ "doseNumberPositiveInt": 1 }]
+      }
+    }
+  ]
+}

@@ -1,0 +1,18 @@
+{
+  "comment": "A single MMR dose given at 12 months, but recorded with protocolApplied dose number 2 - a human mis-key (it is plainly the first MMR dose by date). The engine allocates it to MMR dose 1 by date and raises a soft flag for review, without changing validity. Demonstrates the dose-sequence cross-check. Evaluate at 2026-04-29.",
+  "resourceType": "Bundle",
+  "type": "collection",
+  "entry": [
+    { "resource": { "resourceType": "Patient", "id": "miskey", "birthDate": "2022-10-29", "gender": "female" } },
+    {
+      "resource": {
+        "resourceType": "Immunization",
+        "status": "completed",
+        "vaccineCode": { "coding": [{ "system": "http://snomed.info/sct", "code": "9324201000001104", "display": "Priorix vaccine (product)" }] },
+        "patient": { "reference": "Patient/miskey" },
+        "occurrenceDateTime": "2023-10-29",
+        "protocolApplied": [{ "doseNumberPositiveInt": 2 }]
+      }
+    }
+  ]
+}

@@ -16,8 +16,21 @@ pub struct Immunisation {
     pub vaccine_code: String,
     pub vaccine_system: Option<String>,
     pub display: Option<String>,
+    /// Dose number declared in `protocolApplied` (human-entered, may be wrong).
     pub dose_number: Option<u32>,
+    /// SNOMED procedure code from the UKCore-VaccinationProcedure extension. This
+    /// codes the *procedure* (which can name the dose), distinct from the dm+d
+    /// product code in `vaccine_code`. Used as a duplicate signal and a
+    /// dose-sequence cross-check.
+    pub procedure_code: Option<String>,
+    /// Display text for `procedure_code`, e.g. "Administration of second dose of
+    /// ... vaccine (procedure)" - parsed for an explicit dose number.
+    pub procedure_display: Option<String>,
 }
+
+/// The UKCore extension URL that carries the SNOMED vaccination-procedure code.
+const VACCINATION_PROCEDURE_EXT: &str =
+    "https://fhir.hl7.org.uk/StructureDefinition/Extension-UKCore-VaccinationProcedure";
 
 #[derive(Debug, Deserialize)]
 struct RawBundle {
@@ -56,6 +69,16 @@ struct RawImmunization {
     occurrence_date_time: String,
     #[serde(default)]
     protocol_applied: Vec<RawProtocolApplied>,
+    #[serde(default)]
+    extension: Vec<RawExtension>,
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+struct RawExtension {
+    url: String,
+    #[serde(default)]
+    value_codeable_concept: Option<RawCodeableConcept>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -100,6 +123,17 @@ pub fn parse_fhir_bundle(json: &str) -> Result<VaccinationRecord, FhirError> {
                 continue;
             }
         }
+        // Pull the vaccination-procedure code (if present) before consuming
+        // other fields. Its display can name the dose ("...second dose...").
+        let (procedure_code, procedure_display) = imm
+            .extension
+            .iter()
+            .find(|e| e.url == VACCINATION_PROCEDURE_EXT)
+            .and_then(|e| e.value_codeable_concept.as_ref())
+            .and_then(|cc| cc.coding.iter().find(|c| c.code.is_some()))
+            .map(|c| (c.code.clone(), c.display.clone()))
+            .unwrap_or((None, None));
+
         let coding = imm
             .vaccine_code
             .coding
@@ -115,6 +149,8 @@ pub fn parse_fhir_bundle(json: &str) -> Result<VaccinationRecord, FhirError> {
                 .protocol_applied
                 .into_iter()
                 .find_map(|p| p.dose_number_positive_int),
+            procedure_code,
+            procedure_display,
         });
     }
 

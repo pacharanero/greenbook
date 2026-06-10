@@ -97,6 +97,9 @@
       'behind-for-age-toddler': 'Primary doses given, 12-month visit missed',
       'out-of-schedule-doses': 'Doses given too early / too late',
       'unmatched-doses': 'A 5-in-1 and an unknown code',
+      'mmr-both-doses': 'One class, two series - allocated correctly',
+      'duplicate-echo': 'Same jab recorded twice from two systems',
+      'dose-number-mismatch': 'Recorded as dose 2, but it is dose 1',
     };
     return HINTS[f.id] || '';
   }
@@ -151,6 +154,7 @@
     const complete = result.by_series.filter((s) => s.status === 'complete').length;
     const outOfSchedule = result.by_series.reduce((a, s) => a + s.doses_recorded.filter((d) => !d.within_schedule).length, 0);
     const unmatched = result.unmatched_doses.length;
+    const duplicates = result.duplicate_doses.length;
     const covered = result.by_antigen.filter((a) => a.covered).length;
 
     const kpi = (label, value, note, opts = {}) => `
@@ -165,7 +169,8 @@
         behind ? `${behind} series behind` : 'no gaps that are due', { accent: true, warn: behind > 0 }),
       kpi('Series complete', `${complete}<small>/${eligible.length}</small>`, 'all doses given at all ages'),
       kpi('Doses recorded', `${record.immunisations.length}`,
-        `${outOfSchedule} outside schedule &middot; ${unmatched} unmatched`, { warn: outOfSchedule + unmatched > 0 }),
+        `${outOfSchedule} out-of-schedule &middot; ${unmatched} unmatched &middot; ${duplicates} duplicate`,
+        { warn: outOfSchedule + unmatched + duplicates > 0 }),
       kpi('Antigens covered', `${covered}<small>/${result.by_antigen.length}</small>`, 'diseases protected against', { accent: true }),
     ].join('');
   }
@@ -189,19 +194,33 @@
     }
     const imms = record.immunisations.slice().sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : 0));
 
+    // Duplicate echoes are removed from series matching; track them so each
+    // recorded dose row gets the right outcome.
+    const pendingDups = result.duplicate_doses.slice();
+    const isDup = (imm) => {
+      const i = pendingDups.findIndex((d) =>
+        d.date === imm.date && d.vaccine_code === imm.vaccine_code && (d.procedure_code || null) === (imm.procedure_code || null));
+      if (i >= 0) return pendingDups.splice(i, 1)[0];
+      return null;
+    };
+
     const rows = imms.map((imm) => {
       const product = productIndex.get(imm.vaccine_code) || null;
       const cls = product ? product.product_class : null;
       const age = G.ageBetween(G.parseDate(record.dob), G.parseDate(imm.date));
-      let badge, reason = '', rowClass = '';
-      if (!cls) { badge = ['red', 'unmatched']; reason = 'unknown product code'; rowClass = 'row-unmatched'; }
+      let badge, reason = '', rowClass = '', flags = [];
+      const dup = isDup(imm);
+      if (dup) { badge = ['muted', 'duplicate']; reason = `echo of the dose on ${dup.duplicate_of} (same procedure code)`; rowClass = 'row-dup'; }
+      else if (!cls) { badge = ['red', 'unmatched']; reason = 'unknown product code'; rowClass = 'row-unmatched'; }
       else if (!scheduleClasses.has(cls)) { badge = ['red', 'unmatched']; reason = `class "${cls}" has no series here`; rowClass = 'row-unmatched'; }
       else {
         const rec = (queues.get(cls) || []).shift();
         if (rec && !rec.within_schedule) { badge = ['warn', 'out of schedule']; reason = rec.schedule_notes[0] || ''; rowClass = 'row-out'; }
         else badge = ['ok', 'counted'];
+        if (rec) flags = rec.flags || [];
       }
       const antigens = product ? product.antigens.map((a) => antigenChip(a, true)).join('') : '<span class="code">-</span>';
+      const flagHtml = flags.map((f) => `<div class="dose-flag">? ${esc(f)}</div>`).join('');
       return `
         <tr class="${rowClass}">
           <td class="mono num">${esc(imm.date)}</td>
@@ -209,7 +228,7 @@
           <td>${esc(imm.display || imm.vaccine_code)}<div class="code">${esc(imm.vaccine_code)}</div></td>
           <td>${cls ? `<span class="chip cls">${esc(cls)}</span>` : '<span class="code">-</span>'}</td>
           <td>${antigens}</td>
-          <td><span class="badge ${badge[0]}">${esc(badge[1])}</span>${reason ? `<div class="dose-reason ${badge[0] === 'red' ? 'red' : ''}">${esc(reason)}</div>` : ''}</td>
+          <td><span class="badge ${badge[0]}">${esc(badge[1])}</span>${reason ? `<div class="dose-reason ${badge[0] === 'red' ? 'red' : ''}">${esc(reason)}</div>` : ''}${flagHtml}</td>
         </tr>`;
     }).join('');
 
@@ -263,16 +282,20 @@
     for (const s of result.by_series) {
       for (const d of s.doses_recorded) {
         if (!d.within_schedule) items.push(`<li><span class="when">${esc(d.date)}</span><span><b>${esc(s.display_name)}</b> &middot; ${esc(d.schedule_notes[0] || 'outside standard schedule')}</span></li>`);
+        for (const f of d.flags || []) items.push(`<li><span class="when">${esc(d.date)}</span><span><b>${esc(s.display_name)}</b> &middot; ${esc(f)}</span></li>`);
       }
       if (s.eligibility_uncertain) items.push(`<li><span class="when">-</span><span><b>${esc(s.display_name)}</b> &middot; ${esc(s.notes[0] || 'eligibility uncertain')}</span></li>`);
     }
     for (const u of result.unmatched_doses) {
       items.push(`<li><span class="when">${esc(u.date)}</span><span><b>${esc(u.display || u.vaccine_code)}</b> <span class="code">${esc(u.vaccine_code)}</span> &middot; ${esc(u.reason)}</span></li>`);
     }
+    for (const dup of result.duplicate_doses) {
+      items.push(`<li><span class="when">${esc(dup.date)}</span><span><b>${esc(dup.display || dup.vaccine_code)}</b> &middot; likely duplicate (echo) of the dose on ${esc(dup.duplicate_of)} - same procedure code</span></li>`);
+    }
     const body = items.length
       ? `<ul class="notes">${items.join('')}</ul>`
       : `<div class="empty">No anomalies - every recorded dose matched a series and fell within the standard schedule.</div>`;
-    return panel('!', 'Anomalies', 'out-of-schedule &amp; unmatched', body, 'wide');
+    return panel('!', 'Anomalies', 'out-of-schedule, unmatched, duplicates &amp; flags', body, 'wide');
   }
 
   // --- helpers --------------------------------------------------------------

@@ -146,6 +146,9 @@ fn print_report(status: &VaccinationStatus, record: &greenbook::VaccinationRecor
             for r in &d.schedule_notes {
                 println!("          ! {}", r);
             }
+            for f in &d.flags {
+                println!("          ? {}", f);
+            }
         }
     }
 
@@ -160,6 +163,21 @@ fn print_report(status: &VaccinationStatus, record: &greenbook::VaccinationRecor
                 u.date,
                 u.display.as_deref().unwrap_or(&u.vaccine_code),
                 u.reason,
+            );
+        }
+    }
+
+    // Likely duplicate "echoes" - same procedure code as an earlier dose.
+    if !status.duplicate_doses.is_empty() {
+        println!();
+        println!("Duplicate doses:");
+        println!("---------------");
+        for dup in &status.duplicate_doses {
+            println!(
+                "  - {}  [{}]  (likely duplicate of {}; same procedure code)",
+                dup.date,
+                dup.display.as_deref().unwrap_or(&dup.vaccine_code),
+                dup.duplicate_of,
             );
         }
     }

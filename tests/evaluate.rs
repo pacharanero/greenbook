@@ -154,3 +154,72 @@ fn unknown_and_superseded_products_are_reported_as_unmatched() {
         .unwrap();
     assert_eq!(six_in_one.doses_valid, 1);
 }
+
+#[test]
+fn both_mmr_doses_allocate_across_the_two_mmr_series() {
+    let status = evaluate_fixture(
+        "mmr-both-doses.json",
+        NaiveDate::from_ymd_opt(2026, 4, 29).unwrap(),
+    );
+    let series = |id: &str| status.by_series.iter().find(|s| s.series_id == id).unwrap();
+
+    // The shared MMR class is one programme: dose 1 -> mmr-primary, dose 2 ->
+    // mmr-second. Both Complete, each with exactly one in-schedule dose, and -
+    // crucially - no spurious "extra" / "too early" flags from cross-matching.
+    let primary = series("mmr-primary");
+    let second = series("mmr-second");
+    assert_eq!(primary.status, SeriesCompletionStatus::Complete);
+    assert_eq!(second.status, SeriesCompletionStatus::Complete);
+    assert_eq!(primary.doses_recorded.len(), 1);
+    assert_eq!(second.doses_recorded.len(), 1);
+    assert!(primary
+        .doses_recorded
+        .iter()
+        .all(|d| d.within_schedule && d.flags.is_empty()));
+    assert!(second
+        .doses_recorded
+        .iter()
+        .all(|d| d.within_schedule && d.flags.is_empty()));
+    assert!(status.duplicate_doses.is_empty());
+}
+
+#[test]
+fn echoed_dose_with_same_procedure_code_is_a_duplicate() {
+    let status = evaluate_fixture(
+        "duplicate-echo.json",
+        NaiveDate::from_ymd_opt(2026, 4, 29).unwrap(),
+    );
+
+    // The two 6-in-1 records share a procedure code: the later is a duplicate,
+    // not a second dose. So the series counts one valid dose, and the echo is
+    // reported separately.
+    assert_eq!(status.duplicate_doses.len(), 1);
+    let six_in_one = status
+        .by_series
+        .iter()
+        .find(|s| s.series_id == "6in1-primary")
+        .unwrap();
+    assert_eq!(six_in_one.doses_valid, 1);
+    assert_eq!(six_in_one.doses_recorded.len(), 1);
+}
+
+#[test]
+fn mis_keyed_dose_number_is_flagged_not_trusted() {
+    let status = evaluate_fixture(
+        "dose-number-mismatch.json",
+        NaiveDate::from_ymd_opt(2026, 4, 29).unwrap(),
+    );
+
+    // The dose is the first MMR by date but recorded as dose 2. It is allocated
+    // to dose 1 (date wins) and flagged - valid, but flagged for review.
+    let primary = status
+        .by_series
+        .iter()
+        .find(|s| s.series_id == "mmr-primary")
+        .unwrap();
+    assert_eq!(primary.doses_recorded.len(), 1);
+    let dose = &primary.doses_recorded[0];
+    assert!(dose.within_schedule);
+    assert_eq!(dose.assigned_dose_number, Some(1));
+    assert!(!dose.flags.is_empty());
+}

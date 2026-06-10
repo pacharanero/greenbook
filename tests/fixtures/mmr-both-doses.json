@@ -1,0 +1,36 @@
+{
+  "comment": "Both MMR doses given on time. MMR is one product class serving two series (first dose at 12 months, second at 3y4m). This fixture proves the class-as-one-programme allocation: dose 1 fills mmr-primary, dose 2 fills mmr-second, each Complete, with no spurious 'extra dose' or 'too early' flags. Each carries a VaccinationProcedure procedure code that agrees with date order. Evaluate at 2026-04-29 (age ~3y6m).",
+  "resourceType": "Bundle",
+  "type": "collection",
+  "entry": [
+    { "resource": { "resourceType": "Patient", "id": "preschooler", "birthDate": "2022-10-29", "gender": "female" } },
+    {
+      "resource": {
+        "resourceType": "Immunization",
+        "status": "completed",
+        "extension": [{
+          "url": "https://fhir.hl7.org.uk/StructureDefinition/Extension-UKCore-VaccinationProcedure",
+          "valueCodeableConcept": { "coding": [{ "system": "http://snomed.info/sct", "code": "170433008", "display": "Administration of first dose of measles, mumps and rubella vaccine (procedure)" }] }
+        }],
+        "vaccineCode": { "coding": [{ "system": "http://snomed.info/sct", "code": "9324201000001104", "display": "Priorix vaccine (product)" }] },
+        "patient": { "reference": "Patient/preschooler" },
+        "occurrenceDateTime": "2023-10-29",
+        "protocolApplied": [{ "doseNumberPositiveInt": 1 }]
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Immunization",
+        "status": "completed",
+        "extension": [{
+          "url": "https://fhir.hl7.org.uk/StructureDefinition/Extension-UKCore-VaccinationProcedure",
+          "valueCodeableConcept": { "coding": [{ "system": "http://snomed.info/sct", "code": "170434002", "display": "Administration of second dose of measles, mumps and rubella vaccine (procedure)" }] }
+        }],
+        "vaccineCode": { "coding": [{ "system": "http://snomed.info/sct", "code": "9324201000001104", "display": "Priorix vaccine (product)" }] },
+        "patient": { "reference": "Patient/preschooler" },
+        "occurrenceDateTime": "2026-02-15",
+        "protocolApplied": [{ "doseNumberPositiveInt": 2 }]
+      }
+    }
+  ]
+}

@@ -13,6 +13,11 @@
  *     ANTIGENS of every product received. (Deferred in Rust; computed here for
  *     the demo's "layers" view, clearly labelled as the separate question.)
  *
+ * A product class can serve several series (e.g. MMR -> first + second dose). It
+ * is evaluated as one programme: doses are allocated across the class's series
+ * slots by date, with the recorded dose number / procedure code as cross-checks.
+ * Duplicate "echoes" (same procedure code) are dropped before matching.
+ *
  * Everything is exposed on `window.Greenbook`.
  */
 (function () {
@@ -128,100 +133,146 @@
     }
   }
 
-  // --- Per-series evaluation ------------------------------------------------
+  // --- Dose-sequence helpers ------------------------------------------------
 
-  function evaluateSeries(series, record, idx, evaluatedAt) {
-    const dob = parseDate(record.dob);
-    const elig = checkEligibility(series.eligibility, record);
-    const notes = elig.note ? [elig.note] : [];
-    const dosesExpected = series.dose.length;
+  // Parse an explicit dose number from a procedure code's display text, e.g.
+  // "Administration of second dose of ... (procedure)" -> 2. None if not stated
+  // (the first dose is often recorded with the generic administration code).
+  function doseFromProcedure(display) {
+    if (!display) return null;
+    const d = display.toLowerCase();
+    const words = [['first', 1], ['second', 2], ['third', 3], ['fourth', 4], ['fifth', 5]];
+    for (const [w, n] of words) if (d.includes(`${w} dose`)) return n;
+    return null;
+  }
 
-    // How many defined doses are *due* by the evaluation date?
-    const dosesDue = series.dose.filter((d) => {
-      const dueAt = ageOffsetToDate(d.earliest_age || d.target_age, dob);
-      return dueAt.getTime() <= evaluatedAt.getTime();
-    }).length;
-
-    if (!elig.eligible) {
-      return {
-        series_id: series.id, display_name: series.display_name,
-        status: 'not_applicable', eligible: false, eligibility_uncertain: elig.uncertain,
-        doses_expected: dosesExpected, doses_due: dosesDue, doses_valid: 0,
-        up_to_date_for_age: true, doses_recorded: [], notes,
-      };
+  // Detect duplicate "echoes": records sharing a procedure code are the same act.
+  // Keep the earliest, report the rest. (record.immunisations is date-sorted.)
+  function detectDuplicates(immunisations) {
+    const seen = new Map(); // procedure_code -> earliest date
+    const kept = [];
+    const duplicates = [];
+    for (const imm of immunisations) {
+      const code = imm.procedure_code || null;
+      if (code != null) {
+        if (seen.has(code)) {
+          duplicates.push({ date: imm.date, vaccine_code: imm.vaccine_code, display: imm.display, procedure_code: code, duplicate_of: seen.get(code) });
+        } else {
+          seen.set(code, imm.date);
+          kept.push(imm);
+        }
+      } else {
+        kept.push(imm);
+      }
     }
+    return { kept, duplicates };
+  }
 
-    // Conformance matching: by product class, not antigen overlap (ADR 0001).
-    const matched = record.immunisations
-      .filter((imm) => classFor(idx, imm.vaccine_code) === series.product_class)
-      .slice()
-      .sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : 0));
+  // How many of a series' doses are due by the evaluation date.
+  function dosesDueFor(series, dob, evaluatedAt) {
+    return series.dose.filter((d) => ageOffsetToDate(d.earliest_age || d.target_age, dob).getTime() <= evaluatedAt.getTime()).length;
+  }
 
-    const recorded = [];
+  // --- Per-class evaluation -------------------------------------------------
+  // All series sharing one product class are evaluated as one programme: the
+  // class's doses are allocated across the series' slots in date order.
+  function evaluateClassGroup(group, classDoses, record, evaluatedAt) {
+    const dob = parseDate(record.dob);
+    const eligs = group.map((s) => checkEligibility(s.eligibility, record));
+
+    // Slots from the eligible series, ordered by the date each dose targets.
+    const slots = [];
+    group.forEach((s, gi) => { if (eligs[gi].eligible) for (const dose of s.dose) slots.push({ gi, dose }); });
+    slots.sort((a, b) => ageOffsetToDate(a.dose.target_age, dob).getTime() - ageOffsetToDate(b.dose.target_age, dob).getTime());
+
+    let lastEligibleGi = -1;
+    for (let gi = group.length - 1; gi >= 0; gi--) if (eligs[gi].eligible) { lastEligibleGi = gi; break; }
+
+    const recordedByGi = group.map(() => []);
     let lastValidDate = null;
-    let nextDoseIdx = 0;
 
-    for (const imm of matched) {
+    classDoses.forEach((imm, i) => {
       const scheduleNotes = [];
+      const flags = [];
       let withinSchedule = true;
       let assigned = null;
       const immDate = parseDate(imm.date);
+      let targetGi;
 
-      if (nextDoseIdx >= series.dose.length) {
-        withinSchedule = false;
-        scheduleNotes.push('extra dose beyond the expected count for this series');
+      if (i < slots.length) {
+        const slot = slots[i];
+        assigned = slot.dose.number;
+        if (slot.dose.earliest_age) {
+          const earliest = ageOffsetToDate(slot.dose.earliest_age, dob);
+          if (immDate.getTime() < earliest.getTime()) { withinSchedule = false; scheduleNotes.push(`given before earliest_age ${slot.dose.earliest_age} (${fmtDate(earliest)}) - outside standard schedule`); }
+        }
+        if (slot.dose.latest_age) {
+          const latest = ageOffsetToDate(slot.dose.latest_age, dob);
+          if (immDate.getTime() > latest.getTime()) { withinSchedule = false; scheduleNotes.push(`given after latest_age ${slot.dose.latest_age} (${fmtDate(latest)}) - outside standard schedule`); }
+        }
+        if (slot.dose.min_interval_from_previous && lastValidDate) {
+          const earliestByInterval = ageOffsetToDate(slot.dose.min_interval_from_previous, lastValidDate);
+          if (immDate.getTime() < earliestByInterval.getTime()) { withinSchedule = false; scheduleNotes.push(`interval from previous dose < ${slot.dose.min_interval_from_previous} (needs to be on/after ${fmtDate(earliestByInterval)}) - outside standard schedule`); }
+        }
+        // Cross-check the date-derived dose number; flag disagreement, never override.
+        if (imm.dose_number != null && imm.dose_number !== slot.dose.number) {
+          flags.push(`recorded dose number ${imm.dose_number} disagrees with position-by-date (dose ${slot.dose.number}) - sequence may be mis-keyed`);
+        }
+        const procN = doseFromProcedure(imm.procedure_display);
+        if (procN != null && procN !== slot.dose.number) {
+          flags.push(`procedure code indicates dose ${procN} but by date this is dose ${slot.dose.number}`);
+        }
+        targetGi = slot.gi;
       } else {
-        const dose = series.dose[nextDoseIdx];
-        assigned = dose.number;
-        if (dose.earliest_age) {
-          const earliest = ageOffsetToDate(dose.earliest_age, dob);
-          if (immDate.getTime() < earliest.getTime()) {
-            withinSchedule = false;
-            scheduleNotes.push(`given before earliest_age ${dose.earliest_age} (${fmtDate(earliest)}) - outside standard schedule`);
-          }
-        }
-        if (dose.latest_age) {
-          const latest = ageOffsetToDate(dose.latest_age, dob);
-          if (immDate.getTime() > latest.getTime()) {
-            withinSchedule = false;
-            scheduleNotes.push(`given after latest_age ${dose.latest_age} (${fmtDate(latest)}) - outside standard schedule`);
-          }
-        }
-        if (dose.min_interval_from_previous && lastValidDate) {
-          const earliestByInterval = ageOffsetToDate(dose.min_interval_from_previous, lastValidDate);
-          if (immDate.getTime() < earliestByInterval.getTime()) {
-            withinSchedule = false;
-            scheduleNotes.push(`interval from previous dose < ${dose.min_interval_from_previous} (needs to be on/after ${fmtDate(earliestByInterval)}) - outside standard schedule`);
-          }
-        }
+        withinSchedule = false;
+        scheduleNotes.push('extra dose beyond the expected count for this class');
+        if (lastEligibleGi < 0) return; // no eligible series in the group; ignore
+        targetGi = lastEligibleGi;
       }
 
-      recorded.push({
-        date: imm.date, age_at_dose: ageBetween(dob, immDate),
-        vaccine_code: imm.vaccine_code, display: imm.display,
-        assigned_dose_number: assigned, within_schedule: withinSchedule, schedule_notes: scheduleNotes,
+      recordedByGi[targetGi].push({
+        date: imm.date,
+        age_at_dose: ageBetween(dob, immDate),
+        vaccine_code: imm.vaccine_code,
+        display: imm.display,
+        assigned_dose_number: assigned,
+        within_schedule: withinSchedule,
+        schedule_notes: scheduleNotes,
+        flags,
       });
+      if (withinSchedule) lastValidDate = immDate;
+    });
 
-      if (withinSchedule) { lastValidDate = immDate; nextDoseIdx++; }
-    }
-
-    const dosesValid = recorded.filter((d) => d.within_schedule).length;
-    const status = dosesValid >= dosesExpected ? 'complete' : dosesValid > 0 ? 'partial' : 'none';
-
-    return {
-      series_id: series.id, display_name: series.display_name, status,
-      eligible: true, eligibility_uncertain: elig.uncertain,
-      doses_expected: dosesExpected, doses_due: dosesDue, doses_valid: dosesValid,
-      up_to_date_for_age: dosesValid >= dosesDue, doses_recorded: recorded, notes,
-    };
+    return group.map((s, gi) => {
+      const elig = eligs[gi];
+      const notes = elig.note ? [elig.note] : [];
+      const dosesExpected = s.dose.length;
+      const dosesDue = dosesDueFor(s, dob, evaluatedAt);
+      if (!elig.eligible) {
+        return {
+          series_id: s.id, display_name: s.display_name, status: 'not_applicable',
+          eligible: false, eligibility_uncertain: elig.uncertain,
+          doses_expected: dosesExpected, doses_due: dosesDue, doses_valid: 0,
+          up_to_date_for_age: true, doses_recorded: [], notes,
+        };
+      }
+      const recorded = recordedByGi[gi];
+      const dosesValid = recorded.filter((d) => d.within_schedule).length;
+      const status = dosesValid >= dosesExpected ? 'complete' : dosesValid > 0 ? 'partial' : 'none';
+      return {
+        series_id: s.id, display_name: s.display_name, status,
+        eligible: true, eligibility_uncertain: elig.uncertain,
+        doses_expected: dosesExpected, doses_due: dosesDue, doses_valid: dosesValid,
+        up_to_date_for_age: dosesValid >= dosesDue, doses_recorded: recorded, notes,
+      };
+    });
   }
 
-  // Doses that match no series at all (unknown code, or a known product whose
-  // class no series in this schedule uses).
-  function findUnmatched(record, schedule, idx) {
+  // Doses that match no series at all. Operates on the de-duplicated set.
+  function findUnmatched(kept, schedule, idx) {
     const scheduleClasses = new Set(schedule.series.map((s) => s.product_class));
     const out = [];
-    for (const imm of record.immunisations) {
+    for (const imm of kept) {
       const cls = classFor(idx, imm.vaccine_code);
       if (cls == null) {
         out.push({ date: imm.date, vaccine_code: imm.vaccine_code, display: imm.display, reason: 'unknown product code (not in the product map)' });
@@ -260,7 +311,30 @@
   function evaluate(record, schedule, productsFile, evaluatedAtStr) {
     const idx = makeProductIndex(productsFile);
     const evaluatedAt = parseDate(evaluatedAtStr);
-    const bySeries = schedule.series.map((s) => evaluateSeries(s, record, idx, evaluatedAt));
+
+    // 1. Drop duplicate echoes.
+    const { kept, duplicates } = detectDuplicates(record.immunisations);
+
+    // 2. Group series by product class, preserving first-seen order.
+    const classOrder = [];
+    const classSeries = new Map();
+    for (const s of schedule.series) {
+      if (!classSeries.has(s.product_class)) { classOrder.push(s.product_class); classSeries.set(s.product_class, []); }
+      classSeries.get(s.product_class).push(s);
+    }
+
+    // 3. Evaluate each class group.
+    let bySeries = [];
+    for (const cls of classOrder) {
+      const group = classSeries.get(cls);
+      const classDoses = kept.filter((imm) => classFor(idx, imm.vaccine_code) === cls);
+      bySeries = bySeries.concat(evaluateClassGroup(group, classDoses, record, evaluatedAt));
+    }
+
+    // 4. Restore schedule order.
+    const order = new Map(schedule.series.map((s, i) => [s.id, i]));
+    bySeries.sort((a, b) => order.get(a.series_id) - order.get(b.series_id));
+
     const status = aggregate(bySeries);
     const eligible = bySeries.filter((s) => s.eligible);
     const fullyVaccinated = eligible.length > 0 && eligible.every((s) => s.status === 'complete');
@@ -271,7 +345,8 @@
       evaluated_at: evaluatedAtStr,
       schedule_version: schedule.schedule.valid_from,
       by_series: bySeries,
-      unmatched_doses: findUnmatched(record, schedule, idx),
+      unmatched_doses: findUnmatched(kept, schedule, idx),
+      duplicate_doses: duplicates,
       by_antigen: antigenCoverage(record, schedule, idx),
     };
   }

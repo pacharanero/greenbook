@@ -236,6 +236,8 @@ table.tbl { width: 100%; border-collapse: collapse; }
 
 .row-out td { background: #FBF3EE; }
 .row-unmatched td { background: #FBEEEE; }
+.row-dup td { background: #F3F5F6; }
 .dose-reason { font-size: 12px; color: var(--amber); margin-top: 3px; }
 .dose-reason.red { color: var(--red); }
+.dose-flag { font-size: 12px; color: var(--teal); margin-top: 3px; }
 .uncertain { font-size: 11px; color: var(--amber); }
