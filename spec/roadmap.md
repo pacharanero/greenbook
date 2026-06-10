@@ -30,7 +30,7 @@ Get the working POC onto a reviewable footing before adding behaviour.
 
 These were decisions, not code — each needed a ruling before the dependent code was worth writing. All are now resolved; the rulings are recorded below and folded into the spec.
 
-- [x] §1 Dose-to-series matching — **resolved**: product-class conformance matching vs antigen coverage, [ADR 0001](../docs/adr/0001-product-class-conformance-vs-antigen-coverage.md). Implemented.
+- [x] §1 Dose-to-series matching — **resolved**: product-class conformance matching vs antigen coverage, [conformance vs coverage](./conformance-vs-coverage.md). Implemented.
 - [x] §3 Suppressing irrelevant invalid doses — **resolved**: falls out of §1; no suppression needed.
 - [x] §2 "Fully vaccinated" vs "up-to-date for age" — **resolved**: `UpToDateForAge` (`BehindForAge`/`Unvaccinated`/`Unknown`) is the headline status; a strict `fully_vaccinated` flag is retained alongside. "Fully immunised for life stage" rejected as a moving target. See [spec/standard.md](./standard.md) §"Overall status".
 - [x] §5 `latest_age` semantics for late-but-given doses — **resolved**: a dose breaking an age/interval rule (too early *or* too late) is recorded as received but labelled "outside standard schedule" and does not count toward completion. See [spec/standard.md](./standard.md) §"Dose validity".
@@ -42,7 +42,7 @@ These were decisions, not code — each needed a ruling before the dependent cod
 
 The engine currently takes the happy path. Close the known divergences from [spec/standard.md](./standard.md) §"Evaluation Logic".
 
-- [x] Product-class conformance matching ([ADR 0001](../docs/adr/0001-product-class-conformance-vs-antigen-coverage.md)) — 6-in-1 doses no longer falsely flagged under booster series.
+- [x] Product-class conformance matching ([conformance vs coverage](./conformance-vs-coverage.md)) — 6-in-1 doses no longer falsely flagged under booster series.
 - [x] **Enforce eligibility.** `population` and `male_born_on_or_after` are now checked: ineligible series are `NotApplicable` and excluded from the overall status, and a `gender = other|unknown` patient on a sex-restricted series is treated as eligible with an `eligibility_uncertain` flag (M1 §4).
 - [x] **Adopt the resolved status model (§2).** `OverallStatus` is now the headline age-relative enum `UpToDateForAge`/`BehindForAge`/`Unvaccinated`/`Unknown`, `VaccinationStatus` carries the strict `fully_vaccinated: bool`, and each series carries `doses_due` and `up_to_date_for_age`. See [spec/standard.md](./standard.md) §"Overall status".
 - [x] **Out-of-schedule labelling (§5).** `RecordedDose` now uses `within_schedule`/`schedule_notes`; rule-breaking doses (too early or too late) are reported as "outside standard schedule" rather than "invalid".
@@ -55,7 +55,7 @@ The engine currently takes the happy path. Close the known divergences from [spe
 
 Bring the output up to the specced shape.
 
-- [ ] **Antigen-coverage view** (`by_antigen` / `AntigenStatus`) — the "what diseases is this child protected against?" computation, deliberately deferred when [ADR 0001](../docs/adr/0001-product-class-conformance-vs-antigen-coverage.md) split conformance from coverage. Aggregates the `antigens` of every product received, independent of series.
+- [ ] **Antigen-coverage view** (`by_antigen` / `AntigenStatus`) — the "what diseases is this child protected against?" computation, deliberately deferred when [conformance vs coverage](./conformance-vs-coverage.md) split conformance from coverage. Aggregates the `antigens` of every product received, independent of series.
 - [ ] Reconcile types with the spec where they have drifted (e.g. `AgeOffset` vs a separate `Interval`; whether `AgeOffset` needs `Ord` — `render` will require sorting by age).
 - [ ] **Predicted future schedule** (consumer need 3 from M1 §2). Project the doses a patient has not yet reached the age for, as a forward-looking "what's next and when" list (assuming no schedule change). Useful to parents and planners.
 - [ ] **Record-error detection** (consumer need 4 from M1 §2). Surface likely data errors in the record itself — duplicate doses, implausibly-spaced administrations, doses before birth — distinct from schedule non-conformance.

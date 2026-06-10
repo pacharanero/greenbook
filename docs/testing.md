@@ -99,7 +99,7 @@ The README [Walkthrough](../README.md#walkthrough) is the canonical, annotated t
 - `[PARTIAL    ] MenB (2/2 due, 3 total) - up to date` — dose 3 isn't due until 12 months, so the patient is still up to date despite the series being incomplete.
 - `[NONE       ] MMR (first dose) (0/0 due, 1 total) - up to date` — nothing due yet.
 
-The booster series (Hib/MenC, Td/IPV) show no doses and no spurious `OUT-OF-SCHEDULE` entries: conformance matches doses to series by **product class**, so a 6-in-1 dose is never dragged into a booster series via shared antigens. See [ADR 0001](adr/0001-product-class-conformance-vs-antigen-coverage.md) for the conformance-vs-coverage decision behind this.
+The booster series (Hib/MenC, Td/IPV) show no doses and no spurious `OUT-OF-SCHEDULE` entries: conformance matches doses to series by **product class**, so a 6-in-1 dose is never dragged into a booster series via shared antigens. See [conformance vs coverage](../spec/conformance-vs-coverage.md) for the conformance-vs-coverage decision behind this.
 
 ## 7. Try changing the inputs
 

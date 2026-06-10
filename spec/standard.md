@@ -367,7 +367,7 @@ snomed_description = "Human papillomavirus infection (disorder)"
 
 ## Product Mapping File: `products/uk-snomed-dm.toml`
 
-FHIR records contain product codes (SNOMED CT). The mapping file bridges each product code to two things: its `product_class` (the conformance unit the Green Book names, used to match doses to series) and the `antigens` it covers (used for the disease-coverage view). See [ADR 0001](../docs/adr/0001-product-class-conformance-vs-antigen-coverage.md).
+FHIR records contain product codes (SNOMED CT). The mapping file bridges each product code to two things: its `product_class` (the conformance unit the Green Book names, used to match doses to series) and the `antigens` it covers (used for the disease-coverage view). See [conformance vs coverage](./conformance-vs-coverage.md).
 
 This mapping is maintained using SNOMED CT ECL queries against the UK drug extension, which encodes the antigen composition of each product via the SNOMED concept hierarchy. For v1 a hand-curated table covering the ~10-15 products in the current schedule is sufficient.
 
@@ -497,7 +497,7 @@ When the FHIR `Patient.gender` field is `other` or `unknown`, the evaluator trea
 
 ### Two questions: conformance and coverage
 
-Evaluation answers two distinct questions, with two different matching rules. See [ADR 0001](../docs/adr/0001-product-class-conformance-vs-antigen-coverage.md).
+Evaluation answers two distinct questions, with two different matching rules. See [conformance vs coverage](./conformance-vs-coverage.md).
 
 - **Schedule conformance** — "did the patient receive the doses the Green Book asked for, at valid ages and intervals?" The Green Book names *products* per appointment, so conformance matches a dose to a series by **product class**, not antigen overlap. This is what determines series completion and overall status below.
 - **Antigen coverage** — "what diseases is the patient protected against?" Computed separately by aggregating the antigens of every product received, independent of series. (Deferred; the data model supports it additively.)

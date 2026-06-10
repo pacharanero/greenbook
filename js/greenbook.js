@@ -7,7 +7,7 @@
  * against a schedule entirely client-side - which is what lets the demo run
  * with no server.
  *
- * Two questions, per docs/adr/0001:
+ * Two questions, per spec/conformance-vs-coverage.md:
  *   - Conformance: did the patient get the doses the Green Book named, at valid
  *     ages? Doses match a series by PRODUCT CLASS. Drives the headline status.
  *   - Coverage: which diseases are they protected against? Aggregated over the

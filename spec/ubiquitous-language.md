@@ -95,7 +95,7 @@ The shared vocabulary of greenbook. Terms are **bold** on first use elsewhere in
 
 ## Flagged ambiguities
 
-- **"coverage"** was originally used broadly ("comparing coverage… two different levels"). It is now reserved strictly for the **antigen / disease** view. The schedule-adherence sense is **Conformance**. See [ADR 0001](../docs/adr/0001-product-class-conformance-vs-antigen-coverage.md).
+- **"coverage"** was originally used broadly ("comparing coverage… two different levels"). It is now reserved strictly for the **antigen / disease** view. The schedule-adherence sense is **Conformance**. See [conformance vs coverage](./conformance-vs-coverage.md).
 - **"matching"** meant *antigen overlap* in the POC; it now means **product-class** matching for conformance. Antigen overlap is retained but only feeds **Coverage** — do not call it "matching".
 - **"fully vaccinated"** was overloaded: "all applicable series `Complete`" versus "up-to-date for age". **Resolved**: the two senses are reported separately. **Up-to-date for age** is the headline age-relative status (`OverallStatus`); **Fully vaccinated** is retained as a strict, age-independent flag. A "fully immunised for life stage" status was considered and rejected as an unstable moving target. The loose clinical phrase "fully vaccinated" is therefore never the headline term here.
 - **"dose"** spans *expected* dose (defined in a series) and *recorded* dose (administered, in the record). Qualify which is meant; use **Recorded dose** / **Valid dose** for the administered side.

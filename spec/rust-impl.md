@@ -47,7 +47,7 @@ Bundle (Patient + [Immunization])
     - for each series in the schedule:
       - check eligibility (population, sex, birth cohort)
       - determine expected doses, marking each due / not-yet-due
-      - find matching received doses (by product class - see ADR 0001)
+      - find matching received doses (by product class - see conformance-vs-coverage)
       - validate each dose: age at administration, interval from prior dose;
         flag out-of-schedule doses (too early / too late)
       - classify: COMPLETE | PARTIAL | NONE | NOT_APPLICABLE
@@ -122,7 +122,7 @@ pub struct Series {
     pub id: String,
     pub display_name: String,
     pub description: String,
-    pub product_class: String,     // conformance: doses of this class match (see ADR 0001)
+    pub product_class: String,     // conformance: doses of this class match (see conformance-vs-coverage)
     pub antigens: Vec<String>,     // references Antigen.id; coverage view only
     pub eligibility: Eligibility,
     pub dose: Vec<Dose>,

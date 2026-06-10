@@ -1,7 +1,7 @@
 //! The evaluation engine.
 //!
 //! Takes a parsed vaccination record, a schedule, and a product map, and answers
-//! two distinct questions (see docs/adr/0001 and spec/standard.md §"Evaluation Logic"):
+//! two distinct questions (see spec/conformance-vs-coverage.md and spec/standard.md §"Evaluation Logic"):
 //!
 //! 1. **Conformance** - did the patient receive the doses the Green Book named, at
 //!    valid ages and intervals? Doses are matched to series by *product class*.

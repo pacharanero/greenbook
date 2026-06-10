@@ -40,7 +40,7 @@ pub struct Series {
     pub description: String,
     /// The product class whose doses conform to this series (e.g. "6-in-1").
     /// Conformance matching is by class, not antigen overlap — see
-    /// docs/adr/0001 and the product map's `product_class` field.
+    /// spec/conformance-vs-coverage.md and the product map's `product_class` field.
     pub product_class: String,
     pub antigens: Vec<String>,
     pub eligibility: Eligibility,

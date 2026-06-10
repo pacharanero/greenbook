@@ -1,7 +1,7 @@
 # Product-to-antigen mapping for UK SNOMED drug extension codes.
 # Each entry maps a product SNOMED code to:
 #   - product_class: the conformance class the Green Book names (drives series
-#     matching — see docs/adr/0001-product-class-conformance-vs-antigen-coverage.md)
+#     matching — see spec/conformance-vs-coverage.md)
 #   - antigens: the diseases the product covers (for the deferred coverage view)
 
 coding_system = "snomed-uk-dm"
