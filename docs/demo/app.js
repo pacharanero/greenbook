@@ -55,9 +55,20 @@
   }
   const AGE_PRESETS = [['new', 'Newborn'], ['w8', '8 weeks'], ['w16', '16 weeks'], ['m12', '1 year'], ['m18', '18 months'], ['m40', '3y 4m'], ['m144', '12 years'], ['m168', '14 years']];
 
+  // A stable colour per product class (assigned in schedule order), so a series
+  // and the doses that belong to it share a colour in the timeline view.
+  const CLASS_PALETTE = ['#1E6F52', '#2C7A7B', '#C2602F', '#7C3A8F', '#2563A8', '#B23A3A', '#8A6D1F', '#3F7E2F', '#9B4D9B'];
+  const classColour = (() => {
+    const m = new Map();
+    let i = 0;
+    for (const s of schedule.series) if (!m.has(s.product_class)) m.set(s.product_class, CLASS_PALETTE[i++ % CLASS_PALETTE.length]);
+    return (cls) => (cls && m.has(cls) ? m.get(cls) : '#94A29B'); // grey for unknown / off-schedule
+  })();
+
   // --- State & selection ----------------------------------------------------
 
   let currentId = fixtures[0].id;
+  let viewMode = 'dashboard'; // 'dashboard' | 'timeline'
 
   // Custom-patient state. The whole view is record-driven, so this just feeds
   // buildCustomRecord() -> the same renderScenario pipeline as the presets.
@@ -81,6 +92,14 @@
       .join('');
     document.querySelectorAll('.preset[data-id]').forEach((btn) =>
       btn.addEventListener('click', () => { currentId = btn.dataset.id; render(); })
+    );
+
+    document.querySelectorAll('#viewToggle .vt-btn').forEach((btn) =>
+      btn.addEventListener('click', () => {
+        viewMode = btn.dataset.view;
+        document.querySelectorAll('#viewToggle .vt-btn').forEach((b) => b.classList.toggle('active', b === btn));
+        render();
+      })
     );
 
     const j = schedule.jurisdiction;
@@ -120,8 +139,24 @@
   function renderScenario(record, evaluatedAt, meta) {
     const result = G.evaluate(record, schedule, products, evaluatedAt);
     renderTopbar(record, evaluatedAt, result, meta);
-    renderKpis(record, result);
-    renderPanels(record, result);
+    renderOutput(record, result, evaluatedAt);
+  }
+
+  // Render the chosen output view; the topbar (patient banner) is shared and
+  // rendered separately, so it stays the same across both views.
+  function renderOutput(record, result, evaluatedAt) {
+    const tl = document.getElementById('timeline');
+    const kpis = document.getElementById('kpis');
+    const panels = document.getElementById('panels');
+    if (viewMode === 'timeline') {
+      kpis.innerHTML = '';
+      panels.innerHTML = '';
+      renderTimeline(record, result, evaluatedAt);
+    } else {
+      tl.innerHTML = '';
+      renderKpis(record, result);
+      renderPanels(record, result);
+    }
   }
 
   function renderTopbar(record, evaluatedAt, result, meta) {
@@ -355,8 +390,7 @@
     const result = G.evaluate(record, schedule, products, evaluatedAt);
     renderTopbar(record, evaluatedAt, result, { label: 'Custom patient' });
     renderBuilder(record);
-    renderKpis(record, result);
-    renderPanels(record, result);
+    renderOutput(record, result, evaluatedAt);
   }
 
   function renderBuilder() {
@@ -447,6 +481,164 @@
     else { const p = productIndex.get(sel); code = p.code; display = p.display; }
     customState.extraDoses.push({ code, display, date });
     renderCustom();
+  }
+
+  // --- Timeline view --------------------------------------------------------
+  // A vertical age axis (centred): the patient's actual visits on the left, the
+  // schedule's eligibility windows on the right, coloured by product class.
+  function renderTimeline(record, result, evaluatedAtStr) {
+    const dob = G.parseDate(record.dob);
+    const evalD = G.parseDate(evaluatedAtStr);
+    const DAY = 86400000;
+    const days = (d) => Math.max(0, (d.getTime() - dob.getTime()) / DAY);
+
+    // This patient's applicable schedule (eligible series only).
+    const eligibleIds = new Set(result.by_series.filter((s) => s.eligible).map((s) => s.series_id));
+
+    // One window per defined dose of each eligible series.
+    const windows = [];
+    for (const s of schedule.series) {
+      if (!eligibleIds.has(s.id)) continue;
+      for (const dose of s.dose) {
+        windows.push({
+          cls: s.product_class, name: s.display_name, n: dose.number,
+          start: G.ageOffsetToDate(dose.earliest_age || dose.target_age, dob),
+          target: G.ageOffsetToDate(dose.target_age, dob),
+          end: G.ageOffsetToDate(dose.latest_age || dose.target_age, dob),
+          targetLabel: abbreviateAge(dose.target_age),
+        });
+      }
+    }
+
+    // Linear age axis, birth at the top. Scale to the patient's journey so far
+    // (age at evaluation, +margin) - not the whole 14-year span - so their doses
+    // spread out; windows beyond the axis are listed below as "upcoming".
+    let maxDays = days(evalD);
+    for (const imm of record.immunisations) maxDays = Math.max(maxDays, days(G.parseDate(imm.date)));
+    maxDays = Math.max(maxDays, 84) * 1.08; // at least ~12 weeks, so newborns aren't a dot
+    const TRACK = 860, PAD = 26, MINH = 12, BOTTOM_PAD = 26;
+    const pos = (d) => PAD + Math.max(0, Math.min(1, days(d) / maxDays)) * TRACK;
+    const BOTTOM = PAD + TRACK;
+
+    // Gridlines at each distinct scheduled target age (plus birth).
+    const seenAge = new Set();
+    const grids = [{ y: pos(dob), label: 'birth' }];
+    for (const s of schedule.series) {
+      if (!eligibleIds.has(s.id)) continue;
+      for (const dose of s.dose) {
+        if (seenAge.has(dose.target_age)) continue;
+        const td = G.ageOffsetToDate(dose.target_age, dob);
+        if (days(td) > maxDays) continue;
+        seenAge.add(dose.target_age);
+        grids.push({ y: pos(td), label: abbreviateAge(dose.target_age) });
+      }
+    }
+    const gridHtml = grids.map((g) =>
+      `<div class="tl-grid" style="top:${g.y.toFixed(1)}px"><span class="tl-grid-label">${esc(g.label)}</span></div>`).join('');
+    const evalY = pos(evalD);
+    const evalHtml = `<div class="tl-eval" style="top:${evalY.toFixed(1)}px"><span class="tl-eval-label">evaluated &middot; ${esc(G.ageBetween(dob, evalD))}</span></div>`;
+
+    // Correlate each recorded dose to its engine outcome (as Panel 1 does).
+    const queues = new Map();
+    for (const s of result.by_series) {
+      const sd = seriesById.get(s.series_id);
+      queues.set(sd.product_class, (queues.get(sd.product_class) || []).concat(s.doses_recorded));
+    }
+    const pendingDups = result.duplicate_doses.slice();
+    const outcomeFor = (imm) => {
+      const di = pendingDups.findIndex((d) => d.date === imm.date && d.vaccine_code === imm.vaccine_code && (d.procedure_code || null) === (imm.procedure_code || null));
+      if (di >= 0) { const d = pendingDups.splice(di, 1)[0]; return { kind: 'dup', reason: `echo of ${d.duplicate_of}`, flags: [] }; }
+      const cls = (productIndex.get(imm.vaccine_code) || {}).product_class || null;
+      if (!cls) return { kind: 'unmatched', reason: 'unknown product', flags: [] };
+      if (!scheduleClasses.has(cls)) return { kind: 'unmatched', reason: `no series for "${cls}"`, flags: [] };
+      const rec = (queues.get(cls) || []).shift();
+      if (rec && !rec.within_schedule) return { kind: 'out', reason: rec.schedule_notes[0] || '', flags: rec.flags || [] };
+      return { kind: 'counted', reason: '', flags: rec ? rec.flags || [] : [] };
+    };
+
+    // Left: actual doses grouped by visit date.
+    const OUTCOME_BADGE = { counted: ['ok', 'counted'], out: ['warn', 'out of schedule'], unmatched: ['red', 'unmatched'], dup: ['muted', 'duplicate'] };
+    const imms = record.immunisations.slice().sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : 0));
+    const byDate = new Map();
+    for (const imm of imms) {
+      const product = productIndex.get(imm.vaccine_code) || null;
+      const row = { imm, cls: product ? product.product_class : null, product, outcome: outcomeFor(imm) };
+      if (!byDate.has(imm.date)) byDate.set(imm.date, []);
+      byDate.get(imm.date).push(row);
+    }
+    // Lay visits out, packing into leftward lanes so cards never overlap.
+    const visits = [...byDate.entries()].map(([date, rows]) => {
+      const y = pos(G.parseDate(date));
+      const h = 30 + rows.length * 40; // rough height estimate for collision packing
+      return { date, rows, y, top: y - h / 2, bottom: y + h / 2 };
+    }).sort((a, b) => a.top - b.top);
+    const vlaneEnds = [];
+    for (const v of visits) {
+      let lane = vlaneEnds.findIndex((bot) => bot <= v.top - 8);
+      if (lane < 0) { lane = vlaneEnds.length; vlaneEnds.push(0); }
+      vlaneEnds[lane] = v.bottom;
+      v.lane = lane;
+    }
+    const LCARDW = 250, LGUT = 22;
+    const visitsHtml = visits.map((v) => {
+      const items = v.rows.map((r) => {
+        const [bc, bl] = OUTCOME_BADGE[r.outcome.kind];
+        const antigens = r.product ? r.product.antigens.map((a) => `<span class="chip ant on">${esc(a)}</span>`).join('') : '';
+        const reason = r.outcome.reason ? `<div class="dose-reason ${bc === 'red' ? 'red' : ''}">${esc(r.outcome.reason)}</div>` : '';
+        const flags = (r.outcome.flags || []).map((f) => `<div class="dose-flag">? ${esc(f)}</div>`).join('');
+        return `<div class="tl-dose"><span class="tl-swatch" style="background:${classColour(r.cls)}"></span>
+            <span class="tl-dose-name">${esc(shortName(r.imm.display || r.imm.vaccine_code))}</span>
+            <span class="badge ${bc}">${esc(bl)}</span><div class="tl-antigens">${antigens}</div>${reason}${flags}</div>`;
+      }).join('');
+      return `<div class="tl-conn" style="top:${v.y.toFixed(1)}px; right: 50%; width:${(LGUT + v.lane * LCARDW).toFixed(0)}px"></div>
+        <div class="tl-visit" style="top:${v.y.toFixed(1)}px; right: calc(50% + ${LGUT + v.lane * LCARDW}px); width:${LCARDW - 16}px">
+          <div class="tl-visit-head"><span class="mono">${esc(v.date)}</span> &middot; ${esc(G.ageBetween(dob, G.parseDate(v.date)))}</div>${items}</div>`;
+    }).join('');
+
+    // Right: schedule windows whose eligibility starts within the axis, packed
+    // into lanes to avoid overlap. Windows beyond the axis are listed as upcoming.
+    const inWindows = windows.filter((w) => days(w.start) <= maxDays);
+    const upcoming = windows.filter((w) => days(w.start) > maxDays).sort((a, b) => days(a.target) - days(b.target));
+    inWindows.sort((a, b) => days(a.start) - days(b.start) || days(a.end) - days(b.end));
+    const laneEnds = [];
+    for (const w of inWindows) {
+      w.top = pos(w.start);
+      w.bottom = Math.min(BOTTOM, Math.max(pos(w.end), w.top + MINH));
+      let lane = laneEnds.findIndex((bot) => bot <= w.top - 6);
+      if (lane < 0) { lane = laneEnds.length; laneEnds.push(0); }
+      laneEnds[lane] = w.bottom;
+      w.lane = lane;
+    }
+    const LANEW = 152, GUT = 16;
+    const winHtml = inWindows.map((w) => {
+      const colour = classColour(w.cls);
+      const h = Math.max(MINH, w.bottom - w.top);
+      return `<div class="tl-win" style="top:${w.top.toFixed(1)}px;height:${h.toFixed(1)}px;left:calc(50% + ${GUT + w.lane * LANEW}px);border-color:${colour}">
+          <span class="tl-win-tick" style="top:${(pos(w.target) - w.top).toFixed(1)}px;background:${colour}"></span>
+          <span class="tl-win-label" style="color:${colour}">${esc(w.name)} <b>d${w.n}</b> <span class="tl-win-age">${esc(w.targetLabel)}</span></span>
+        </div>`;
+    }).join('');
+
+    const upHtml = upcoming.length
+      ? `<div class="tl-upcoming"><span class="tl-up-label">Upcoming (beyond current age)</span>${upcoming.map((w) =>
+          `<span class="tl-up" style="border-left-color:${classColour(w.cls)}">${esc(w.name)} <b>d${w.n}</b> &middot; ${esc(w.targetLabel)}</span>`).join('')}</div>`
+      : '';
+
+    const legendHtml = [...new Set(windows.map((w) => w.cls))]
+      .map((c) => `<span class="tl-leg"><span class="tl-swatch" style="background:${classColour(c)}"></span>${esc(c)}</span>`).join('');
+
+    document.getElementById('timeline').innerHTML = `
+      <div class="tl-head">
+        <div class="tl-title">Age timeline <span class="muted">&middot; actual doses (left) &nbsp;|&nbsp; schedule windows (right)</span></div>
+        <div class="tl-legend">${legendHtml}</div>
+      </div>
+      <div class="tl-scroll">
+        <div class="tl-track" style="height:${(PAD + TRACK + BOTTOM_PAD).toFixed(0)}px">
+          <div class="tl-axis"></div>
+          ${gridHtml}${evalHtml}${winHtml}${visitsHtml || '<div class="tl-empty">No doses recorded.</div>'}
+        </div>
+      </div>
+      ${upHtml}`;
   }
 
   buildSidebar();

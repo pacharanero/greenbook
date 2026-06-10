@@ -9,6 +9,13 @@ An interactive, dashboard-style demo of the evaluation engine. Pick a preset sce
 
 It is intended to be shown after the [presentation](../presentation/): the presentation explains the ideas, the demo shows the engine running on real records.
 
+### Two views
+
+A **View** switch in the sidebar toggles how the result is presented (the patient banner stays the same for both):
+
+- **Dashboard** - the layered panels described above (recorded doses → conformance by series → antigen coverage → headline status).
+- **Timeline** - a vertical age axis (the green centre line). To its **left** are the patient's actual visits and doses (date, age, product, antigens, and the counted / out-of-schedule / duplicate / unmatched outcome). To its **right** are the schedule's eligibility **windows** - one bracket per series dose, positioned over its eligible age range - grouped and colour-coded by product class. Windows that fall beyond the patient's current age are listed separately as **upcoming**.
+
 ## View it
 
 Run `s/demo` from the repo root to serve the demo and open it in your browser, or just open `index.html` directly - no build step, no network. (To run the demo and the [presentation](../presentation/) together in one Docker container, use `s/up` instead - it serves both at http://localhost:8080/.) All data is embedded in `data.js`, so it also works unchanged from `file://`, a static server, or GitHub Pages.
