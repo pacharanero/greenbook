@@ -1,83 +1,48 @@
 #!/usr/bin/env node
 /**
- * Generate docs/demo/data.js from the project's canonical data, so the demo has
- * a single source of truth and needs no network fetch at runtime.
+ * Build the demo's self-contained assets from the project's canonical data, so
+ * the demo needs no network fetch at runtime and never drifts from the engine.
  *
  *   node docs/demo/build-data.mjs
  *
  * It reads:
- *   - schedules/uk-2026-01-01.toml   (the schedule)
- *   - products/uk-snomed-dm.toml     (the product -> class/antigens map)
- *   - tests/fixtures/*.json          (the FHIR demo patients = our presets)
+ *   - schedules/uk-2026-01-01.toml      (the schedule)
+ *   - products/uk-snomed-dm.toml        (the product -> class/antigens map)
+ *   - conformance/fixtures/*.json       (the FHIR demo patients = our presets)
  *
- * TOML is converted to JSON via Python's stdlib `tomllib` (zero npm deps). The
- * FHIR bundles are reduced to the small record shape the engine consumes, here
- * rather than in the browser, so the demo ships no FHIR parser.
+ * and writes two generated files (both git-ignored):
+ *   - data.js     the schedule, product map, and parsed patient records
+ *   - engine.js   a vendored copy of js/greenbook.js (so the static demo, served
+ *                 from docs/ only, can load the engine without reaching outside)
  *
- * Re-run this whenever the schedule, product map, or fixtures change.
+ * TOML is converted to JSON via Python's stdlib `tomllib` (zero npm deps), and
+ * the FHIR bundles are parsed with the js/ engine's own parseFhirBundle - the
+ * same parser the engine ships - so the demo and the implementation can't diverge.
+ *
+ * Re-run this whenever the schedule, product map, fixtures, or engine change.
  */
 
 import { execFileSync } from 'node:child_process';
-import { readFileSync, writeFileSync, readdirSync } from 'node:fs';
+import { readFileSync, writeFileSync, readdirSync, copyFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join, basename } from 'node:path';
+import { createRequire } from 'node:module';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const repo = join(here, '..', '..');
+const require = createRequire(import.meta.url);
+const gb = require('../../js/greenbook.js'); // the shared engine (incl. parseFhirBundle)
 
 const SCHEDULE = join(repo, 'schedules', 'uk-2026-01-01.toml');
 const PRODUCTS = join(repo, 'products', 'uk-snomed-dm.toml');
-const FIXTURES_DIR = join(repo, 'tests', 'fixtures');
+const FIXTURES_DIR = join(repo, 'conformance', 'fixtures');
+const ENGINE_SRC = join(repo, 'js', 'greenbook.js');
 
 // Convert a TOML file to a JS object using Python's tomllib (dates -> strings).
 function tomlToObject(path) {
   const py = 'import tomllib,json,sys; print(json.dumps(tomllib.load(open(sys.argv[1],"rb")), default=str))';
   const out = execFileSync('python3', ['-c', py, path], { encoding: 'utf8' });
   return JSON.parse(out);
-}
-
-// Reduce a FHIR R4 bundle to { patientId, dob, gender, immunisations[] }.
-// Mirrors src/fhir.rs: completed immunisations only, first coding with a code,
-// occurrenceDateTime truncated to a date, sorted ascending by date.
-function parseBundle(bundle) {
-  let patient = null;
-  const imms = [];
-  for (const entry of bundle.entry || []) {
-    const r = entry.resource;
-    if (!r) continue;
-    if (r.resourceType === 'Patient') patient = r;
-    else if (r.resourceType === 'Immunization') imms.push(r);
-  }
-  if (!patient) throw new Error('bundle has no Patient');
-
-  const immunisations = imms
-    .filter((i) => !i.status || i.status === 'completed')
-    .map((i) => {
-      const coding = (i.vaccineCode?.coding || []).find((c) => c.code);
-      if (!coding) throw new Error('immunisation missing vaccineCode');
-      // SNOMED procedure code from the UKCore-VaccinationProcedure extension
-      // (distinct from the dm+d product code): duplicate signal + dose cross-check.
-      const procExt = (i.extension || []).find(
-        (e) => e.url === 'https://fhir.hl7.org.uk/StructureDefinition/Extension-UKCore-VaccinationProcedure'
-      );
-      const procCoding = (procExt?.valueCodeableConcept?.coding || []).find((c) => c.code);
-      return {
-        date: String(i.occurrenceDateTime).slice(0, 10),
-        vaccine_code: coding.code,
-        display: coding.display || null,
-        dose_number: (i.protocolApplied || []).map((p) => p.doseNumberPositiveInt).find((n) => n != null) ?? null,
-        procedure_code: procCoding?.code ?? null,
-        procedure_display: procCoding?.display ?? null,
-      };
-    })
-    .sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : 0));
-
-  return {
-    patientId: patient.id || null,
-    dob: patient.birthDate,
-    gender: patient.gender || null,
-    immunisations,
-  };
 }
 
 // Friendly labels for the preset list (fall back to a title-cased filename).
@@ -105,7 +70,7 @@ function buildFixtures() {
       label: LABELS[id] || id.replace(/-/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase()),
       description: bundle.comment || null,
       evaluatedAt: EVALUATED_AT,
-      record: parseBundle(bundle),
+      record: gb.parseFhirBundle(bundle),
     };
   });
 }
@@ -122,13 +87,17 @@ if (!products.product?.length) throw new Error('no products parsed');
 if (!fixtures.length) throw new Error('no fixtures found');
 
 const banner = `// Generated by docs/demo/build-data.mjs - do not edit by hand.
-// Source of truth: schedules/uk-2026-01-01.toml, products/uk-snomed-dm.toml, tests/fixtures/*.json
+// Source of truth: schedules/uk-2026-01-01.toml, products/uk-snomed-dm.toml, conformance/fixtures/*.json
 // Re-run: node docs/demo/build-data.mjs
 `;
 const out = `${banner}window.GREENBOOK = ${JSON.stringify(payload, null, 2)};\n`;
 writeFileSync(join(here, 'data.js'), out);
 
+// Vendor the engine into the demo so the static site (served from docs/ only)
+// can load it. The single source remains js/greenbook.js.
+copyFileSync(ENGINE_SRC, join(here, 'engine.js'));
+
 console.log(
-  `Wrote data.js: ${schedule.series.length} series, ${schedule.antigen.length} antigens, ` +
-  `${products.product.length} products, ${fixtures.length} presets.`
+  `Wrote data.js (${schedule.series.length} series, ${schedule.antigen.length} antigens, ` +
+  `${products.product.length} products, ${fixtures.length} presets) and vendored engine.js.`
 );

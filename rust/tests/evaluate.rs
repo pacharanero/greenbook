@@ -1,13 +1,25 @@
 use chrono::NaiveDate;
 use greenbook::evaluate::{OverallStatus, SeriesCompletionStatus};
 use greenbook::{evaluate, load_product_map, load_schedule, parse_fhir_bundle};
-use std::path::Path;
+use std::path::PathBuf;
+
+/// Resolve a path relative to the repository root (the crate lives in `rust/`,
+/// so canonical sources and shared fixtures are one level up). Using
+/// `CARGO_MANIFEST_DIR` keeps these tests independent of the working directory.
+fn repo_path(rel: &str) -> PathBuf {
+    PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+        .join("..")
+        .join(rel)
+}
 
 #[test]
 fn six_month_old_on_schedule_evaluates_correctly() {
-    let schedule = load_schedule(Path::new("schedules/uk-2026-01-01.toml")).unwrap();
-    let products = load_product_map(Path::new("products/uk-snomed-dm.toml")).unwrap();
-    let bundle = std::fs::read_to_string("tests/fixtures/six-month-fully-vaccinated.json").unwrap();
+    let schedule = load_schedule(&repo_path("schedules/uk-2026-01-01.toml")).unwrap();
+    let products = load_product_map(&repo_path("products/uk-snomed-dm.toml")).unwrap();
+    let bundle = std::fs::read_to_string(repo_path(
+        "conformance/fixtures/six-month-fully-vaccinated.json",
+    ))
+    .unwrap();
     let record = parse_fhir_bundle(&bundle).unwrap();
 
     let evaluated_at = NaiveDate::from_ymd_opt(2026, 4, 29).unwrap();
@@ -83,9 +95,10 @@ fn six_month_old_on_schedule_evaluates_correctly() {
 /// Shared helper: load the bundled UK schedule + product map and evaluate a
 /// fixture at a fixed date, so every test is deterministic.
 fn evaluate_fixture(fixture: &str, evaluated_at: NaiveDate) -> greenbook::VaccinationStatus {
-    let schedule = load_schedule(Path::new("schedules/uk-2026-01-01.toml")).unwrap();
-    let products = load_product_map(Path::new("products/uk-snomed-dm.toml")).unwrap();
-    let bundle = std::fs::read_to_string(format!("tests/fixtures/{fixture}")).unwrap();
+    let schedule = load_schedule(&repo_path("schedules/uk-2026-01-01.toml")).unwrap();
+    let products = load_product_map(&repo_path("products/uk-snomed-dm.toml")).unwrap();
+    let bundle =
+        std::fs::read_to_string(repo_path(&format!("conformance/fixtures/{fixture}"))).unwrap();
     let record = parse_fhir_bundle(&bundle).unwrap();
     evaluate(&record, &schedule, &products, evaluated_at).unwrap()
 }

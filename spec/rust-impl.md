@@ -1,6 +1,6 @@
 # Rust Implementation
 
-This document describes the reference Rust implementation: the processing pipeline, public types, CLI surface, and project layout.
+This document describes the reference Rust implementation: the processing pipeline, public types, and CLI surface. The crate lives in [`rust/`](../rust/) - see [rust/README.md](../rust/README.md) for build, test, and CLI usage; the JavaScript implementation is in [`js/`](../js/). Both are validated against the shared [`conformance/`](../conformance/) suite.
 
 ---
 
@@ -312,36 +312,31 @@ Age               | Vaccines
 
 ```
 greenbook/
-  Cargo.toml
-  README.md
-  spec/                # specification documents
-  CHANGELOG.md
-  schedules/
-    uk-2026-01-01.toml
-  products/
-    uk-snomed-dm.toml
-  src/
-    lib.rs             # public API
-    schedule.rs        # Schedule, Series, Dose, Antigen types + TOML deserialisation
-    fhir.rs            # FHIR Bundle parser (Patient + Immunization)
-    products.rs        # ProductMap - vaccine code to antigen mapping
-    evaluate.rs        # evaluation engine
-    age.rs             # AgeOffset, Interval types and parsing
-    error.rs           # error types
-  src/bin/
-    greenbook.rs        # CLI entry point
-  tests/
-    evaluate_tests.rs  # integration test cases
-    fixtures/
-      fully_vaccinated.json
-      missing_menb.json
-      unvaccinated.json
-      partial_hpv.json
-      catch_up_age_3.json          # late presenter exercises future catch-up rules
-      product_5in1_to_6in1.json    # historical Pediacel dose vs current 6-in-1 schedule
-      product_mmrv_to_mmr.json     # MMRV dose vs MMR schedule (non-overlapping varicella)
-      sex_unknown_hpv.json         # HPV evaluated with Patient.gender = unknown
-      dose_sequence_mismatch.json  # FHIR/SNOMED/date dose-number disagreement
+  spec/                  # specification documents (this file, standard.md, ...)
+  schedules/uk-2026-01-01.toml   # canonical sources (top-level, language-neutral)
+  products/uk-snomed-dm.toml
+  conformance/           # shared test harness
+    cases.json           # case manifest
+    fixtures/*.json      # FHIR bundles
+    expected/*.json      # golden outputs (Rust-generated; all impls test against these)
+  rust/                  # this (reference) implementation
+    Cargo.toml, README.md
+    src/
+      lib.rs             # public API
+      evaluate.rs        # evaluation engine
+      fhir.rs            # FHIR Bundle parser (Patient + Immunization)
+      schedule.rs        # Schedule, Series, Dose, Antigen types + TOML deserialisation
+      products.rs        # ProductMap - vaccine code to class/antigen mapping
+      age.rs             # AgeOffset parsing
+      error.rs           # error types
+    src/bin/
+      greenbook.rs       # CLI entry point
+      conformance.rs     # conformance golden generator
+    tests/
+      evaluate.rs        # integration tests
+      conformance.rs     # shared-conformance check (cargo test)
+  js/                    # the JavaScript implementation (greenbook.js + test/)
+  docs/                  # presentation + demo
 ```
 
 ---

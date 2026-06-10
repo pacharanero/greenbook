@@ -19,30 +19,20 @@ If any are missing, install Rust via [rustup](https://rustup.rs/).
 
 ```
 greenbook/
-  Cargo.toml                 - crate manifest
-  src/
-    lib.rs                   - public re-exports
-    age.rs                   - AgeOffset parser ("8 weeks", "3 years 4 months")
-    schedule.rs              - schedule.toml deserialiser
-    products.rs              - product mapping deserialiser
-    fhir.rs                  - FHIR R4 Bundle parser (Patient + Immunization)
-    evaluate.rs              - the evaluation engine
-    error.rs                 - error types
-    bin/greenbook.rs         - CLI entry point
-  schedules/
-    uk-2026-01-01.toml       - the current UK schedule (lifted from spec/standard.md)
-  products/
-    uk-snomed-dm.toml        - SNOMED UK drug extension product → antigens map
-  tests/
-    evaluate.rs              - integration test
-    fixtures/
-      six-month-fully-vaccinated.json
-  s/
-    download-green-book.sh   - utility to fetch source PDFs from gov.uk
-  pdf/
-    green-book-chapter-11-2026-03-30.pdf   - downloaded source PDF (gitignored)
-  spec/                      - the specification documents (incl. roadmap)
+  schedules/uk-2026-01-01.toml   - the current UK schedule (canonical, top-level)
+  products/uk-snomed-dm.toml     - SNOMED UK drug extension product → antigens map
+  conformance/                   - shared test harness (fixtures, cases.json, expected/)
+  rust/                          - the reference implementation
+    src/                         - lib (evaluate.rs, fhir.rs, schedule.rs, products.rs, age.rs)
+    src/bin/greenbook.rs         - CLI; src/bin/conformance.rs - golden generator
+    tests/                       - integration + conformance tests
+  js/                            - the JavaScript implementation (greenbook.js + test/)
+  docs/                          - presentation + demo (this walkthrough)
+  spec/                          - the specification documents (incl. roadmap)
+  s/, pdf/                       - helper scripts; downloaded source PDFs (gitignored)
 ```
+
+This walkthrough drives the Rust implementation; commands run from the repo root with `--manifest-path rust/Cargo.toml`.
 
 ## 2. Fetch the source Green Book PDF (optional)
 
@@ -57,31 +47,19 @@ It is idempotent — re-runs skip files already present. Pass `--force` to re-do
 ## 3. Build the crate
 
 ```sh
-cargo build
+cargo build --manifest-path rust/Cargo.toml
+cargo clippy --manifest-path rust/Cargo.toml --all-targets -- -D warnings
 ```
 
 First build pulls dependencies (chrono, serde, toml, serde_json, clap, thiserror) from crates.io and takes ~5s on a warm machine. Subsequent builds are incremental.
 
-A clippy-clean build:
-
-```sh
-cargo clippy --all-targets -- -D warnings
-```
-
 ## 4. Run the test suite
 
 ```sh
-cargo test
+cargo test --manifest-path rust/Cargo.toml
 ```
 
-Expected:
-
-- 3 unit tests in `src/age.rs` (AgeOffset parsing and date arithmetic)
-- 1 integration test in `tests/evaluate.rs` (`six_month_old_on_schedule_evaluates_correctly`)
-
-Total: **4 passed**.
-
-The integration test pins the evaluation date to **2026-04-29** so the result is deterministic regardless of when you run it.
+You get the unit tests in `rust/src/age.rs` (AgeOffset parsing and date arithmetic), the integration tests in `rust/tests/evaluate.rs`, and the conformance test in `rust/tests/conformance.rs` (which checks the engine reproduces every golden in `conformance/expected/`). The integration tests pin the evaluation date to **2026-04-29** so results are deterministic.
 
 ## 5. Run the CLI on the bundled fixture
 
@@ -90,22 +68,22 @@ The fixture represents a 6-month-old female, DOB 2025-10-29, who has received ev
 Human-readable report:
 
 ```sh
-cargo run --quiet --bin greenbook -- \
+cargo run --manifest-path rust/Cargo.toml --quiet --bin greenbook -- \
   evaluate \
   schedules/uk-2026-01-01.toml \
   products/uk-snomed-dm.toml \
-  tests/fixtures/six-month-fully-vaccinated.json \
+  conformance/fixtures/six-month-fully-vaccinated.json \
   --evaluated-at 2026-04-29
 ```
 
 JSON output:
 
 ```sh
-cargo run --quiet --bin greenbook -- \
+cargo run --manifest-path rust/Cargo.toml --quiet --bin greenbook -- \
   evaluate \
   schedules/uk-2026-01-01.toml \
   products/uk-snomed-dm.toml \
-  tests/fixtures/six-month-fully-vaccinated.json \
+  conformance/fixtures/six-month-fully-vaccinated.json \
   --evaluated-at 2026-04-29 \
   --format json
 ```

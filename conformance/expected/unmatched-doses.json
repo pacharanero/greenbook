@@ -1,0 +1,151 @@
+{
+  "status": "behind_for_age",
+  "fully_vaccinated": false,
+  "evaluated_at": "2026-04-29",
+  "schedule_version": "2026-01-01",
+  "by_series": [
+    {
+      "series_id": "6in1-primary",
+      "display_name": "6-in-1",
+      "status": "partial",
+      "eligible": true,
+      "eligibility_uncertain": false,
+      "doses_expected": 3,
+      "doses_due": 3,
+      "doses_valid": 1,
+      "up_to_date_for_age": false,
+      "doses_recorded": [
+        {
+          "date": "2025-12-24",
+          "age_at_dose": "1mo 3w 4d",
+          "vaccine_code": "39114911000001105",
+          "display": "Infanrix Hexa vaccine (product)",
+          "assigned_dose_number": 1,
+          "within_schedule": true,
+          "schedule_notes": [],
+          "flags": []
+        }
+      ],
+      "notes": []
+    },
+    {
+      "series_id": "rotavirus-primary",
+      "display_name": "Rotavirus",
+      "status": "none",
+      "eligible": true,
+      "eligibility_uncertain": false,
+      "doses_expected": 2,
+      "doses_due": 2,
+      "doses_valid": 0,
+      "up_to_date_for_age": false,
+      "doses_recorded": [],
+      "notes": []
+    },
+    {
+      "series_id": "menb-primary",
+      "display_name": "MenB",
+      "status": "none",
+      "eligible": true,
+      "eligibility_uncertain": false,
+      "doses_expected": 3,
+      "doses_due": 2,
+      "doses_valid": 0,
+      "up_to_date_for_age": false,
+      "doses_recorded": [],
+      "notes": []
+    },
+    {
+      "series_id": "pcv-primary",
+      "display_name": "PCV (pneumococcal)",
+      "status": "none",
+      "eligible": true,
+      "eligibility_uncertain": false,
+      "doses_expected": 2,
+      "doses_due": 1,
+      "doses_valid": 0,
+      "up_to_date_for_age": false,
+      "doses_recorded": [],
+      "notes": []
+    },
+    {
+      "series_id": "hib-menc-booster",
+      "display_name": "Hib/MenC booster",
+      "status": "none",
+      "eligible": true,
+      "eligibility_uncertain": false,
+      "doses_expected": 1,
+      "doses_due": 0,
+      "doses_valid": 0,
+      "up_to_date_for_age": true,
+      "doses_recorded": [],
+      "notes": []
+    },
+    {
+      "series_id": "mmr-primary",
+      "display_name": "MMR (first dose)",
+      "status": "none",
+      "eligible": true,
+      "eligibility_uncertain": false,
+      "doses_expected": 1,
+      "doses_due": 0,
+      "doses_valid": 0,
+      "up_to_date_for_age": true,
+      "doses_recorded": [],
+      "notes": []
+    },
+    {
+      "series_id": "mmr-second",
+      "display_name": "MMR (second dose)",
+      "status": "none",
+      "eligible": true,
+      "eligibility_uncertain": false,
+      "doses_expected": 1,
+      "doses_due": 0,
+      "doses_valid": 0,
+      "up_to_date_for_age": true,
+      "doses_recorded": [],
+      "notes": []
+    },
+    {
+      "series_id": "hpv-primary",
+      "display_name": "HPV",
+      "status": "none",
+      "eligible": true,
+      "eligibility_uncertain": false,
+      "doses_expected": 2,
+      "doses_due": 0,
+      "doses_valid": 0,
+      "up_to_date_for_age": true,
+      "doses_recorded": [],
+      "notes": []
+    },
+    {
+      "series_id": "tdap-ipv-booster",
+      "display_name": "Td/IPV booster (3-in-1 teenage booster)",
+      "status": "none",
+      "eligible": true,
+      "eligibility_uncertain": false,
+      "doses_expected": 1,
+      "doses_due": 0,
+      "doses_valid": 0,
+      "up_to_date_for_age": true,
+      "doses_recorded": [],
+      "notes": []
+    }
+  ],
+  "unmatched_doses": [
+    {
+      "date": "2026-01-21",
+      "vaccine_code": "9743801000001106",
+      "display": "Pediacel vaccine (product)",
+      "reason": "product class \"5-in-1\" has no series in this schedule version"
+    },
+    {
+      "date": "2026-01-21",
+      "vaccine_code": "11111111000001100",
+      "display": "Unknown investigational vaccine",
+      "reason": "unknown product code (not in the product map)"
+    }
+  ],
+  "duplicate_doses": []
+}

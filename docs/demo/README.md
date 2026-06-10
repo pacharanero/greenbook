@@ -18,9 +18,11 @@ Run `s/demo` from the repo root to serve the demo and open it in your browser, o
 The demo is plain HTML/CSS/JS:
 
 - `index.html` / `styles.css` - the dashboard shell and theme.
-- `engine.js` - a **faithful JavaScript port of the Rust engine** (`src/evaluate.rs`). The Rust crate stays the source of truth; this port lets the demo evaluate entirely client-side, which is what makes live interactivity possible.
-- `data.js` - the schedule, product map, and the demo patients, generated from the canonical files (see below).
 - `app.js` - the dashboard wiring.
+- `engine.js` - a **generated, vendored copy of the [JavaScript implementation](../../js/)** (`js/greenbook.js`), so the static site can load the engine without reaching outside `docs/`. Do not edit it here; edit `js/greenbook.js` and re-run the build below.
+- `data.js` - the schedule, product map, and parsed demo patients, generated from the canonical files (see below).
+
+Both `engine.js` and `data.js` are generated. They are committed so the demo serves with no build step (`file://`, `s/up`, GitHub Pages), and CI fails if they are stale.
 
 ### Build your own (live editing)
 
@@ -28,22 +30,21 @@ The whole view is driven by one function, `renderScenario(record, evaluatedAt)`.
 
 The presets also exercise the dose-sequencing logic: **Both MMR doses** (one product class, two series - allocated correctly, no spurious flags), **Duplicate "echo" dose** (the same jab recorded twice with different dates but the same procedure code), and **Mis-keyed dose number** (recorded as dose 2 but it is dose 1 by date - flagged, not trusted).
 
-## Regenerating the data
+## Regenerating the assets
 
-`data.js` is generated from the project's canonical data so it never drifts:
+`data.js` and `engine.js` are generated from the project's canonical sources so they never drift:
 
 ```sh
 node docs/demo/build-data.mjs
 ```
 
-This reads `schedules/uk-2026-01-01.toml`, `products/uk-snomed-dm.toml`, and `tests/fixtures/*.json` (TOML is converted with Python's stdlib `tomllib`; the FHIR bundles are reduced to the engine's record shape). Re-run it whenever the schedule, product map, or fixtures change.
+This reads `schedules/uk-2026-01-01.toml`, `products/uk-snomed-dm.toml`, and `conformance/fixtures/*.json` (TOML via Python's stdlib `tomllib`; FHIR bundles parsed with the JS implementation's own `parseFhirBundle`), and vendors `js/greenbook.js` as `engine.js`. Re-run it whenever the schedule, product map, fixtures, or engine change.
 
-## Validating the port
+## Validating the engine
 
-To confirm the JS engine matches the Rust engine, run both over every fixture and diff the output:
+The JavaScript implementation is validated against the shared [conformance suite](../../conformance/) - the same goldens the Rust reference is checked against:
 
 ```sh
-node docs/demo/validate.mjs
+cd js && node test/conformance.mjs
 ```
 
-It runs the Rust CLI per fixture and deep-compares the result (status, every series, every recorded dose, unmatched doses) against `engine.js`. They currently match exactly.

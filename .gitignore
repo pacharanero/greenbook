@@ -1,4 +1,6 @@
 /target
+/rust/target
+/js/node_modules
 /pdf/*.pdf
 
 # Reveal.js review artefacts (regenerate with a screenshot tool)

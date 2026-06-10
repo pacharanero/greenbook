@@ -8,7 +8,9 @@ The v1 POC core is working and green: `cargo test` passes, `cargo clippy --all-t
 
 What this means: the file format and evaluation pipeline are proven end-to-end, and the M1 decisions are now implemented in the engine. The remaining v1 work is the dose-sequence cross-check, the other CLI commands and the `by_antigen` breakdown, and broader test coverage — none of it requires rearchitecting.
 
-The baseline is committed and CI is green (M0 done), the POC design questions are resolved (M1), and most of M2 is implemented. The remaining work is M2's dose-sequence cross-check, then M3/M4.
+The baseline is committed and CI is green (M0 done), the POC design questions are resolved (M1), and most of M2 is implemented. The remaining work is M3/M4.
+
+The repository is now organised as **peer implementations**: [`rust/`](../rust/) (the reference) and [`js/`](../js/), with canonical sources/spec at the top level and a shared [`conformance/`](../conformance/) suite (Rust-generated golden outputs that every implementation is tested against). New languages (Ruby, Python) join by running the same suite. A richer per-language docs site (e.g. Zensical) with shared/common sections is planned.
 
 ## Guiding principle
 

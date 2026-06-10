@@ -1,0 +1,13 @@
+{
+  "name": "greenbook",
+  "version": "0.0.1",
+  "description": "Computable UK childhood immunisation schedule (Green Book) evaluator - JavaScript implementation",
+  "license": "AGPL-3.0",
+  "type": "commonjs",
+  "main": "greenbook.js",
+  "exports": "./greenbook.js",
+  "files": ["greenbook.js"],
+  "scripts": {
+    "test": "node test/conformance.mjs"
+  }
+}

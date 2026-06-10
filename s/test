@@ -1,0 +1,32 @@
+#!/usr/bin/env bash
+# Run every implementation's test suite, including the shared conformance suite,
+# and check the demo's generated assets are up to date.
+#
+#   s/test
+#
+# Requires the Rust toolchain, Node, and python3.
+
+set -euo pipefail
+
+ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+cd "$ROOT"
+
+echo "== rust (unit + integration + conformance) =="
+cargo test --manifest-path rust/Cargo.toml
+
+echo
+echo "== js (conformance) =="
+( cd js && node test/conformance.mjs )
+
+echo
+echo "== demo assets fresh =="
+node docs/demo/build-data.mjs >/dev/null
+if git diff --quiet docs/demo/data.js docs/demo/engine.js; then
+  echo "demo assets up to date"
+else
+  echo "demo assets are stale - commit the regenerated docs/demo/{data.js,engine.js}" >&2
+  exit 1
+fi
+
+echo
+echo "All implementations pass the shared conformance suite."

@@ -87,7 +87,7 @@
     document.getElementById('sideFoot').innerHTML =
       `Schedule <span class="mono">${esc(schedule.schedule.valid_from)}</span><br>` +
       `${esc(j.country_name)} &middot; ${esc(j.schedule_authority)}<br>` +
-      `Engine: JS port of the Rust core`;
+      `Engine: greenbook JS (conformance-tested vs the Rust reference)`;
   }
 
   // A short hint per preset (first clause of the description, roughly).

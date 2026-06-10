@@ -1,6 +1,6 @@
 # greenbook
 
-A Rust library and CLI that evaluates a patient's FHIR vaccination history against a computable, versioned representation of the NHS routine childhood immunisation schedule (the [Green Book](https://www.gov.uk/government/publications/immunisation-schedule-the-green-book-chapter-11)), reporting whether they are up-to-date for their age, which doses are missing, and (strictly) whether every dose the schedule defines has been given - per series and in aggregate.
+greenbook evaluates a patient's FHIR vaccination history against a computable, versioned representation of the NHS routine childhood immunisation schedule (the [Green Book](https://www.gov.uk/government/publications/immunisation-schedule-the-green-book-chapter-11)), reporting whether they are up-to-date for their age, which doses are missing, and (strictly) whether every dose the schedule defines has been given - per series and in aggregate.
 
 For the UK, the childhood vaccination schedule is currently published as human-readable PDF files that serve as the **primary source of truth**. As of 2026 there is no computable version of the schedule. This prototype is an attempt to explore a proof-of-concept for a **computable schedule format** and **evaluation engine**, with the long-term goal of creating a versioned, computable Green Book that can be maintained in parallel with the human-readable version and eventually replace it as the upstream primary publication and 'source of truth', with downstream PDFs being generated from the computable version rather than the other way around.
 
@@ -8,13 +8,28 @@ For the UK, the childhood vaccination schedule is currently published as human-r
 
 The long-term goal is that vaccination and public health experts could eventually author schedule changes **directly** in a computable format, and all downstream publications - PDFs, websites, and of course clinical digital tools - would be generated from this one 'upstream' and trusted computable source. It would replace the current 'digital paper' workflow where a PDF is published from a Word document and clinical code has to be written as a (potentially inaccurate) reverse-engineered derivative of it.
 
-See [spec/](./spec/) for the full specification and [roadmap](./spec/roadmap.md). The Walkthrough below takes you from a clean checkout to a running demonstration; [docs/testing.md](./docs/testing.md) has further input-tweaking experiments.
+## Repository
+
+The canonical, language-neutral material lives at the top level; each implementation is a peer folder.
+
+| Path | What |
+| --- | --- |
+| [`spec/`](./spec/) | The specification - formats, evaluation semantics, [ubiquitous language](./spec/ubiquitous-language.md), [roadmap](./spec/roadmap.md). Language-neutral. |
+| [`schedules/`](./schedules/), [`products/`](./products/) | The canonical computable Green Book sources (TOML). |
+| [`conformance/`](./conformance/) | The shared test harness: fixtures, a case manifest, and golden outputs every implementation is validated against. |
+| [`rust/`](./rust/) | The **reference** implementation (engine + CLI), and the generator of the conformance goldens. |
+| [`js/`](./js/) | The JavaScript implementation (also powers the demo). |
+| [`docs/`](./docs/) | The [presentation](./docs/presentation/) and the interactive [demo](./docs/demo/). |
+
+Both implementations are independent ports of the spec, kept in step by the conformance suite - so each can be developed and validated on its own while staying behaviourally identical. More implementations (Ruby, Python) can join by running the same suite. See each folder's README to get started.
 
 ---
 
 ## Walkthrough
 
 This walks through everything from installation to a working demonstration of the evaluator's features. Every command is run from the repository root.
+
+This drives the **reference (Rust) implementation**'s CLI. For the JavaScript implementation see [js/README.md](./js/README.md); both are validated by the shared [conformance suite](./conformance/).
 
 ### Prerequisites
 
@@ -26,7 +41,7 @@ This walks through everything from installation to a working demonstration of th
 ```sh
 git clone https://github.com/pacharanero/greenbook.git
 cd greenbook
-cargo build
+cargo build --manifest-path rust/Cargo.toml
 ```
 
 The first build pulls a handful of crates (chrono, serde, toml, serde_json, clap, thiserror) and takes a few seconds; later builds are incremental.
@@ -34,10 +49,10 @@ The first build pulls a handful of crates (chrono, serde, toml, serde_json, clap
 ### 2. Run the test suite
 
 ```sh
-cargo test
+cargo test --manifest-path rust/Cargo.toml
 ```
 
-You should see three unit tests (age parsing and date arithmetic) and one integration test (`six_month_old_on_schedule_evaluates_correctly`) pass.
+You should see the unit tests (age parsing and date arithmetic), the integration tests, and the conformance test (which checks the engine reproduces the golden outputs in `conformance/expected/`) all pass.
 
 ### 3. The `evaluate` command
 
@@ -54,7 +69,7 @@ The bundled inputs are:
 
 - `schedules/uk-2026-01-01.toml` - the current UK schedule
 - `products/uk-snomed-dm.toml` - the SNOMED UK drug-extension product → class/antigen map
-- `tests/fixtures/*.json` - the demonstration patients used below
+- `conformance/fixtures/*.json` - the demonstration patients used below
 
 The examples below pass `--evaluated-at 2026-04-29` so the output is deterministic regardless of today's date. Omit it to evaluate as of today.
 
@@ -63,9 +78,9 @@ The examples below pass `--evaluated-at 2026-04-29` so the output is determinist
 A 6-month-old who has had every dose due so far. The headline answer is **up to date for age**, even though later doses (MMR, HPV, the boosters) have not been given - they are not due yet.
 
 ```sh
-cargo run --quiet --bin greenbook -- evaluate \
+cargo run --manifest-path rust/Cargo.toml --quiet --bin greenbook -- evaluate \
   schedules/uk-2026-01-01.toml products/uk-snomed-dm.toml \
-  tests/fixtures/six-month-fully-vaccinated.json --evaluated-at 2026-04-29
+  conformance/fixtures/six-month-fully-vaccinated.json --evaluated-at 2026-04-29
 ```
 
 ```
@@ -90,9 +105,9 @@ Note the two distinct answers: the patient is **up to date for age**, but not **
 An 18-month-old who had the primary infant doses but missed every 12-month appointment. The headline flips to **behind for age**, and the per-series breakdown shows exactly which doses are overdue.
 
 ```sh
-cargo run --quiet --bin greenbook -- evaluate \
+cargo run --manifest-path rust/Cargo.toml --quiet --bin greenbook -- evaluate \
   schedules/uk-2026-01-01.toml products/uk-snomed-dm.toml \
-  tests/fixtures/behind-for-age-toddler.json --evaluated-at 2026-04-29
+  conformance/fixtures/behind-for-age-toddler.json --evaluated-at 2026-04-29
 ```
 
 ```
@@ -116,9 +131,9 @@ The series marked `BEHIND` are the catch-up worklist: MenB dose 3, PCV dose 2, t
 Doses that were given but break an age or interval rule are recorded and labelled **outside standard schedule** rather than silently passed or harshly called "invalid". Here a 6-in-1 second dose is given a week too soon, and a rotavirus dose is given after its hard cutoff.
 
 ```sh
-cargo run --quiet --bin greenbook -- evaluate \
+cargo run --manifest-path rust/Cargo.toml --quiet --bin greenbook -- evaluate \
   schedules/uk-2026-01-01.toml products/uk-snomed-dm.toml \
-  tests/fixtures/out-of-schedule-doses.json --evaluated-at 2026-04-29
+  conformance/fixtures/out-of-schedule-doses.json --evaluated-at 2026-04-29
 ```
 
 ```
@@ -137,9 +152,9 @@ cargo run --quiet --bin greenbook -- evaluate \
 A record can contain doses that belong to no series in the loaded schedule - an unknown product code, or a known product whose class the current schedule no longer uses (a Pediacel 5-in-1 dose against the 2026 6-in-1 schedule). These are surfaced in their own section instead of vanishing.
 
 ```sh
-cargo run --quiet --bin greenbook -- evaluate \
+cargo run --manifest-path rust/Cargo.toml --quiet --bin greenbook -- evaluate \
   schedules/uk-2026-01-01.toml products/uk-snomed-dm.toml \
-  tests/fixtures/unmatched-doses.json --evaluated-at 2026-04-29
+  conformance/fixtures/unmatched-doses.json --evaluated-at 2026-04-29
 ```
 
 ```
@@ -154,9 +169,9 @@ Unmatched doses:
 Pass `--format json` to any of the above for the full structured result (every series, every recorded dose with its `within_schedule` flag and notes, and the unmatched doses) suitable for piping into other tools:
 
 ```sh
-cargo run --quiet --bin greenbook -- evaluate \
+cargo run --manifest-path rust/Cargo.toml --quiet --bin greenbook -- evaluate \
   schedules/uk-2026-01-01.toml products/uk-snomed-dm.toml \
-  tests/fixtures/six-month-fully-vaccinated.json --evaluated-at 2026-04-29 --format json
+  conformance/fixtures/six-month-fully-vaccinated.json --evaluated-at 2026-04-29 --format json
 ```
 
 ---
