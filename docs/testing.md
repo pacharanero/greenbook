@@ -93,14 +93,14 @@ If you omit `--evaluated-at` it defaults to today; the same fixture will give di
 
 ## 6. What you should see
 
-The README [Walkthrough](../README.md#walkthrough) is the canonical, annotated tour of the output across several demonstration fixtures. In brief, for this on-schedule infant the salient lines are:
+The README [Walkthrough](https://github.com/pacharanero/greenbook/blob/main/README.md#walkthrough) is the canonical, annotated tour of the output across several demonstration fixtures. In brief, for this on-schedule infant the salient lines are:
 
 - `Up-to-date status: UP_TO_DATE_FOR_AGE` — the headline, age-relative answer: every dose due so far has been given. Distinct from `Fully vaccinated: no`, the strict "every dose at every age" flag, which is correctly `no` for a 6-month-old.
 - `[COMPLETE   ] 6-in-1 (3/3 due, 3 total) - up to date` — three valid doses, all on or after `earliest_age`.
 - `[PARTIAL    ] MenB (2/2 due, 3 total) - up to date` — dose 3 isn't due until 12 months, so the patient is still up to date despite the series being incomplete.
 - `[NONE       ] MMR (first dose) (0/0 due, 1 total) - up to date` — nothing due yet.
 
-The booster series (Hib/MenC, Td/IPV) show no doses and no spurious `OUT-OF-SCHEDULE` entries: conformance matches doses to series by **product class**, so a 6-in-1 dose is never dragged into a booster series via shared antigens. See [conformance vs coverage](../spec/conformance-vs-coverage.md) for the conformance-vs-coverage decision behind this.
+The booster series (Hib/MenC, Td/IPV) show no doses and no spurious `OUT-OF-SCHEDULE` entries: conformance matches doses to series by **product class**, so a 6-in-1 dose is never dragged into a booster series via shared antigens. See [conformance vs coverage](concepts/conformance-vs-coverage.md) for the conformance-vs-coverage decision behind this.
 
 ## 7. Try changing the inputs
 
@@ -119,4 +119,4 @@ Open `rules/schedule-uk-2026-01-01.toml` directly. Every series is one `[[series
 
 ## 9. Next steps
 
-The design questions the POC raised are now resolved and folded into the [spec](../spec/) and [roadmap](../spec/roadmap.md) (see the roadmap's M1 for the record). Most of M2 is now implemented (eligibility enforcement, the up-to-date-for-age status model, out-of-schedule labelling, and unmatched-dose reporting). The next steps are the dose-sequence cross-check (M2) and the other CLI commands - `validate` and `render` (M4).
+The design questions the POC raised are now resolved and folded into the [spec](https://github.com/pacharanero/greenbook/tree/main/spec) and [roadmap](https://github.com/pacharanero/greenbook/blob/main/spec/roadmap.md) (see the roadmap's M1 for the record). Most of M2 is now implemented (eligibility enforcement, the up-to-date-for-age status model, out-of-schedule labelling, and unmatched-dose reporting). The next steps are the dose-sequence cross-check (M2) and the other CLI commands - `validate` and `render` (M4).

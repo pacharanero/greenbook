@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+# Serve the documentation site locally with live reload.
+#
+# Builds and serves the Zensical site (mkdocs.yml + docs/) at a local URL and
+# opens it, rebuilding as you edit. The demo and presentation are copied into
+# the site, so /demo and /presentation work here too.
+#
+# First time:  pip install -r requirements.txt   (or: uv pip install -r requirements.txt)
+# Usage:       s/docs
+#
+# Ctrl+C stops the server.
+
+set -euo pipefail
+
+cd "$(cd "$(dirname "$0")/.." && pwd)"
+
+if ! command -v zensical >/dev/null 2>&1; then
+  echo "zensical is not installed. Run: pip install -r requirements.txt" >&2
+  exit 1
+fi
+
+exec zensical serve --open

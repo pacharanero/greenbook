@@ -3,6 +3,10 @@
 /js/node_modules
 /pdf/*.pdf
 
+# Zensical docs site: build output and local virtualenv
+/site/
+/.venv-docs/
+
 # Reveal.js review artefacts (regenerate with a screenshot tool)
 /docs/presentation/screenshots/
 /docs/presentation/*.pdf

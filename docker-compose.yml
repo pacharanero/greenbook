@@ -1,9 +1,10 @@
-# Serve the greenbook presentation and demo together, locally, in one small
-# container. Both are static files living under docs/, so a single nginx serving
-# that folder is all it takes - no build step, no image to maintain.
+# Serve the built documentation site (which includes the demo and presentation)
+# locally, in one small nginx container. The site is produced by `zensical build`
+# into ./site; `s/up` runs that build first. For live-reload editing of the docs,
+# prefer `s/docs` (zensical serve) instead.
 #
-# Start it:   s/up            (or: docker compose up)
-# Then open:  http://localhost:8080/
+# Start it:   s/up            (builds the site, then: docker compose up)
+# Then open:  http://localhost:8080/   (demo at /demo/, presentation at /presentation/)
 # Stop it:    Ctrl+C          (or: docker compose down)
 
 services:
@@ -13,4 +14,4 @@ services:
     ports:
       - "8080:80"
     volumes:
-      - ./docs:/usr/share/nginx/html:ro
+      - ./site:/usr/share/nginx/html:ro

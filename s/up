@@ -1,15 +1,17 @@
 #!/usr/bin/env bash
-# Start the greenbook presentation + demo locally with Docker.
+# Build the documentation site and serve it locally with Docker.
 #
-# Spins up one small nginx container (see docker-compose.yml) that serves both
-# apps. Once it is up, open http://localhost:8080/ and pick the presentation or
-# the demo. This is the easiest way to run both without installing anything but
-# Docker.
+# Builds the Zensical site (which includes the demo and presentation) into
+# ./site, then spins up one small nginx container (see docker-compose.yml) to
+# serve it. Once it is up, open http://localhost:8080/ - the demo is at /demo/
+# and the presentation at /presentation/.
+#
+# For live-reload editing of the docs, use `s/docs` instead (no Docker).
 #
 # Usage:
-#   s/up        # start; press Ctrl+C to stop
+#   s/up        # build + start; press Ctrl+C to stop
 #
-# Requires Docker (Docker Desktop, or Docker Engine + the Compose plugin).
+# Requires the docs deps (pip install -r requirements.txt) and Docker.
 
 set -euo pipefail
 
@@ -18,10 +20,18 @@ cd "$ROOT"
 
 URL="http://localhost:8080/"
 
+if ! command -v zensical >/dev/null 2>&1; then
+  echo "zensical is not installed. Run: pip install -r requirements.txt" >&2
+  exit 1
+fi
+
 if ! command -v docker >/dev/null 2>&1; then
   echo "Docker is not installed. Install it from https://www.docker.com/ and try again." >&2
   exit 1
 fi
+
+echo "Building the documentation site into ./site ..."
+zensical build --clean
 
 # Prefer the modern `docker compose`; fall back to the older `docker-compose`.
 if docker compose version >/dev/null 2>&1; then
@@ -33,7 +43,7 @@ else
   exit 1
 fi
 
-echo "Starting greenbook (presentation + demo) at $URL"
+echo "Serving the greenbook docs site at $URL"
 echo "Press Ctrl+C to stop."
 
 # Open the browser once nginx has had a moment to start. Tolerant of no opener.

@@ -1,0 +1,79 @@
+site_name: greenbook
+site_url: https://pacharanero.github.io/greenbook
+site_description: A computable, versioned UK childhood immunisation schedule (the Green Book) and an engine that evaluates a patient's FHIR vaccination history against it.
+
+repo_url: https://github.com/pacharanero/greenbook
+repo_name: greenbook
+
+docs_dir: docs
+
+# The demo and the presentation are static sub-apps living under docs/. Zensical
+# copies them into the built site verbatim (reachable at /demo and /presentation);
+# they are linked from the nav and home page rather than rendered as pages. Their
+# internal READMEs are developer notes, not site pages.
+exclude_docs: |
+  demo/README.md
+  presentation/README.md
+
+theme:
+  name: zensical
+  variant: modern
+  features:
+    - content.code.copy
+    - content.action.edit
+    - content.action.view
+
+  palette:
+    # Follows OS preference
+    - media: "(prefers-color-scheme)"
+      toggle:
+        icon: lucide/sun-moon
+        name: Switch to light mode
+
+    # Light mode
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: green
+      accent: green
+      toggle:
+        icon: lucide/sun
+        name: Switch to dark mode
+
+    # Dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: green
+      accent: green
+      toggle:
+        icon: lucide/moon
+        name: Switch to system preference
+
+nav:
+  - Home: index.md
+  - The Green Book:
+      - What it is: green-book/what-it-is.md
+      - Why a computable version: green-book/why-computable.md
+  - Concepts:
+      - The domain model: concepts/domain-model.md
+      - Conformance vs coverage: concepts/conformance-vs-coverage.md
+      - The status model: concepts/status-model.md
+  - Getting started: getting-started.md
+  - Walkthrough: walkthrough.md
+  - Reference:
+      - Testing the engine: testing.md
+  - Try it live:
+      - Interactive demo: demo/index.html
+      - Presentation: presentation/presentation.html
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - md_in_html
+  - pymdownx.details
+  - pymdownx.keys
+  - pymdownx.superfences
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg

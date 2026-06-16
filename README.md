@@ -19,9 +19,11 @@ The canonical, language-neutral material lives at the top level; each implementa
 | [`conformance/`](./conformance/) | The shared test harness: fixtures, a case manifest, and golden outputs every implementation is validated against. |
 | [`rust/`](./rust/) | The **reference** implementation (engine + CLI), and the generator of the conformance goldens. |
 | [`js/`](./js/) | The JavaScript implementation (also powers the demo). |
-| [`docs/`](./docs/) | The [presentation](./docs/presentation/) and the interactive [demo](./docs/demo/). |
+| [`docs/`](./docs/) | The documentation site (Zensical) - concepts, getting started, walkthrough - which bundles the interactive [demo](./docs/demo/) and the [presentation](./docs/presentation/). |
 
 Both implementations are independent ports of the spec, kept in step by the conformance suite - so each can be developed and validated on its own while staying behaviourally identical. More implementations (Ruby, Python) can join by running the same suite. See each folder's README to get started.
+
+The documentation site is built with [Zensical](https://github.com/mkdocs-material/zensical). For live-reload editing run `s/docs` (after `pip install -r requirements.txt`); `s/up` builds the site and serves it - demo and presentation included - via Docker at `http://localhost:8080/`.
 
 ---
 

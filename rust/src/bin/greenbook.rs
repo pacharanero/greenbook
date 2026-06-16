@@ -3,6 +3,7 @@ use clap::{Parser, Subcommand};
 use greenbook::evaluate::{OverallStatus, SeriesCompletionStatus, VaccinationStatus};
 use greenbook::{evaluate, load_product_map, load_schedule, parse_fhir_bundle};
 use std::fs;
+use std::io::IsTerminal;
 use std::path::PathBuf;
 use std::process::ExitCode;
 
@@ -38,8 +39,12 @@ enum Command {
 
 #[derive(Copy, Clone, Debug, clap::ValueEnum)]
 enum OutputFormat {
+    /// Full machine-readable result (the complete evaluation).
     Json,
+    /// Human-readable per-series breakdown.
     Report,
+    /// Just the headline answer, in one coloured line.
+    Status,
 }
 
 fn main() -> ExitCode {
@@ -76,9 +81,31 @@ fn run(cli: Cli) -> Result<(), Box<dyn std::error::Error>> {
                 OutputFormat::Report => {
                     print_report(&status, &record);
                 }
+                OutputFormat::Status => {
+                    print_status(&status);
+                }
             }
             Ok(())
         }
+    }
+}
+
+/// The headline answer, distilled to a single coloured line - the "traffic
+/// light" view. Green when up to date for age, red when behind, amber when the
+/// record is too sparse to judge. Colour is ANSI, suppressed when stdout is not
+/// a terminal or `NO_COLOR` is set, so piping (`| cat`, into a file) stays clean.
+fn print_status(status: &VaccinationStatus) {
+    let (colour, text) = match status.status {
+        OverallStatus::UpToDateForAge => ("32", "Up to date for age"),
+        OverallStatus::BehindForAge | OverallStatus::Unvaccinated => {
+            ("31", "Not up to date for age")
+        }
+        OverallStatus::Unknown => ("33", "Status unknown"),
+    };
+    if std::io::stdout().is_terminal() && std::env::var_os("NO_COLOR").is_none() {
+        println!("\x1b[1;{colour}m{text}\x1b[0m");
+    } else {
+        println!("{text}");
     }
 }
 
