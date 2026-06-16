@@ -18,6 +18,11 @@ exclude_docs: |
 theme:
   name: zensical
   variant: modern
+  # A solid green book (the exact Green Book cover green) as the brand mark. The
+  # header is left neutral (white / dark) so the green logo and green accents
+  # read clearly against it; see docs/stylesheets/extra.css.
+  logo: assets/greenbook-logo.svg
+  favicon: assets/greenbook-logo.svg
   features:
     - content.code.copy
     - content.action.edit
@@ -30,23 +35,29 @@ theme:
         icon: lucide/sun-moon
         name: Switch to light mode
 
-    # Light mode
+    # Light mode - neutral (white) header; green is the accent (extra.css)
     - media: "(prefers-color-scheme: light)"
       scheme: default
-      primary: green
+      primary: white
       accent: green
       toggle:
         icon: lucide/sun
         name: Switch to dark mode
 
-    # Dark mode
+    # Dark mode - neutral (near-black) header; green is the accent (extra.css)
     - media: "(prefers-color-scheme: dark)"
       scheme: slate
-      primary: green
+      primary: black
       accent: green
       toggle:
         icon: lucide/moon
         name: Switch to system preference
+
+extra_css:
+  - stylesheets/extra.css
+
+extra_javascript:
+  - assets/mini-demo.js
 
 nav:
   - Home: index.md

@@ -1,0 +1,192 @@
+/* greenbook docs theme tweaks.
+   The brand colour is the exact green of the Green Book PDF cover (#00A95C):
+   sampled from the "routine immunisation schedule" banner on page 1. */
+
+:root {
+  --gb-green: #00a95c;
+  --gb-green-dark: #00803f;
+  --gb-amber: #c2602f;
+  --gb-red: #b23a3a;
+}
+
+/* Links, accents and inline highlights use the Green Book green, in both
+   colour schemes (the header itself is left neutral so the green book logo
+   reads clearly against it). The link colour is set directly rather than only
+   through --md-typeset-a-color, because the slate (dark) scheme re-defines that
+   variable and would otherwise pull links back to the default blue. */
+[data-md-color-scheme="default"],
+[data-md-color-scheme="slate"] {
+  --md-accent-fg-color: var(--gb-green);
+  --md-typeset-a-color: var(--gb-green);
+}
+
+.md-typeset a {
+  color: var(--gb-green);
+}
+
+.md-typeset a:hover,
+.md-typeset a:focus {
+  color: var(--gb-green-dark);
+}
+
+.md-typeset mark {
+  background-color: color-mix(in srgb, var(--gb-green) 22%, transparent);
+}
+
+/* Zensical's modern header shows only the wordmark on desktop (the logo is
+   reserved for the mobile drawer). Bring the solid green book logo back into
+   the header bar so the brand mark is always visible. */
+.md-header__button.md-logo {
+  display: inline-flex;
+  align-items: center;
+  padding: 0;
+  margin-right: 0.3rem;
+}
+.md-header__button.md-logo img,
+.md-header__button.md-logo svg {
+  height: 1.55rem;
+  width: 1.55rem;
+}
+
+/* ============================================================
+   Embedded mini-demo (home page)
+   ============================================================ */
+
+.gb-mini {
+  margin: 1.5rem 0 2rem;
+  border: 1px solid var(--md-default-fg-color--lightest);
+  border-radius: 0.5rem;
+  overflow: hidden;
+  background: var(--md-default-bg-color);
+}
+
+.gb-mini__bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+  padding: 0.6rem 0.6rem 0.5rem;
+  background: var(--md-code-bg-color);
+  border-bottom: 1px solid var(--md-default-fg-color--lightest);
+}
+
+.gb-mini__tab {
+  appearance: none;
+  cursor: pointer;
+  font-size: 0.66rem;
+  line-height: 1.2;
+  padding: 0.35rem 0.6rem;
+  border-radius: 1rem;
+  border: 1px solid var(--md-default-fg-color--lightest);
+  background: var(--md-default-bg-color);
+  color: var(--md-default-fg-color--light);
+  transition: background 0.12s, color 0.12s, border-color 0.12s;
+}
+
+.gb-mini__tab:hover {
+  border-color: var(--gb-green);
+  color: var(--gb-green-dark);
+}
+
+.gb-mini__tab.is-active {
+  background: var(--gb-green);
+  border-color: var(--gb-green);
+  color: #fff;
+}
+
+.gb-mini__body {
+  padding: 0.9rem 1rem 1rem;
+}
+
+.gb-mini__desc {
+  font-size: 0.74rem;
+  color: var(--md-default-fg-color--light);
+  margin-bottom: 0.7rem;
+}
+
+.gb-mini__status {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.6rem 0.9rem;
+  margin-bottom: 0.6rem;
+}
+
+.gb-pill {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #fff;
+  padding: 0.28rem 0.7rem;
+  border-radius: 1rem;
+  letter-spacing: 0.01em;
+}
+.gb-pill--ok { background: var(--gb-green); }
+.gb-pill--warn { background: var(--gb-amber); }
+.gb-pill--bad { background: var(--gb-red); }
+.gb-pill--muted { background: var(--md-default-fg-color--light); }
+
+.gb-mini__strict {
+  font-size: 0.7rem;
+  color: var(--md-default-fg-color--light);
+}
+
+.gb-mini__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.2rem 1.1rem;
+  font-size: 0.7rem;
+  color: var(--md-default-fg-color--light);
+  margin-bottom: 0.7rem;
+}
+.gb-mini__meta strong { color: var(--md-default-fg-color); font-weight: 600; }
+
+.gb-mini__stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem 0.5rem;
+  margin-bottom: 0.9rem;
+}
+.gb-stat {
+  font-size: 0.68rem;
+  color: var(--md-default-fg-color--light);
+  background: var(--md-code-bg-color);
+  border-radius: 0.3rem;
+  padding: 0.25rem 0.55rem;
+}
+.gb-stat b { color: var(--md-default-fg-color); font-weight: 700; }
+.gb-stat--warn { color: var(--gb-amber); }
+
+.gb-mini__series { display: grid; gap: 0.3rem; }
+
+.gb-row {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.4rem 0.55rem;
+  border-radius: 0.3rem;
+  background: var(--md-code-bg-color);
+  font-size: 0.74rem;
+}
+.gb-row__name { font-weight: 600; color: var(--md-default-fg-color); }
+.gb-row__count { color: var(--md-default-fg-color--light); font-variant-numeric: tabular-nums; }
+.gb-row__count small { opacity: 0.7; }
+.gb-row--empty { color: var(--md-default-fg-color--light); }
+
+.gb-tag {
+  font-size: 0.62rem;
+  font-weight: 600;
+  padding: 0.12rem 0.45rem;
+  border-radius: 0.8rem;
+  white-space: nowrap;
+}
+.gb-tag--ok { background: color-mix(in srgb, var(--gb-green) 18%, transparent); color: var(--gb-green-dark); }
+.gb-tag--warn { background: color-mix(in srgb, var(--gb-amber) 20%, transparent); color: var(--gb-amber); }
+.gb-tag--muted { background: var(--md-default-fg-color--lightest); color: var(--md-default-fg-color--light); }
+
+.gb-mini__foot { font-size: 0.74rem; margin: 0.8rem 0 0; }
+.gb-mini__err { padding: 1rem; color: var(--md-default-fg-color--light); }
+
+@media screen and (max-width: 30em) {
+  .gb-row { grid-template-columns: 1fr auto; }
+  .gb-row .gb-tag { grid-column: 2; justify-self: end; }
+}

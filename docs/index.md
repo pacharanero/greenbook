@@ -10,6 +10,19 @@ greenbook is a proof-of-concept for the other way round: a **computable, version
 [:octicons-arrow-right-24: Why a computable version](green-book/why-computable.md) ·
 [:octicons-arrow-right-24: Getting started](getting-started.md)
 
+## See it run
+
+Pick an example patient and watch the engine evaluate them - the headline verdict, conformance by series, and antigen coverage. This is a pared-back, read-only slice of the full [interactive demo](demo/index.html).
+
+<div class="gb-mini" id="gb-mini-demo" data-demo-base="demo/">
+  <div class="gb-mini__bar" role="group" aria-label="Example patients"></div>
+  <div class="gb-mini__body">
+    <div class="gb-mini__head"></div>
+    <div class="gb-mini__series" aria-label="Conformance by series"></div>
+  </div>
+  <p class="gb-mini__foot"><a href="demo/index.html">Open the full interactive demo - build your own patient, switch to the timeline view &rarr;</a></p>
+</div>
+
 <div class="grid cards" markdown>
 
 -   :material-book-open-variant:{ .lg .middle } __The Green Book today__
