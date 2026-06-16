@@ -15,7 +15,7 @@ The canonical, language-neutral material lives at the top level; each implementa
 | Path | What |
 | --- | --- |
 | [`spec/`](./spec/) | The specification - formats, evaluation semantics, [ubiquitous language](./spec/ubiquitous-language.md), [roadmap](./spec/roadmap.md). Language-neutral. |
-| [`schedules/`](./schedules/), [`products/`](./products/) | The canonical computable Green Book sources (TOML). |
+| [`rules/`](./rules/) | The canonical computable Green Book sources (TOML): `schedule-*` schedule versions and `product-map-*` product mappings. |
 | [`conformance/`](./conformance/) | The shared test harness: fixtures, a case manifest, and golden outputs every implementation is validated against. |
 | [`rust/`](./rust/) | The **reference** implementation (engine + CLI), and the generator of the conformance goldens. |
 | [`js/`](./js/) | The JavaScript implementation (also powers the demo). |
@@ -67,8 +67,8 @@ To get a `greenbook` binary on your `PATH` instead of using `cargo run`, install
 
 The bundled inputs are:
 
-- `schedules/uk-2026-01-01.toml` - the current UK schedule
-- `products/uk-snomed-dm.toml` - the SNOMED UK drug-extension product → class/antigen map
+- `rules/schedule-uk-2026-01-01.toml` - the current UK schedule
+- `rules/product-map-uk-snomed-dm.toml` - the SNOMED UK drug-extension product → class/antigen map
 - `conformance/fixtures/*.json` - the demonstration patients used below
 
 The examples below pass `--evaluated-at 2026-04-29` so the output is deterministic regardless of today's date. Omit it to evaluate as of today.
@@ -79,7 +79,7 @@ A 6-month-old who has had every dose due so far. The headline answer is **up to 
 
 ```sh
 cargo run --manifest-path rust/Cargo.toml --quiet --bin greenbook -- evaluate \
-  schedules/uk-2026-01-01.toml products/uk-snomed-dm.toml \
+  rules/schedule-uk-2026-01-01.toml rules/product-map-uk-snomed-dm.toml \
   conformance/fixtures/six-month-fully-vaccinated.json --evaluated-at 2026-04-29
 ```
 
@@ -106,7 +106,7 @@ An 18-month-old who had the primary infant doses but missed every 12-month appoi
 
 ```sh
 cargo run --manifest-path rust/Cargo.toml --quiet --bin greenbook -- evaluate \
-  schedules/uk-2026-01-01.toml products/uk-snomed-dm.toml \
+  rules/schedule-uk-2026-01-01.toml rules/product-map-uk-snomed-dm.toml \
   conformance/fixtures/behind-for-age-toddler.json --evaluated-at 2026-04-29
 ```
 
@@ -132,7 +132,7 @@ Doses that were given but break an age or interval rule are recorded and labelle
 
 ```sh
 cargo run --manifest-path rust/Cargo.toml --quiet --bin greenbook -- evaluate \
-  schedules/uk-2026-01-01.toml products/uk-snomed-dm.toml \
+  rules/schedule-uk-2026-01-01.toml rules/product-map-uk-snomed-dm.toml \
   conformance/fixtures/out-of-schedule-doses.json --evaluated-at 2026-04-29
 ```
 
@@ -153,7 +153,7 @@ A record can contain doses that belong to no series in the loaded schedule - an 
 
 ```sh
 cargo run --manifest-path rust/Cargo.toml --quiet --bin greenbook -- evaluate \
-  schedules/uk-2026-01-01.toml products/uk-snomed-dm.toml \
+  rules/schedule-uk-2026-01-01.toml rules/product-map-uk-snomed-dm.toml \
   conformance/fixtures/unmatched-doses.json --evaluated-at 2026-04-29
 ```
 
@@ -170,7 +170,7 @@ Pass `--format json` to any of the above for the full structured result (every s
 
 ```sh
 cargo run --manifest-path rust/Cargo.toml --quiet --bin greenbook -- evaluate \
-  schedules/uk-2026-01-01.toml products/uk-snomed-dm.toml \
+  rules/schedule-uk-2026-01-01.toml rules/product-map-uk-snomed-dm.toml \
   conformance/fixtures/six-month-fully-vaccinated.json --evaluated-at 2026-04-29 --format json
 ```
 

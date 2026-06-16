@@ -1,6 +1,6 @@
 # greenbook - Rust implementation
 
-The **reference** implementation of the greenbook evaluation engine, and its CLI. Parses a FHIR R4 vaccination bundle and evaluates it against a [computable schedule](../schedules/).
+The **reference** implementation of the greenbook evaluation engine, and its CLI. Parses a FHIR R4 vaccination bundle and evaluates it against a [computable schedule](../rules/).
 
 This is one of several implementations kept in step by the shared [conformance suite](../conformance/); it is the one that **generates** the conformance goldens. See the [specification](../spec/) for the language-neutral design.
 
@@ -17,7 +17,7 @@ cargo clippy --all-targets -- -D warnings
 ```sh
 # from the repo root, so the data paths below resolve:
 cargo run --manifest-path rust/Cargo.toml --bin greenbook -- \
-  evaluate schedules/uk-2026-01-01.toml products/uk-snomed-dm.toml \
+  evaluate rules/schedule-uk-2026-01-01.toml rules/product-map-uk-snomed-dm.toml \
   ../conformance/fixtures/six-month-fully-vaccinated.json --evaluated-at 2026-04-29
 ```
 

@@ -16,7 +16,7 @@ The shared test harness that keeps every implementation of greenbook in step. Ea
 cd rust && cargo run --bin conformance -- --generate
 ```
 
-Every implementation then has a test that, for each case, loads the canonical schedule + product map ([`../schedules/`](../schedules/), [`../products/`](../products/)) and the fixture, evaluates, and asserts deep (key-order-independent) equality with the golden:
+Every implementation then has a test that, for each case, loads the canonical schedule + product map (from [`../rules/`](../rules/)) and the fixture, evaluates, and asserts deep (key-order-independent) equality with the golden:
 
 - Rust - `rust/tests/conformance.rs` (run by `cargo test`)
 - JavaScript - `js/test/conformance.mjs` (run by `node test/conformance.mjs`); validates standalone, without the Rust toolchain.

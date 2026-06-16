@@ -45,7 +45,7 @@ The presets also exercise the dose-sequencing logic: **Both MMR doses** (one pro
 node docs/demo/build-data.mjs
 ```
 
-This reads `schedules/uk-2026-01-01.toml`, `products/uk-snomed-dm.toml`, and `conformance/fixtures/*.json` (TOML via Python's stdlib `tomllib`; FHIR bundles parsed with the JS implementation's own `parseFhirBundle`), and vendors `js/greenbook.js` as `engine.js`. Re-run it whenever the schedule, product map, fixtures, or engine change.
+This reads `rules/schedule-uk-2026-01-01.toml`, `rules/product-map-uk-snomed-dm.toml`, and `conformance/fixtures/*.json` (TOML via Python's stdlib `tomllib`; FHIR bundles parsed with the JS implementation's own `parseFhirBundle`), and vendors `js/greenbook.js` as `engine.js`. Re-run it whenever the schedule, product map, fixtures, or engine change.
 
 ## Validating the engine
 

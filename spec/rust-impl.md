@@ -228,10 +228,10 @@ pub struct DuplicateDose {
 pub fn load_schedule(path: &Path) -> Result<Schedule, ScheduleError>;
 
 /// Load the schedule version applicable for a given date (patient DOB).
-/// Selects among the schedules/{country}-*.toml files (or schedules/{country}/
-/// once jurisdictions are split into subdirectories) for the correct version.
+/// Selects among the rules/schedule-{country}-*.toml files (or a per-country
+/// subdirectory, if rules/ is later split that way) for the correct version.
 pub fn load_schedule_for_date(
-    schedules_dir: &Path,
+    rules_dir: &Path,
     country: &str,
     date: NaiveDate,
 ) -> Result<Schedule, ScheduleError>;
@@ -313,8 +313,9 @@ Age               | Vaccines
 ```
 greenbook/
   spec/                  # specification documents (this file, standard.md, ...)
-  schedules/uk-2026-01-01.toml   # canonical sources (top-level, language-neutral)
-  products/uk-snomed-dm.toml
+  rules/                 # canonical sources (top-level, language-neutral)
+    schedule-uk-2026-01-01.toml
+    product-map-uk-snomed-dm.toml
   conformance/           # shared test harness
     cases.json           # case manifest
     fixtures/*.json      # FHIR bundles

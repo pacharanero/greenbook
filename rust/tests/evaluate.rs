@@ -14,8 +14,8 @@ fn repo_path(rel: &str) -> PathBuf {
 
 #[test]
 fn six_month_old_on_schedule_evaluates_correctly() {
-    let schedule = load_schedule(&repo_path("schedules/uk-2026-01-01.toml")).unwrap();
-    let products = load_product_map(&repo_path("products/uk-snomed-dm.toml")).unwrap();
+    let schedule = load_schedule(&repo_path("rules/schedule-uk-2026-01-01.toml")).unwrap();
+    let products = load_product_map(&repo_path("rules/product-map-uk-snomed-dm.toml")).unwrap();
     let bundle = std::fs::read_to_string(repo_path(
         "conformance/fixtures/six-month-fully-vaccinated.json",
     ))
@@ -95,8 +95,8 @@ fn six_month_old_on_schedule_evaluates_correctly() {
 /// Shared helper: load the bundled UK schedule + product map and evaluate a
 /// fixture at a fixed date, so every test is deterministic.
 fn evaluate_fixture(fixture: &str, evaluated_at: NaiveDate) -> greenbook::VaccinationStatus {
-    let schedule = load_schedule(&repo_path("schedules/uk-2026-01-01.toml")).unwrap();
-    let products = load_product_map(&repo_path("products/uk-snomed-dm.toml")).unwrap();
+    let schedule = load_schedule(&repo_path("rules/schedule-uk-2026-01-01.toml")).unwrap();
+    let products = load_product_map(&repo_path("rules/product-map-uk-snomed-dm.toml")).unwrap();
     let bundle =
         std::fs::read_to_string(repo_path(&format!("conformance/fixtures/{fixture}"))).unwrap();
     let record = parse_fhir_bundle(&bundle).unwrap();

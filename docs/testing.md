@@ -19,8 +19,9 @@ If any are missing, install Rust via [rustup](https://rustup.rs/).
 
 ```
 greenbook/
-  schedules/uk-2026-01-01.toml   - the current UK schedule (canonical, top-level)
-  products/uk-snomed-dm.toml     - SNOMED UK drug extension product → antigens map
+  rules/                         - canonical computable sources (TOML), top-level
+    schedule-uk-2026-01-01.toml      - the current UK schedule
+    product-map-uk-snomed-dm.toml    - SNOMED UK drug extension product → antigens map
   conformance/                   - shared test harness (fixtures, cases.json, expected/)
   rust/                          - the reference implementation
     src/                         - lib (evaluate.rs, fhir.rs, schedule.rs, products.rs, age.rs)
@@ -70,8 +71,8 @@ Human-readable report:
 ```sh
 cargo run --manifest-path rust/Cargo.toml --quiet --bin greenbook -- \
   evaluate \
-  schedules/uk-2026-01-01.toml \
-  products/uk-snomed-dm.toml \
+  rules/schedule-uk-2026-01-01.toml \
+  rules/product-map-uk-snomed-dm.toml \
   conformance/fixtures/six-month-fully-vaccinated.json \
   --evaluated-at 2026-04-29
 ```
@@ -81,8 +82,8 @@ JSON output:
 ```sh
 cargo run --manifest-path rust/Cargo.toml --quiet --bin greenbook -- \
   evaluate \
-  schedules/uk-2026-01-01.toml \
-  products/uk-snomed-dm.toml \
+  rules/schedule-uk-2026-01-01.toml \
+  rules/product-map-uk-snomed-dm.toml \
   conformance/fixtures/six-month-fully-vaccinated.json \
   --evaluated-at 2026-04-29 \
   --format json
@@ -110,11 +111,11 @@ Quick experiments to confirm the engine is doing real work, not pattern matching
 | Edit the fixture's `birthDate` to 2024-04-29 (2-year-old) | MMR-primary, Hib/MenC, MenB dose 3, PCV dose 2 are now due but missing, so they show as `BEHIND` and the headline becomes `BEHIND_FOR_AGE`. |
 | Edit a dose date so 6-in-1 dose 2 is given on 2025-12-29 (only 5 days after dose 1) | That dose is flagged `OUT-OF-SCHEDULE` with reason "interval from previous dose < 4 weeks", and does not count toward completion. |
 | Delete the rotavirus dose 1 entry from the fixture | `rotavirus-primary` flips from `Complete` to `Partial` (1/2 doses). |
-| Change a vaccineCode to a SNOMED code not in `products/uk-snomed-dm.toml` | The dose appears in the `Unmatched doses` section as an "unknown product code" rather than disappearing silently. |
+| Change a vaccineCode to a SNOMED code not in `rules/product-map-uk-snomed-dm.toml` | The dose appears in the `Unmatched doses` section as an "unknown product code" rather than disappearing silently. |
 
 ## 8. Inspecting the schedule itself
 
-Open `schedules/uk-2026-01-01.toml` directly. Every series is one `[[series]]` block with its doses inline; antigen IDs at the bottom map to SNOMED concept codes. Editing this file (and re-running step 5) is how you would propose a schedule change.
+Open `rules/schedule-uk-2026-01-01.toml` directly. Every series is one `[[series]]` block with its doses inline; antigen IDs at the bottom map to SNOMED concept codes. Editing this file (and re-running step 5) is how you would propose a schedule change.
 
 ## 9. Next steps
 

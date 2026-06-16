@@ -36,7 +36,7 @@ These were decisions, not code — each needed a ruling before the dependent cod
 - [x] §5 `latest_age` semantics for late-but-given doses — **resolved**: a dose breaking an age/interval rule (too early *or* too late) is recorded as received but labelled "outside standard schedule" and does not count toward completion. See [spec/standard.md](./standard.md) §"Dose validity".
 - [x] §4 HPV sex restriction — settled in the spec (gender `other`/`unknown` → eligible + uncertainty flag); implementation pending in M2.
 - [x] §6 crate/binary name — `greenbook` for both (verified free on crates.io 2026-06-05).
-- [x] §7 schedule directory layout — flat `schedules/uk-<YYYY-MM-DD>.toml` until a second jurisdiction exists; jurisdiction code `UK`. See [spec/standard.md](./standard.md) §"Directory structure".
+- [x] §7 schedule directory layout — flat `rules/schedule-uk-<YYYY-MM-DD>.toml` (schedules and product maps share `rules/`, distinguished by filename prefix); jurisdiction code `UK`. See [spec/standard.md](./standard.md) §"Directory structure".
 
 ### M2 — Correctness gaps in the engine
 
@@ -90,7 +90,7 @@ Four demonstration fixtures are now bundled and covered by integration tests: `s
 
 Gaps in the *data* (not the engine) found under programmatic scrutiny. The Green Book has never been machine-checked like this, so expect more.
 
-- [ ] **Pre-school booster missing.** The render example in [spec/rust-impl.md](./rust-impl.md) lists a "4-in-1 pre-school booster" (DTaP/IPV) at 3y4m, but no such series exists in `schedules/uk-2026-01-01.toml` — only MMR dose 2. Add the series, the `4-in-1` product class, and the pre-school booster product(s).
+- [ ] **Pre-school booster missing.** The render example in [spec/rust-impl.md](./rust-impl.md) lists a "4-in-1 pre-school booster" (DTaP/IPV) at 3y4m, but no such series exists in `rules/schedule-uk-2026-01-01.toml` — only MMR dose 2. Add the series, the `4-in-1` product class, and the pre-school booster product(s).
 
 ## Deferred (designed for, explicitly not v1)
 
@@ -99,7 +99,7 @@ These are out of scope now but the format and engine must not preclude them — 
 - **Historical versioning (v2).** `load_schedule_for_date(dir, country, date)` selecting the schedule where `valid_from <= dob` with no nearer successor. Then curate ~8–12 historical UK versions back to ~1990. See [spec/standard.md](./standard.md) §"Historical Versioning" and the [README](../README.md).
 - **At-risk / overriding rules.** DNS-MX-style numerical priority on eligibility rules; higher-priority matching rule overrides the primary schedule. [spec/standard.md](./standard.md) §"Future extensions".
 - **Catch-up schedules.** Distinct from primary-schedule evaluation; v1 only flags incomplete series.
-- **Multi-jurisdiction.** Schedule files are currently flat (`schedules/uk-<date>.toml`); when a second jurisdiction is added this splits into per-country subdirectories (`schedules/<country>/<date>.toml`) without a format change, and `products/<coding-system>.toml` is already per-coding-system. No non-UK data yet.
+- **Multi-jurisdiction.** Schedules and product maps are currently flat in `rules/` (`schedule-uk-<date>.toml`, `product-map-uk-<coding-system>.toml`); the jurisdiction code is already in each filename, so a second jurisdiction is added by dropping its files alongside, with no format change. Per-country subdirectories remain an option if a single jurisdiction's history grows large. No non-UK data yet.
 
 ## Suggested near-term order
 

@@ -18,32 +18,30 @@ This document defines the data formats and evaluation semantics. It is implement
 
 ### Directory structure
 
-While only one jurisdiction has data, schedule files live flat in `schedules/`, prefixed with the jurisdiction code and named for their `valid_from` date:
+Both kinds of canonical source - schedule versions and product mappings - live together in a single top-level `rules/` directory. A filename prefix carries the kind, so the two are unmistakable and each globs cleanly (`schedule-*.toml`, `product-map-*.toml`):
 
 ```
-schedules/
-  uk-2026-01-01.toml   # current
-  uk-2020-01-01.toml
-  uk-2015-09-01.toml
+rules/
+  schedule-uk-2026-01-01.toml      # current schedule
+  schedule-uk-2020-01-01.toml
+  schedule-uk-2015-09-01.toml
   ...
-products/
-  uk-snomed-dm.toml    # UK SNOMED drug extension product mapping
+  product-map-uk-snomed-dm.toml    # UK SNOMED drug extension product mapping
 ```
 
-The format is global by design (the `jurisdiction` block carries the country and authority), so when a second jurisdiction is added this flattens out into per-country subdirectories without a format change:
+After the `schedule-` prefix, a schedule file is named `<jurisdiction>-<valid_from>` so its effective date is inferable from the name without parsing the file. A product map is named `product-map-<jurisdiction>-<coding-system>`.
+
+The format is global by design (the `jurisdiction` block carries the country and authority), so adding a second jurisdiction needs no format change - the jurisdiction code is already in the filename, so the flat layout absorbs new countries directly:
 
 ```
-schedules/
-  uk/
-    2026-01-01.toml
-  us/
-    2026-01-01.toml
-products/
-  uk-snomed-dm.toml
-  us-cvx.toml
+rules/
+  schedule-uk-2026-01-01.toml
+  schedule-us-2026-01-01.toml
+  product-map-uk-snomed-dm.toml
+  product-map-us-cvx.toml
 ```
 
-Either way the date portion of the file name matches the `valid_from` date in the `[schedule]` block, so a version's effective date is inferable without parsing the file.
+Should one jurisdiction's history grow large enough to warrant it, files may later be grouped into per-kind or per-country subdirectories (`rules/uk/schedule-2026-01-01.toml`) without a format change. No non-UK data exists yet.
 
 The jurisdiction code is `UK`. ISO 3166-1 alpha-2 assigns the United Kingdom the code `GB` ("United Kingdom of Great Britain and Northern Ireland"), which does include Northern Ireland - but because the label "Great Britain" reads as excluding it, this project uses the ISO 3166 exceptionally-reserved code `UK` to make the UK-wide scope of the Green Book unambiguous. (The BCP 47 language tag stays `en-GB`; there is no `en-UK`.)
 
@@ -365,7 +363,7 @@ snomed_description = "Human papillomavirus infection (disorder)"
 
 ---
 
-## Product Mapping File: `products/uk-snomed-dm.toml`
+## Product Mapping File: `rules/product-map-uk-snomed-dm.toml`
 
 FHIR records contain product codes (SNOMED CT). The mapping file bridges each product code to two things: its `product_class` (the conformance unit the Green Book names, used to match doses to series) and the `antigens` it covers (used for the disease-coverage view). See [conformance vs coverage](./conformance-vs-coverage.md).
 
@@ -579,7 +577,7 @@ When a patient presents late (for example a 3-year-old with no previous vaccinat
 The file-per-version approach means historical evaluation is an additive feature:
 
 1. Parse patient DOB from the FHIR bundle
-2. Call `load_schedule_for_date(schedules_dir, "uk", dob)` which selects the schedule file (e.g. `schedules/uk-*.toml`) where `valid_from <= dob` and no successor has `valid_from <= dob`
+2. Call `load_schedule_for_date(rules_dir, "uk", dob)` which selects the schedule file (e.g. `rules/schedule-uk-*.toml`) where `valid_from <= dob` and no successor has `valid_from <= dob`
 3. Proceed with the same evaluation logic
 
 Schedule files for historical versions would be curated manually, working back from the current schedule using Green Book chapter revisions and JCVI/DoH publications as sources. The change history on the GOV.UK Green Book Chapter 11 page provides a useful skeleton for reconstruction.

@@ -1,9 +1,9 @@
 [
-  { "id": "six-month-fully-vaccinated", "fixture": "six-month-fully-vaccinated.json", "schedule": "schedules/uk-2026-01-01.toml", "products": "products/uk-snomed-dm.toml", "evaluated_at": "2026-04-29" },
-  { "id": "behind-for-age-toddler",      "fixture": "behind-for-age-toddler.json",      "schedule": "schedules/uk-2026-01-01.toml", "products": "products/uk-snomed-dm.toml", "evaluated_at": "2026-04-29" },
-  { "id": "out-of-schedule-doses",       "fixture": "out-of-schedule-doses.json",       "schedule": "schedules/uk-2026-01-01.toml", "products": "products/uk-snomed-dm.toml", "evaluated_at": "2026-04-29" },
-  { "id": "unmatched-doses",             "fixture": "unmatched-doses.json",             "schedule": "schedules/uk-2026-01-01.toml", "products": "products/uk-snomed-dm.toml", "evaluated_at": "2026-04-29" },
-  { "id": "mmr-both-doses",              "fixture": "mmr-both-doses.json",              "schedule": "schedules/uk-2026-01-01.toml", "products": "products/uk-snomed-dm.toml", "evaluated_at": "2026-04-29" },
-  { "id": "duplicate-echo",              "fixture": "duplicate-echo.json",              "schedule": "schedules/uk-2026-01-01.toml", "products": "products/uk-snomed-dm.toml", "evaluated_at": "2026-04-29" },
-  { "id": "dose-number-mismatch",        "fixture": "dose-number-mismatch.json",        "schedule": "schedules/uk-2026-01-01.toml", "products": "products/uk-snomed-dm.toml", "evaluated_at": "2026-04-29" }
+  { "id": "six-month-fully-vaccinated", "fixture": "six-month-fully-vaccinated.json", "schedule": "rules/schedule-uk-2026-01-01.toml", "products": "rules/product-map-uk-snomed-dm.toml", "evaluated_at": "2026-04-29" },
+  { "id": "behind-for-age-toddler",      "fixture": "behind-for-age-toddler.json",      "schedule": "rules/schedule-uk-2026-01-01.toml", "products": "rules/product-map-uk-snomed-dm.toml", "evaluated_at": "2026-04-29" },
+  { "id": "out-of-schedule-doses",       "fixture": "out-of-schedule-doses.json",       "schedule": "rules/schedule-uk-2026-01-01.toml", "products": "rules/product-map-uk-snomed-dm.toml", "evaluated_at": "2026-04-29" },
+  { "id": "unmatched-doses",             "fixture": "unmatched-doses.json",             "schedule": "rules/schedule-uk-2026-01-01.toml", "products": "rules/product-map-uk-snomed-dm.toml", "evaluated_at": "2026-04-29" },
+  { "id": "mmr-both-doses",              "fixture": "mmr-both-doses.json",              "schedule": "rules/schedule-uk-2026-01-01.toml", "products": "rules/product-map-uk-snomed-dm.toml", "evaluated_at": "2026-04-29" },
+  { "id": "duplicate-echo",              "fixture": "duplicate-echo.json",              "schedule": "rules/schedule-uk-2026-01-01.toml", "products": "rules/product-map-uk-snomed-dm.toml", "evaluated_at": "2026-04-29" },
+  { "id": "dose-number-mismatch",        "fixture": "dose-number-mismatch.json",        "schedule": "rules/schedule-uk-2026-01-01.toml", "products": "rules/product-map-uk-snomed-dm.toml", "evaluated_at": "2026-04-29" }
 ]
