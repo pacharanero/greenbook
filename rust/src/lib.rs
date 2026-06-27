@@ -13,4 +13,8 @@ pub use evaluate::{
 };
 pub use fhir::{parse_fhir_bundle, Immunisation, VaccinationRecord};
 pub use products::{load_product_map, Product, ProductMap};
-pub use schedule::{load_schedule, Antigen, Dose, Eligibility, Jurisdiction, Schedule, Series};
+pub use schedule::{
+    effective_schedule_for_versions, load_effective_schedule_for_date, load_schedule,
+    load_schedule_versions, Antigen, Dose, Eligibility, HistoricalSchedule, Jurisdiction, Schedule,
+    ScheduleSelection, ScheduleVersion, ScheduleVersionSummary, Series,
+};

@@ -61,7 +61,7 @@ The shared vocabulary of greenbook. Terms are **bold** on first use elsewhere in
 | **Green Book** | The authoritative UK immunisation schedule publication (Chapter 11). | the guidance |
 | **Source of truth** | The authoritative upstream artefact; the project's goal is for the computable schedule to be this, with the PDF generated *from* it. | master copy |
 | **Render** | Pivoting a schedule from series-centric (authoring) to age-centric (publication) form. | export |
-| **Historical versioning** | Selecting the schedule version that applied at a point in time (valid-time evaluation). | back-dating |
+| **Historical versioning** | Selecting the schedule version that applied when each expected dose first became due (valid-time evaluation). | back-dating |
 | **Catch-up schedule** | The alternative schedule for a patient presenting late. | late schedule |
 | **At-risk rules** | Higher-priority series overriding the primary schedule for special clinical groups. | special cases |
 
@@ -73,7 +73,7 @@ The shared vocabulary of greenbook. Terms are **bold** on first use elsewhere in
 - A **Product class** may serve more than one **Series** — e.g. `MMR` maps to both the MMR first-dose and MMR second-dose series.
 - A **Recorded dose** is matched to at most one **Series** by **Product class**; if none matches, it is an **Unmatched dose**.
 - **Conformance** is determined per **Series**; **Coverage** is determined per **Antigen**.
-- A **Schedule version** is chosen by its `valid_from` relative to the **Patient**'s date of birth (historical) or to the evaluation date.
+- In historical evaluation, each expected **Dose** is selected from the **Schedule version** in force when that dose first became due for the **Patient**. Future not-yet-due doses are projected from the version in force on the evaluation date.
 
 ## Example dialogue
 
@@ -87,7 +87,7 @@ The shared vocabulary of greenbook. Terms are **bold** on first use elsewhere in
 
 > **Dev:** "And if they were given a 5-in-1 dose, which has no class in the 2026 schedule?"
 
-> **Clinical informaticist:** "Against that **schedule version** it's an **unmatched dose** — it conforms to nothing here. Under **historical versioning** it would conform to the schedule that was valid when it was given."
+> **Clinical informaticist:** "Against that **schedule version** it's an **unmatched dose** — it conforms to nothing here. Under **historical versioning** it would conform if the dose slot it filled was due under a schedule version that asked for 5-in-1."
 
 > **Dev:** "Last one — `MMR` is one **product class** but there are two MMR **series**, first and second dose?"
 

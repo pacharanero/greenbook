@@ -21,7 +21,20 @@ cargo run --manifest-path rust/Cargo.toml --bin greenbook -- \
   conformance/fixtures/six-month-fully-vaccinated.json --evaluated-at 2026-04-29
 ```
 
-`evaluate <schedule> <product-map> <bundle> [--evaluated-at YYYY-MM-DD] [--format report|json|status]`. The `status` format prints just the headline answer as one coloured line (green "Up to date for age" / red "Not up to date for age"); `json` emits the full result for piping to `jq`. (Other commands - `validate`, `render`, `versions`, `diff` - are specced in [spec/rust-impl.md](../spec/rust-impl.md) and not yet built.)
+`evaluate <schedule> <product-map> <bundle> [--evaluated-at YYYY-MM-DD] [--format report|json|status]`. The `status` format prints just the headline answer as one coloured line (green "Up to date for age" / red "Not up to date for age"); `json` emits the full result for piping to `jq`. `versions` and `evaluate-auto` are implemented for historical schedule selection; `validate`, `render`, and `diff` are still specced but not yet built.
+
+Historical selection is available separately:
+
+```sh
+cargo run --manifest-path rust/Cargo.toml --bin greenbook -- \
+  versions rules --country UK
+
+cargo run --manifest-path rust/Cargo.toml --bin greenbook -- \
+  evaluate-auto rules rules/product-map-uk-snomed-dm.toml \
+  conformance/fixtures/six-month-fully-vaccinated.json --evaluated-at 2026-04-29 --verbose
+```
+
+`evaluate-auto <rules-dir> <product-map> <bundle>` builds an effective schedule by selecting each dose slot from the schedule version in force when that slot first became due for the patient. With only the current `2026-01-01` schedule in `rules/`, historical patients whose due dates predate that file will correctly report a schedule-coverage gap until older Green Book versions are curated.
 
 ## Conformance goldens
 
