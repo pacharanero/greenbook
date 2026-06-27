@@ -28,6 +28,25 @@ All commands below run **from the repo root**, so the canonical data paths (`rul
 
     `evaluate <schedule> <product-map> <bundle>` takes an optional `--evaluated-at YYYY-MM-DD` (defaults to today) and `--format report|json|status`. The default `report` prints the full per-series breakdown. For historical schedule selection, use `evaluate-auto <rules-dir> <product-map> <bundle>`; it builds an effective schedule from the versions in `rules-dir`, selecting each dose slot by the schedule version in force when that dose first became due.
 
+    You can inspect the curated historical schedule slices:
+
+    ```sh
+    cargo run --manifest-path rust/Cargo.toml --quiet --bin greenbook -- \
+      versions rules --country UK
+    ```
+
+    And evaluate a historical record automatically:
+
+    ```sh
+    cargo run --manifest-path rust/Cargo.toml --quiet --bin greenbook -- \
+      evaluate-auto \
+      rules \
+      rules/product-map-uk-snomed-dm.toml \
+      test-data/historical-pediacel-2006.json \
+      --evaluated-at 2007-01-15 \
+      --verbose
+    ```
+
 === ":material-language-javascript: JavaScript"
 
     With [Node](https://nodejs.org) (and `python3`, used to read the TOML sources, exactly as the demo build does). `greenbook.js` is a single UMD file with **no runtime dependencies**:

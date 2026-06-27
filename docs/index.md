@@ -70,4 +70,4 @@ Pick an example patient and watch the engine evaluate them - the headline verdic
 
 What if the **computable** schedule were the source of truth, and the PDF, the website, and clinical tools were all **generated from it**? Experts would author schedule changes directly in a computable form, and every downstream publication - PDFs, websites, clinical decision support - would be rendered from the same trusted data. That replaces today's "digital paper" workflow, where each vendor reverse-engineers the rules from a PDF and quietly diverges.
 
-This prototype builds that correctly for the *current* schedule first, so historical versioning becomes an additive extension rather than a rewrite.
+This prototype builds the current schedule and the first historical slices in the same format, so historical versioning is additive: older Green Book schedules are added as dated source files, and the evaluator selects the version that applied when each dose first became due.

@@ -363,7 +363,7 @@ window.GREENBOOK = {
           "polio",
           "hib"
         ],
-        "notes": "5-in-1; does not include hepatitis B. Used before 2017 6-in-1 introduction. No conforming series in the 2026 schedule; conforms to the schedule valid at the time of administration once historical versions exist."
+        "notes": "5-in-1; does not include hepatitis B. Used before 2017 6-in-1 introduction. No conforming series in the 2026 schedule; conforms under historical schedule versions that ask for a 5-in-1 primary course."
       },
       {
         "code": "9463401000001103",

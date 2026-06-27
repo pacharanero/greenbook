@@ -28,7 +28,7 @@ Real records are not tidy. Two cases that naive tools silently hide, greenbook s
     A dose given **too early or too late** (or too soon after the previous one) is recorded as received but **does not count** toward completion. It is **labelled, not hidden** - and not harshly called "invalid". It was a real clinical event; the engine just notes it fell outside the standard rules.
 
 !!! warning "Unmatched dose"
-    A dose whose product class fits **no series** in the applicable schedule (e.g. a 5-in-1 against the 2026 schedule), or whose code is unknown, is **surfaced, not silently dropped**. An unmatched 5-in-1 today would conform under [historical versioning](../green-book/why-computable.md) to the schedule that was valid when it was given.
+    A dose whose product class fits **no series** in the applicable schedule (e.g. a 5-in-1 against the 2026 schedule), or whose code is unknown, is **surfaced, not silently dropped**. The same 5-in-1 dose conforms under [historical versioning](../green-book/why-computable.md) when the applicable schedule version asks for a 5-in-1 primary course.
 
 ## Dose sequencing
 

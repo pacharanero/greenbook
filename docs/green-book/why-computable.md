@@ -29,7 +29,7 @@ The hard part is not drawing a table. The hard part is answering, for a real per
 
 The schedule is not a single document but a series of **versioned snapshots**, each with a `valid_from` date. Evaluating a patient born in 2003 requires the schedule **as it stood in 2003**, not today's schedule.
 
-No open-source project anywhere in the world has solved this for a national schedule in a principled, versioned way. greenbook's design - **one file per schedule version**, dated by its `valid_from` - makes historical evaluation an *additive* extension rather than a rewrite: build it correctly for the current schedule first, then add older versions as files.
+greenbook models this directly: **one file per schedule version**, dated by its `valid_from`, plus `evaluate-auto`, which builds a patient-specific effective schedule by selecting each expected dose from the version in force when that dose first became due. The first curated historical slices are now in `rules/`, with more Green Book revisions being added incrementally.
 
 ## The vision: invert the pipeline
 

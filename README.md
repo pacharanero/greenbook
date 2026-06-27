@@ -70,6 +70,7 @@ To get a `greenbook` binary on your `PATH` instead of using `cargo run`, install
 The bundled inputs are:
 
 - `rules/schedule-uk-2026-01-01.toml` - the current UK schedule
+- `rules/schedule-uk-*.toml` - curated historical schedule slices, inspectable with `greenbook versions rules --country UK`
 - `rules/product-map-uk-snomed-dm.toml` - the SNOMED UK drug-extension product → class/antigen map
 - `conformance/fixtures/*.json` - the demonstration patients used below
 
@@ -165,6 +166,36 @@ Unmatched doses:
   - 2026-01-21  [Pediacel vaccine (product)]  (product class "5-in-1" has no series in this schedule version)
   - 2026-01-21  [Unknown investigational vaccine]  (unknown product code (not in the product map))
 ```
+
+### Demo 5 - historical schedule selection
+
+List the schedule versions currently curated:
+
+```sh
+cargo run --manifest-path rust/Cargo.toml --quiet --bin greenbook -- \
+  versions rules --country UK
+```
+
+Then let the CLI choose the applicable historical schedule automatically:
+
+```sh
+cargo run --manifest-path rust/Cargo.toml --quiet --bin greenbook -- \
+  evaluate-auto rules rules/product-map-uk-snomed-dm.toml \
+  test-data/historical-pediacel-2006.json \
+  --evaluated-at 2007-01-15 --verbose
+```
+
+```
+Schedule version:  2006-11-01
+Schedule rule:     dose slots are selected from the schedule version in force when each dose first became due; not-yet-due slots are projected from the version in force on evaluated_at
+
+By series:
+---------
+  [PARTIAL    ] 5-in-1 (1/1 due, 3 total) - up to date
+      - ok              2007-01-01  dose 1  (2mo)  [Pediacel (product)]
+```
+
+The same Pediacel dose is unmatched if you force the 2026 schedule, because today's schedule asks for `6-in-1`, not `5-in-1`. Historical evaluation avoids that failure mode by selecting the schedule version that applied when each dose first became due.
 
 ### Machine-readable output
 

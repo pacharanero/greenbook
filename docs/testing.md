@@ -115,8 +115,8 @@ Quick experiments to confirm the engine is doing real work, not pattern matching
 
 ## 8. Inspecting the schedule itself
 
-Open `rules/schedule-uk-2026-01-01.toml` directly. Every series is one `[[series]]` block with its doses inline; antigen IDs at the bottom map to SNOMED concept codes. Editing this file (and re-running step 5) is how you would propose a schedule change.
+Open `rules/schedule-uk-2026-01-01.toml` directly. Every series is one `[[series]]` block with its doses inline; antigen IDs at the bottom map to SNOMED concept codes. Historical slices use the same structure: inspect them with `cargo run --manifest-path rust/Cargo.toml --quiet --bin greenbook -- versions rules --country UK`.
 
 ## 9. Next steps
 
-The design questions the POC raised are resolved and folded into the [spec](https://github.com/pacharanero/greenbook/tree/main/spec) and [roadmap](https://github.com/pacharanero/greenbook/blob/main/spec/roadmap.md). The current-schedule correctness work is implemented and covered by the shared conformance suite, including dose-sequence flags and duplicate echo detection. The next priority is historical versioning: resolving the valid-time semantics, selecting the applicable schedule version automatically, and curating the first historical schedule slice.
+The design questions the POC raised are resolved and folded into the [spec](https://github.com/pacharanero/greenbook/tree/main/spec) and [roadmap](https://github.com/pacharanero/greenbook/blob/main/spec/roadmap.md). The current-schedule correctness work is implemented and covered by the shared conformance suite, including dose-sequence flags and duplicate echo detection. Historical versioning has started: `evaluate-auto` selects schedule versions by dose due date, and the first curated Green Book slices are in `rules/`.

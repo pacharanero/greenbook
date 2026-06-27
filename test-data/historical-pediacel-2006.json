@@ -1,0 +1,31 @@
+{
+  "comment": "Historical schedule demo: a child born in November 2006 with a Pediacel 5-in-1 dose at two months. This conforms under the 2006 Green Book schedule, but would be unmatched against the 2026 6-in-1 schedule.",
+  "resourceType": "Bundle",
+  "type": "collection",
+  "entry": [
+    {
+      "resource": {
+        "resourceType": "Patient",
+        "id": "historical-pediacel-2006",
+        "birthDate": "2006-11-01",
+        "gender": "female"
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Immunization",
+        "status": "completed",
+        "vaccineCode": {
+          "coding": [
+            {
+              "system": "http://snomed.info/sct",
+              "code": "9300601000001102",
+              "display": "Pediacel (product)"
+            }
+          ]
+        },
+        "occurrenceDateTime": "2007-01-01"
+      }
+    }
+  ]
+}
