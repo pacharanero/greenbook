@@ -12,7 +12,7 @@
           "url": "https://fhir.hl7.org.uk/StructureDefinition/Extension-UKCore-VaccinationProcedure",
           "valueCodeableConcept": { "coding": [{ "system": "http://snomed.info/sct", "code": "170433008", "display": "Administration of first dose of measles, mumps and rubella vaccine (procedure)" }] }
         }],
-        "vaccineCode": { "coding": [{ "system": "http://snomed.info/sct", "code": "9324201000001104", "display": "Priorix vaccine (product)" }] },
+        "vaccineCode": { "coding": [{ "system": "http://snomed.info/sct", "code": "9312401000001102", "display": "Priorix vaccine (product)" }] },
         "patient": { "reference": "Patient/preschooler" },
         "occurrenceDateTime": "2023-10-29",
         "protocolApplied": [{ "doseNumberPositiveInt": 1 }]
@@ -26,7 +26,7 @@
           "url": "https://fhir.hl7.org.uk/StructureDefinition/Extension-UKCore-VaccinationProcedure",
           "valueCodeableConcept": { "coding": [{ "system": "http://snomed.info/sct", "code": "170434002", "display": "Administration of second dose of measles, mumps and rubella vaccine (procedure)" }] }
         }],
-        "vaccineCode": { "coding": [{ "system": "http://snomed.info/sct", "code": "9324201000001104", "display": "Priorix vaccine (product)" }] },
+        "vaccineCode": { "coding": [{ "system": "http://snomed.info/sct", "code": "9312401000001102", "display": "Priorix vaccine (product)" }] },
         "patient": { "reference": "Patient/preschooler" },
         "occurrenceDateTime": "2026-02-15",
         "protocolApplied": [{ "doseNumberPositiveInt": 2 }]

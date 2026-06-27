@@ -18,7 +18,7 @@
         {
           "date": "2025-12-24",
           "age_at_dose": "1mo 3w 4d",
-          "vaccine_code": "39114911000001105",
+          "vaccine_code": "13082601000001103",
           "display": "Infanrix Hexa vaccine (product)",
           "assigned_dose_number": 1,
           "within_schedule": true,
@@ -137,7 +137,7 @@
   "duplicate_doses": [
     {
       "date": "2026-01-10",
-      "vaccine_code": "39114911000001105",
+      "vaccine_code": "13082601000001103",
       "display": "Infanrix Hexa vaccine (product)",
       "procedure_code": "170370008",
       "duplicate_of": "2025-12-24"

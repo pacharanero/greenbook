@@ -83,7 +83,7 @@
         {
           "date": "2023-10-29",
           "age_at_dose": "1y",
-          "vaccine_code": "9324201000001104",
+          "vaccine_code": "9312401000001102",
           "display": "Priorix vaccine (product)",
           "assigned_dose_number": 1,
           "within_schedule": true,
@@ -107,7 +107,7 @@
         {
           "date": "2026-02-15",
           "age_at_dose": "3y 3mo 2w 3d",
-          "vaccine_code": "9324201000001104",
+          "vaccine_code": "9312401000001102",
           "display": "Priorix vaccine (product)",
           "assigned_dose_number": 2,
           "within_schedule": true,

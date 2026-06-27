@@ -1,0 +1,243 @@
+# =============================================================================
+# UK Routine Childhood Immunisation Schedule
+# =============================================================================
+# Effective from November 2006, as represented in the 2006 Green Book.
+# Derived from Immunisation against infectious disease 2006, Chapter 11,
+# Table 11.1 "Schedule for the UK's routine childhood immunisations".
+#
+# This is the first curated non-current schedule slice. It is intentionally
+# bounded: later policy changes, including HPV introduction, need their own
+# source-derived schedule files rather than being silently covered by this one.
+# =============================================================================
+
+[jurisdiction]
+country = "UK"
+country_name = "United Kingdom"
+schedule_authority = "Department of Health"
+product_coding_system = "snomed-uk-dm"
+language = "en-GB"
+
+[schedule]
+valid_from = "2006-11-01"
+valid_to = "2010-11-30"
+source_document = "Immunisation against infectious disease 2006, Chapter 11, Table 11.1"
+source_url = "https://webarchive.nationalarchives.gov.uk/ukgwa/20080817104105mp_/http://www.dh.gov.uk/en/Publicationsandstatistics/Publications/PublicationsPolicyAndGuidance/DH_079917?IdcService=GET_FILE&dID=115974&Rendition=Web"
+change_summary = """
+  First curated historical schedule slice. Source says the 2006 edition reflects
+  policy current at the time of going to press in November 2006. The slice is
+  explicitly bounded before the December 2010 Chapter 11 schedule snapshot.
+"""
+
+# ---------- SERIES ----------
+
+[[series]]
+id = "5in1-primary"
+display_name = "5-in-1"
+description = "Primary immunisation against diphtheria, tetanus, pertussis (whooping cough), polio and Hib."
+product_class = "5-in-1"
+antigens = ["diphtheria", "tetanus", "pertussis", "polio", "hib"]
+
+[series.eligibility]
+population = "all"
+
+[[series.dose]]
+number = 1
+target_age = "2 months"
+earliest_age = "6 weeks"
+
+[[series.dose]]
+number = 2
+target_age = "3 months"
+min_interval_from_previous = "4 weeks"
+
+[[series.dose]]
+number = 3
+target_age = "4 months"
+min_interval_from_previous = "4 weeks"
+
+
+[[series]]
+id = "pcv-primary"
+display_name = "PCV (pneumococcal)"
+description = "Immunisation against pneumococcal disease."
+product_class = "PCV"
+antigens = ["pneumococcal"]
+
+[series.eligibility]
+population = "all"
+
+[[series.dose]]
+number = 1
+target_age = "2 months"
+
+[[series.dose]]
+number = 2
+target_age = "4 months"
+min_interval_from_previous = "4 weeks"
+
+[[series.dose]]
+number = 3
+target_age = "13 months"
+min_interval_from_previous = "4 weeks"
+
+
+[[series]]
+id = "menc-primary"
+display_name = "MenC"
+description = "Primary immunisation against meningococcal group C disease."
+product_class = "MenC"
+antigens = ["meningococcal-c"]
+
+[series.eligibility]
+population = "all"
+
+[[series.dose]]
+number = 1
+target_age = "3 months"
+
+[[series.dose]]
+number = 2
+target_age = "4 months"
+min_interval_from_previous = "4 weeks"
+
+
+[[series]]
+id = "hib-menc-booster"
+display_name = "Hib/MenC booster"
+description = "Booster providing additional protection against Hib and meningococcal group C."
+product_class = "Hib/MenC"
+antigens = ["hib", "meningococcal-c"]
+
+[series.eligibility]
+population = "all"
+
+[[series.dose]]
+number = 1
+target_age = "12 months"
+
+
+[[series]]
+id = "mmr-primary"
+display_name = "MMR (first dose)"
+description = "First dose of measles, mumps and rubella vaccine."
+product_class = "MMR"
+antigens = ["measles", "mumps", "rubella"]
+
+[series.eligibility]
+population = "all"
+
+[[series.dose]]
+number = 1
+target_age = "13 months"
+
+
+[[series]]
+id = "dtap-ipv-preschool-booster"
+display_name = "DTaP/IPV pre-school booster"
+description = "Pre-school booster against diphtheria, tetanus, pertussis and polio."
+product_class = "DTaP/IPV"
+antigens = ["diphtheria", "tetanus", "pertussis", "polio"]
+
+[series.eligibility]
+population = "all"
+
+[[series.dose]]
+number = 1
+target_age = "3 years 4 months"
+earliest_age = "3 years 4 months"
+
+
+[[series]]
+id = "mmr-second"
+display_name = "MMR (second dose)"
+description = "Second dose of measles, mumps and rubella vaccine."
+product_class = "MMR"
+antigens = ["measles", "mumps", "rubella"]
+
+[series.eligibility]
+population = "all"
+
+[[series.dose]]
+number = 2
+target_age = "3 years 4 months"
+earliest_age = "3 years 4 months"
+min_interval_from_previous = "1 month"
+
+
+[[series]]
+id = "td-ipv-booster"
+display_name = "Td/IPV booster"
+description = "Teenage booster against tetanus, diphtheria and polio."
+product_class = "Td/IPV"
+antigens = ["tetanus", "diphtheria", "polio"]
+
+[series.eligibility]
+population = "all"
+
+[[series.dose]]
+number = 1
+target_age = "14 years"
+earliest_age = "13 years"
+
+
+# ---------- ANTIGEN REGISTRY ----------
+
+[[antigen]]
+id = "diphtheria"
+display_name = "Diphtheria"
+snomed_concept = "397428000"
+snomed_description = "Diphtheria (disorder)"
+
+[[antigen]]
+id = "tetanus"
+display_name = "Tetanus"
+snomed_concept = "76902006"
+snomed_description = "Tetanus (disorder)"
+
+[[antigen]]
+id = "pertussis"
+display_name = "Pertussis (whooping cough)"
+snomed_concept = "27836007"
+snomed_description = "Pertussis (disorder)"
+
+[[antigen]]
+id = "polio"
+display_name = "Poliomyelitis"
+snomed_concept = "398102009"
+snomed_description = "Acute poliomyelitis (disorder)"
+
+[[antigen]]
+id = "hib"
+display_name = "Haemophilus influenzae type b (Hib)"
+snomed_concept = "433692003"
+snomed_description = "Haemophilus influenzae type b infection (disorder)"
+
+[[antigen]]
+id = "meningococcal-c"
+display_name = "Meningococcal group C"
+snomed_concept = "860806007"
+snomed_description = "Infection caused by Neisseria meningitidis serogroup C (disorder)"
+
+[[antigen]]
+id = "pneumococcal"
+display_name = "Pneumococcal disease"
+snomed_concept = "16814004"
+snomed_description = "Pneumococcal infectious disease (disorder)"
+
+[[antigen]]
+id = "measles"
+display_name = "Measles"
+snomed_concept = "14189004"
+snomed_description = "Measles (disorder)"
+
+[[antigen]]
+id = "mumps"
+display_name = "Mumps"
+snomed_concept = "36989005"
+snomed_description = "Mumps (disorder)"
+
+[[antigen]]
+id = "rubella"
+display_name = "Rubella"
+snomed_concept = "36653000"
+snomed_description = "Rubella (disorder)"

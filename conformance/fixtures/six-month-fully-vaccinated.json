@@ -17,7 +17,7 @@
         "vaccineCode": {
           "coding": [{
             "system": "http://snomed.info/sct",
-            "code": "39114911000001105",
+            "code": "13082601000001103",
             "display": "Infanrix Hexa vaccine (product)"
           }]
         },
@@ -33,7 +33,7 @@
         "vaccineCode": {
           "coding": [{
             "system": "http://snomed.info/sct",
-            "code": "7374211000001102",
+            "code": "9558401000001109",
             "display": "Rotarix vaccine (product)"
           }]
         },
@@ -49,7 +49,7 @@
         "vaccineCode": {
           "coding": [{
             "system": "http://snomed.info/sct",
-            "code": "12672211000001104",
+            "code": "11978101000001102",
             "display": "Bexsero vaccine (product)"
           }]
         },
@@ -65,7 +65,7 @@
         "vaccineCode": {
           "coding": [{
             "system": "http://snomed.info/sct",
-            "code": "39114911000001105",
+            "code": "13082601000001103",
             "display": "Infanrix Hexa vaccine (product)"
           }]
         },
@@ -81,7 +81,7 @@
         "vaccineCode": {
           "coding": [{
             "system": "http://snomed.info/sct",
-            "code": "7374211000001102",
+            "code": "9558401000001109",
             "display": "Rotarix vaccine (product)"
           }]
         },
@@ -97,7 +97,7 @@
         "vaccineCode": {
           "coding": [{
             "system": "http://snomed.info/sct",
-            "code": "14473901000001100",
+            "code": "10582301000001108",
             "display": "Prevenar 13 vaccine (product)"
           }]
         },
@@ -113,7 +113,7 @@
         "vaccineCode": {
           "coding": [{
             "system": "http://snomed.info/sct",
-            "code": "39114911000001105",
+            "code": "13082601000001103",
             "display": "Infanrix Hexa vaccine (product)"
           }]
         },
@@ -129,7 +129,7 @@
         "vaccineCode": {
           "coding": [{
             "system": "http://snomed.info/sct",
-            "code": "12672211000001104",
+            "code": "11978101000001102",
             "display": "Bexsero vaccine (product)"
           }]
         },

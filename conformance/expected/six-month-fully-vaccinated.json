@@ -18,7 +18,7 @@
         {
           "date": "2025-12-24",
           "age_at_dose": "1mo 3w 4d",
-          "vaccine_code": "39114911000001105",
+          "vaccine_code": "13082601000001103",
           "display": "Infanrix Hexa vaccine (product)",
           "assigned_dose_number": 1,
           "within_schedule": true,
@@ -28,7 +28,7 @@
         {
           "date": "2026-01-21",
           "age_at_dose": "2mo 3w 2d",
-          "vaccine_code": "39114911000001105",
+          "vaccine_code": "13082601000001103",
           "display": "Infanrix Hexa vaccine (product)",
           "assigned_dose_number": 2,
           "within_schedule": true,
@@ -38,7 +38,7 @@
         {
           "date": "2026-02-18",
           "age_at_dose": "3mo 2w 6d",
-          "vaccine_code": "39114911000001105",
+          "vaccine_code": "13082601000001103",
           "display": "Infanrix Hexa vaccine (product)",
           "assigned_dose_number": 3,
           "within_schedule": true,
@@ -62,7 +62,7 @@
         {
           "date": "2025-12-24",
           "age_at_dose": "1mo 3w 4d",
-          "vaccine_code": "7374211000001102",
+          "vaccine_code": "9558401000001109",
           "display": "Rotarix vaccine (product)",
           "assigned_dose_number": 1,
           "within_schedule": true,
@@ -72,7 +72,7 @@
         {
           "date": "2026-01-21",
           "age_at_dose": "2mo 3w 2d",
-          "vaccine_code": "7374211000001102",
+          "vaccine_code": "9558401000001109",
           "display": "Rotarix vaccine (product)",
           "assigned_dose_number": 2,
           "within_schedule": true,
@@ -96,7 +96,7 @@
         {
           "date": "2025-12-24",
           "age_at_dose": "1mo 3w 4d",
-          "vaccine_code": "12672211000001104",
+          "vaccine_code": "11978101000001102",
           "display": "Bexsero vaccine (product)",
           "assigned_dose_number": 1,
           "within_schedule": true,
@@ -106,7 +106,7 @@
         {
           "date": "2026-02-18",
           "age_at_dose": "3mo 2w 6d",
-          "vaccine_code": "12672211000001104",
+          "vaccine_code": "11978101000001102",
           "display": "Bexsero vaccine (product)",
           "assigned_dose_number": 2,
           "within_schedule": true,
@@ -130,7 +130,7 @@
         {
           "date": "2026-01-21",
           "age_at_dose": "2mo 3w 2d",
-          "vaccine_code": "14473901000001100",
+          "vaccine_code": "10582301000001108",
           "display": "Prevenar 13 vaccine (product)",
           "assigned_dose_number": 1,
           "within_schedule": true,

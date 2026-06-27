@@ -1,0 +1,129 @@
+# Historical Green Book schedule source documents.
+#
+# These entries are source-document metadata only. The PDFs themselves download
+# to pdf/ via s/download-green-book.sh, and pdf/*.pdf is intentionally ignored.
+# This list covers the 2006 whole-book edition and the GOV.UK Chapter 11 era,
+# beginning with first online Chapter 11 publication on 2013-03-20. The 1992
+# and 1996 printed editions, plus predecessor schedule documents, still need a
+# targeted archival/library search.
+
+[source_set]
+id = "green-book-schedule-sources"
+title = "Immunisation against infectious disease / Green Book schedule sources"
+jurisdiction = "UK"
+govuk_publication_url = "https://www.gov.uk/government/publications/immunisation-schedule-the-green-book-chapter-11"
+department_of_health_2006_url = "https://webarchive.nationalarchives.gov.uk/ukgwa/20080817104105/http://www.dh.gov.uk/en/Publicationsandstatistics/Publications/PublicationsPolicyAndGuidance/DH_079917"
+status = "partial-historical-corpus"
+notes = "Verified URLs returned HTTP 200 with application/pdf on 2026-06-26."
+
+[[document]]
+id = "green-book-2006-10-30"
+canonical_filename = "green-book-2006-10-30.pdf"
+published_at = "2007-10-30"
+edition_year = 2006
+source = "UK Government Web Archive capture of Department of Health whole-book PDF"
+capture_timestamp = "20080817104105"
+url = "https://webarchive.nationalarchives.gov.uk/ukgwa/20080817104105mp_/http://www.dh.gov.uk/en/Publicationsandstatistics/Publications/PublicationsPolicyAndGuidance/DH_079917?IdcService=GET_FILE&dID=115974&Rendition=Web"
+title = "Immunisation against infectious disease 2006 \"The Green Book\""
+notes = "Whole-book predecessor edition. Chapter 11 contains the UK immunisation schedule."
+
+[[document]]
+id = "green-book-2006-10-30-letter"
+canonical_filename = "green-book-2006-10-30-letter.pdf"
+published_at = "2007-10-30"
+edition_year = 2006
+source = "UK Government Web Archive capture of Department of Health PDF"
+capture_timestamp = "20080817104105"
+url = "https://webarchive.nationalarchives.gov.uk/ukgwa/20080817104105mp_/http://www.dh.gov.uk/en/Publicationsandstatistics/Publications/PublicationsPolicyAndGuidance/DH_079917?IdcService=GET_FILE&dID=115812&Rendition=Web"
+title = "Letter: Immunisation against infectious disease 2006 \"The Green Book\""
+role = "supplementary-publication-letter"
+
+[[document]]
+id = "green-book-chapter-11-2013-03-20"
+canonical_filename = "green-book-chapter-11-2013-03-20.pdf"
+published_at = "2013-03-20"
+source = "UK Government Web Archive capture of GOV.UK PDF"
+capture_timestamp = "20130504233315"
+url = "https://webarchive.nationalarchives.gov.uk/ukgwa/20130504233315mp_/https://www.gov.uk/government/uploads/system/uploads/attachment_data/file/147874/Green-Book-Chapter-11.pdf"
+govuk_change_note = "First published."
+
+[[document]]
+id = "green-book-chapter-11-2013-05-07"
+canonical_filename = "green-book-chapter-11-2013-05-07.pdf"
+published_at = "2013-05-07"
+source = "UK Government Web Archive capture of GOV.UK PDF"
+capture_timestamp = "20130627114320"
+url = "https://webarchive.nationalarchives.gov.uk/ukgwa/20130627114320mp_/https://www.gov.uk/government/uploads/system/uploads/attachment_data/file/198714/Chapter_11_The_UK_immunisation_schedule.pdf"
+govuk_change_note = "Updated the immunisation schedule to reflect the removal of the MenC vaccination at four months of age and the introduction of a booster vaccination around 14 years of age."
+
+[[document]]
+id = "green-book-chapter-11-2014-04-30"
+canonical_filename = "green-book-chapter-11-2014-04-30.pdf"
+published_at = "2014-04-30"
+source = "UK Government Web Archive capture of GOV.UK PDF"
+capture_timestamp = "20140607041311"
+url = "https://webarchive.nationalarchives.gov.uk/ukgwa/20140607041311mp_/https://www.gov.uk/government/uploads/system/uploads/attachment_data/file/307609/2902222_Green_Book_Chapter_11_v2_2_final.pdf"
+govuk_change_note = "Uploaded an updated version of the chapter to reflect recent changes to the immunisation schedule."
+
+[[document]]
+id = "green-book-chapter-11-2016-09-20"
+canonical_filename = "green-book-chapter-11-2016-09-20.pdf"
+published_at = "2016-09-20"
+source = "UK Government Web Archive capture of GOV.UK PDF"
+capture_timestamp = "20161124043448"
+url = "https://webarchive.nationalarchives.gov.uk/ukgwa/20161124043448mp_/https://www.gov.uk/government/uploads/system/uploads/attachment_data/file/554298/Green_Book_Chapter_11.pdf"
+govuk_change_note = "This chapter has been updated to reflect changes to the routine immunisation schedule, including removal of the infant dose of MenC."
+
+[[document]]
+id = "green-book-chapter-11-2019-04-15"
+canonical_filename = "green-book-chapter-11-2019-04-15.pdf"
+published_at = "2019-04-15"
+source = "UK Government Web Archive capture of GOV.UK PDF"
+capture_timestamp = "20190509202436"
+url = "https://webarchive.nationalarchives.gov.uk/ukgwa/20190509202436mp_/https://assets.publishing.service.gov.uk/government/uploads/system/uploads/attachment_data/file/795467/Greenbook_chapter_11.pdf"
+govuk_change_note = "Updated to include all recent changes to the immunisation schedule."
+
+[[document]]
+id = "green-book-chapter-11-2019-09-16"
+canonical_filename = "green-book-chapter-11-2019-09-16.pdf"
+published_at = "2019-09-16"
+source = "UK Government Web Archive capture of GOV.UK PDF"
+capture_timestamp = "20191003053742"
+url = "https://webarchive.nationalarchives.gov.uk/ukgwa/20191003053742mp_/https://assets.publishing.service.gov.uk/government/uploads/system/uploads/attachment_data/file/831680/Greenbook_chapter_11_UK_Immunisation_schedule.pdf"
+govuk_change_note = "Updated with changes to the childhood immunisation schedule, including eligibility for the Human Papilloma Virus (HPV) vaccine."
+
+[[document]]
+id = "green-book-chapter-11-2020-01-02"
+canonical_filename = "green-book-chapter-11-2020-01-02.pdf"
+published_at = "2020-01-02"
+source = "UK Government Web Archive capture of GOV.UK PDF"
+capture_timestamp = "20200102213743"
+url = "https://webarchive.nationalarchives.gov.uk/ukgwa/20200102213743mp_/https://assets.publishing.service.gov.uk/government/uploads/system/uploads/attachment_data/file/855727/Greenbook_chapter_11_UK_Immunisation_schedule.pdf"
+govuk_change_note = "Updated to include changes to the PCV schedule for infants born on or after 1 January 2020."
+
+[[document]]
+id = "green-book-chapter-11-2022-03-17"
+canonical_filename = "green-book-chapter-11-2022-03-17.pdf"
+published_at = "2022-03-17"
+source = "UK Government Web Archive capture of GOV.UK PDF"
+capture_timestamp = "20220317170925"
+url = "https://webarchive.nationalarchives.gov.uk/ukgwa/20220317170925mp_/https://assets.publishing.service.gov.uk/government/uploads/system/uploads/attachment_data/file/1060682/Greenbook-chapter-11-11Mar22.pdf"
+govuk_change_note = "Revised to include recent changes to the routine and selective immunisation schedule, including changes to the HPV for MSM schedule."
+
+[[document]]
+id = "green-book-chapter-11-2025-06-03"
+canonical_filename = "green-book-chapter-11-2025-06-03.pdf"
+published_at = "2025-06-03"
+source = "UK Government Web Archive capture of GOV.UK PDF"
+capture_timestamp = "20250603152059"
+url = "https://webarchive.nationalarchives.gov.uk/ukgwa/20250603152059mp_/https://assets.publishing.service.gov.uk/media/6839d882e0f10eed80aafb7e/Green_Book_Chapter_11_Routine_Immunisation_05.pdf"
+govuk_change_note = "Add revised chapter."
+
+[[document]]
+id = "green-book-chapter-11-2026-03-30"
+canonical_filename = "green-book-chapter-11-2026-03-30.pdf"
+published_at = "2026-04-01"
+document_date = "2026-03-30"
+source = "Current GOV.UK PDF"
+url = "https://assets.publishing.service.gov.uk/media/69cbb5ef8017673ffec0f313/Green-book-chapter-11-immunisation-schedules_30_03_26.pdf"
+govuk_change_note = "Updated to reflect changes to the childhood immunisation programme from 1 January 2026."

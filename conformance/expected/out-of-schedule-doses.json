@@ -18,7 +18,7 @@
         {
           "date": "2025-12-24",
           "age_at_dose": "1mo 3w 4d",
-          "vaccine_code": "39114911000001105",
+          "vaccine_code": "13082601000001103",
           "display": "Infanrix Hexa vaccine (product)",
           "assigned_dose_number": 1,
           "within_schedule": true,
@@ -28,7 +28,7 @@
         {
           "date": "2025-12-31",
           "age_at_dose": "2mo 2d",
-          "vaccine_code": "39114911000001105",
+          "vaccine_code": "13082601000001103",
           "display": "Infanrix Hexa vaccine (product)",
           "assigned_dose_number": 2,
           "within_schedule": false,
@@ -55,7 +55,7 @@
         {
           "date": "2026-03-01",
           "age_at_dose": "4mo 1d",
-          "vaccine_code": "7374211000001102",
+          "vaccine_code": "9558401000001109",
           "display": "Rotarix vaccine (product)",
           "assigned_dose_number": 1,
           "within_schedule": false,
