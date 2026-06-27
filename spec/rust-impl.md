@@ -38,8 +38,8 @@ Bundle (Patient + [Immunization])
 [2] load_schedule()
     - load schedule TOML for the relevant version
     - for v1: load current schedule only
-    - for historical: select file where valid_from <= patient_dob,
-      and no successor file has valid_from <= patient_dob
+    - for historical: build an effective schedule from the version in force
+      when each dose slot first became due for the patient
 
   |
   v
@@ -111,6 +111,7 @@ pub struct Jurisdiction {
 #[derive(Debug, Clone, Deserialize)]
 pub struct ScheduleMeta {
     pub valid_from: NaiveDate,
+    pub valid_to: Option<NaiveDate>,
     pub supersedes: Option<NaiveDate>,
     pub source_document: String,
     pub source_url: String,
@@ -227,14 +228,21 @@ pub struct DuplicateDose {
 /// Load a schedule from a TOML file.
 pub fn load_schedule(path: &Path) -> Result<Schedule, ScheduleError>;
 
-/// Load the schedule version applicable for a given date (patient DOB).
-/// Selects among the rules/schedule-{country}-*.toml files (or a per-country
-/// subdirectory, if rules/ is later split that way) for the correct version.
-pub fn load_schedule_for_date(
+/// Load every schedule version for a jurisdiction from rules/schedule-<country>-*.toml.
+pub fn load_schedule_versions(
     rules_dir: &Path,
     country: &str,
-    date: NaiveDate,
-) -> Result<Schedule, ScheduleError>;
+) -> Result<Vec<ScheduleVersion>, ScheduleError>;
+
+/// Build the effective historical schedule for a patient/evaluation date by
+/// selecting each dose slot from the schedule version in force when that dose
+/// first became due.
+pub fn load_effective_schedule_for_date(
+    rules_dir: &Path,
+    country: &str,
+    dob: NaiveDate,
+    evaluated_at: NaiveDate,
+) -> Result<HistoricalSchedule, ScheduleError>;
 
 /// Parse a FHIR R4 Bundle JSON into a VaccinationRecord.
 pub fn parse_fhir_bundle(json: &str) -> Result<VaccinationRecord, FhirError>;
@@ -254,10 +262,22 @@ pub fn evaluate(
 ### Commands
 
 ```
-greenbook versions [--country <code>]
+greenbook versions <rules-dir> [--country <code>]
 ```
 
 Lists all available schedule versions for a jurisdiction, with valid_from date, source document name, and change summary.
+
+```
+greenbook evaluate <schedule-file> <product-map> <fhir-bundle> [--evaluated-at YYYY-MM-DD] [--format report|json|status]
+```
+
+Evaluates a patient's vaccination history against one explicit schedule file. This is still useful for fixtures, conformance, and testing a proposed schedule file in isolation.
+
+```
+greenbook evaluate-auto <rules-dir> <product-map> <fhir-bundle> [--country UK] [--evaluated-at YYYY-MM-DD] [--format report|json|status] [--verbose]
+```
+
+Builds the effective historical schedule from every schedule file in `rules-dir`, selecting dose slots by the version in force when each slot first became due. `--verbose` includes the schedule-selection rationale in report output.
 
 ```
 greenbook render <schedule-file> [--format table|markdown|html]
@@ -265,24 +285,11 @@ greenbook render <schedule-file> [--format table|markdown|html]
 
 Renders the schedule as an age-centric table (as seen in Green Book Chapter 11). Default format is `table` (plain text, box-drawing characters).
 
-The render command pivots from series-centric (authoring format) to age-centric (publication format):
-
-1. For each series, for each dose, emit `(target_age, display_name, dose_number)`
-2. Group by target_age
-3. Sort groups by AgeOffset (Ord on days from DOB)
-4. Render each group as a table row
-
 ```
 greenbook diff <schedule-file-a> <schedule-file-b> [--format table|json]
 ```
 
 Compares two schedule versions, showing what changed between them. Useful for reviewing proposed schedule changes in pull requests.
-
-```
-greenbook evaluate <schedule-file> <fhir-bundle> [--format json|report]
-```
-
-Evaluates a patient's vaccination history. Returns structured JSON by default, or a human-readable report with `--report`.
 
 ```
 greenbook validate <schedule-file>

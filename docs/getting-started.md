@@ -26,7 +26,7 @@ All commands below run **from the repo root**, so the canonical data paths (`rul
       --evaluated-at 2026-04-29
     ```
 
-    `evaluate <schedule> <product-map> <bundle>` takes an optional `--evaluated-at YYYY-MM-DD` (defaults to today) and `--format report|json|status`. The default `report` prints the full per-series breakdown.
+    `evaluate <schedule> <product-map> <bundle>` takes an optional `--evaluated-at YYYY-MM-DD` (defaults to today) and `--format report|json|status`. The default `report` prints the full per-series breakdown. For historical schedule selection, use `evaluate-auto <rules-dir> <product-map> <bundle>`; it builds an effective schedule from the versions in `rules-dir`, selecting each dose slot by the schedule version in force when that dose first became due.
 
 === ":material-language-javascript: JavaScript"
 

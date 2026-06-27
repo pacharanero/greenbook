@@ -1,7 +1,10 @@
 use chrono::{Local, NaiveDate};
 use clap::{Parser, Subcommand};
 use greenbook::evaluate::{OverallStatus, SeriesCompletionStatus, VaccinationStatus};
-use greenbook::{evaluate, load_product_map, load_schedule, parse_fhir_bundle};
+use greenbook::{
+    evaluate, load_effective_schedule_for_date, load_product_map, load_schedule,
+    load_schedule_versions, parse_fhir_bundle, ScheduleSelection,
+};
 use std::fs;
 use std::io::IsTerminal;
 use std::path::PathBuf;
@@ -34,6 +37,35 @@ enum Command {
         /// Override the evaluation date (defaults to today).
         #[arg(long)]
         evaluated_at: Option<NaiveDate>,
+    },
+    /// Evaluate a FHIR bundle using schedule versions selected from a rules directory.
+    EvaluateAuto {
+        /// Directory containing schedule-<country>-*.toml files.
+        rules_dir: PathBuf,
+        /// Path to a product mapping TOML file.
+        products: PathBuf,
+        /// Path to a FHIR Bundle JSON file.
+        bundle: PathBuf,
+        /// Jurisdiction code.
+        #[arg(long, default_value = "UK")]
+        country: String,
+        /// Output format.
+        #[arg(long, value_enum, default_value_t = OutputFormat::Report)]
+        format: OutputFormat,
+        /// Override the evaluation date (defaults to today).
+        #[arg(long)]
+        evaluated_at: Option<NaiveDate>,
+        /// Include schedule-selection rationale in report output.
+        #[arg(long)]
+        verbose: bool,
+    },
+    /// List available schedule versions in a rules directory.
+    Versions {
+        /// Directory containing schedule-<country>-*.toml files.
+        rules_dir: PathBuf,
+        /// Jurisdiction code.
+        #[arg(long, default_value = "UK")]
+        country: String,
     },
 }
 
@@ -79,10 +111,61 @@ fn run(cli: Cli) -> Result<(), Box<dyn std::error::Error>> {
                     println!("{}", serde_json::to_string_pretty(&status)?);
                 }
                 OutputFormat::Report => {
-                    print_report(&status, &record);
+                    print_report(&status, &record, None);
                 }
                 OutputFormat::Status => {
                     print_status(&status);
+                }
+            }
+            Ok(())
+        }
+        Command::EvaluateAuto {
+            rules_dir,
+            products,
+            bundle,
+            country,
+            format,
+            evaluated_at,
+            verbose,
+        } => {
+            let products = load_product_map(&products)?;
+            let bundle_json = fs::read_to_string(&bundle)?;
+            let record = parse_fhir_bundle(&bundle_json)?;
+            let evaluated_at = evaluated_at.unwrap_or_else(|| Local::now().date_naive());
+            let historical =
+                load_effective_schedule_for_date(&rules_dir, &country, record.dob, evaluated_at)?;
+            let status = evaluate(&record, &historical.schedule, &products, evaluated_at)?;
+
+            match format {
+                OutputFormat::Json => {
+                    println!("{}", serde_json::to_string_pretty(&status)?);
+                }
+                OutputFormat::Report => {
+                    print_report(&status, &record, verbose.then_some(&historical.selection));
+                }
+                OutputFormat::Status => {
+                    print_status(&status);
+                }
+            }
+            Ok(())
+        }
+        Command::Versions { rules_dir, country } => {
+            let versions = load_schedule_versions(&rules_dir, &country)?;
+            for version in versions {
+                let meta = &version.schedule.schedule;
+                let effective_to = version
+                    .effective_to
+                    .map(|d| d.to_string())
+                    .unwrap_or_else(|| "open".into());
+                println!(
+                    "{}  effective_to={}  {}  {}",
+                    meta.valid_from,
+                    effective_to,
+                    version.path.display(),
+                    meta.source_document
+                );
+                if let Some(summary) = &meta.change_summary {
+                    println!("    {}", summary.trim());
                 }
             }
             Ok(())
@@ -109,7 +192,11 @@ fn print_status(status: &VaccinationStatus) {
     }
 }
 
-fn print_report(status: &VaccinationStatus, record: &greenbook::VaccinationRecord) {
+fn print_report(
+    status: &VaccinationStatus,
+    record: &greenbook::VaccinationRecord,
+    selection: Option<&ScheduleSelection>,
+) {
     println!("Greenbook evaluation");
     println!("====================");
     if let Some(id) = &record.patient_id {
@@ -118,6 +205,20 @@ fn print_report(status: &VaccinationStatus, record: &greenbook::VaccinationRecor
     println!("DOB:               {}", record.dob);
     println!("Evaluated at:      {}", status.evaluated_at);
     println!("Schedule version:  {}", status.schedule_version);
+    if let Some(selection) = selection {
+        println!("Schedule rule:     {}", selection.rule);
+        println!("Schedule versions:");
+        for version in &selection.versions {
+            let effective_to = version
+                .effective_to
+                .map(|d| d.to_string())
+                .unwrap_or_else(|| "open".into());
+            println!(
+                "  - {} to {}  {}",
+                version.valid_from, effective_to, version.source_document
+            );
+        }
+    }
     // The headline answer is age-relative ("are there gaps that should be filled
     // by now?"). The strict flag answers the separate "had everything ever?".
     println!("Up-to-date status: {}", overall_label(status.status));

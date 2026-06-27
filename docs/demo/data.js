@@ -336,11 +336,12 @@ window.GREENBOOK = {
   "products": {
     "coding_system": "snomed-uk-dm",
     "coding_system_url": "https://snomed.info/sct",
-    "last_verified": "2026-01-01",
+    "last_verified": "2026-06-27",
+    "verification_notes": "Concept IDs checked with sct against UK SNOMED release uk_sct2mo_42.2.0_20260603000001z.",
     "product": [
       {
-        "code": "39114911000001105",
-        "display": "Infanrix Hexa vaccine (product)",
+        "code": "13082601000001103",
+        "display": "Infanrix Hexa (product)",
         "product_class": "6-in-1",
         "antigens": [
           "diphtheria",
@@ -352,8 +353,8 @@ window.GREENBOOK = {
         ]
       },
       {
-        "code": "9743801000001106",
-        "display": "Pediacel vaccine (product)",
+        "code": "9300601000001102",
+        "display": "Pediacel (product)",
         "product_class": "5-in-1",
         "antigens": [
           "diphtheria",
@@ -365,32 +366,62 @@ window.GREENBOOK = {
         "notes": "5-in-1; does not include hepatitis B. Used before 2017 6-in-1 introduction. No conforming series in the 2026 schedule; conforms to the schedule valid at the time of administration once historical versions exist."
       },
       {
-        "code": "12672211000001104",
-        "display": "Bexsero vaccine (product)",
+        "code": "9463401000001103",
+        "display": "Infanrix-IPV + Hib (product)",
+        "product_class": "5-in-1",
+        "antigens": [
+          "diphtheria",
+          "tetanus",
+          "pertussis",
+          "polio",
+          "hib"
+        ],
+        "notes": "5-in-1 product class used in the 2006 schedule."
+      },
+      {
+        "code": "11978101000001102",
+        "display": "Bexsero (product)",
         "product_class": "MenB",
         "antigens": [
           "meningococcal-b"
         ]
       },
       {
-        "code": "7374211000001102",
-        "display": "Rotarix vaccine (product)",
+        "code": "9558401000001109",
+        "display": "Rotarix (product)",
         "product_class": "Rotavirus",
         "antigens": [
           "rotavirus"
         ]
       },
       {
-        "code": "14473901000001100",
-        "display": "Prevenar 13 vaccine (product)",
+        "code": "10374501000001104",
+        "display": "Prevenar (product)",
+        "product_class": "PCV",
+        "antigens": [
+          "pneumococcal"
+        ],
+        "notes": "Historic PCV product family used before Prevenar 13."
+      },
+      {
+        "code": "10582301000001108",
+        "display": "Prevenar 13 (product)",
         "product_class": "PCV",
         "antigens": [
           "pneumococcal"
         ]
       },
       {
-        "code": "9684201000001108",
-        "display": "Menitorix vaccine (product)",
+        "code": "9585401000001106",
+        "display": "NeisVac-C (product)",
+        "product_class": "MenC",
+        "antigens": [
+          "meningococcal-c"
+        ]
+      },
+      {
+        "code": "9469401000001101",
+        "display": "Menitorix (product)",
         "product_class": "Hib/MenC",
         "antigens": [
           "hib",
@@ -398,8 +429,8 @@ window.GREENBOOK = {
         ]
       },
       {
-        "code": "9324201000001104",
-        "display": "Priorix vaccine (product)",
+        "code": "9312401000001102",
+        "display": "Priorix (product)",
         "product_class": "MMR",
         "antigens": [
           "measles",
@@ -408,16 +439,61 @@ window.GREENBOOK = {
         ]
       },
       {
-        "code": "14491811000001103",
-        "display": "Gardasil 9 vaccine (product)",
+        "code": "9238601000001104",
+        "display": "Cervarix (product)",
+        "product_class": "HPV",
+        "antigens": [
+          "hpv"
+        ],
+        "notes": "Historic HPV product used in the girls-only programme."
+      },
+      {
+        "code": "12836501000001104",
+        "display": "Gardasil 9 (product)",
         "product_class": "HPV",
         "antigens": [
           "hpv"
         ]
       },
       {
-        "code": "22704311000001109",
-        "display": "Revaxis vaccine (product)",
+        "code": "9463501000001104",
+        "display": "Infanrix-IPV (product)",
+        "product_class": "DTaP/IPV",
+        "antigens": [
+          "diphtheria",
+          "tetanus",
+          "pertussis",
+          "polio"
+        ],
+        "notes": "Pre-school booster product class."
+      },
+      {
+        "code": "9325101000001106",
+        "display": "Repevax (product)",
+        "product_class": "DTaP/IPV",
+        "antigens": [
+          "diphtheria",
+          "tetanus",
+          "pertussis",
+          "polio"
+        ],
+        "notes": "Reduced-dose dTaP/IPV product accepted for the Green Book DTaP/IPV or dTaP/IPV pre-school booster class."
+      },
+      {
+        "code": "12218401000001103",
+        "display": "Boostrix-IPV (product)",
+        "product_class": "DTaP/IPV",
+        "antigens": [
+          "diphtheria",
+          "tetanus",
+          "pertussis",
+          "polio"
+        ],
+        "notes": "Reduced-dose dTaP/IPV product accepted for the Green Book DTaP/IPV or dTaP/IPV pre-school booster class."
+      },
+      {
+        "code": "9326801000001107",
+        "display": "Revaxis (product)",
         "product_class": "Td/IPV",
         "antigens": [
           "tetanus",
@@ -441,7 +517,7 @@ window.GREENBOOK = {
         "immunisations": [
           {
             "date": "2024-12-24",
-            "vaccine_code": "39114911000001105",
+            "vaccine_code": "13082601000001103",
             "display": "Infanrix Hexa vaccine (product)",
             "dose_number": 1,
             "procedure_code": null,
@@ -449,7 +525,7 @@ window.GREENBOOK = {
           },
           {
             "date": "2024-12-24",
-            "vaccine_code": "7374211000001102",
+            "vaccine_code": "9558401000001109",
             "display": "Rotarix vaccine (product)",
             "dose_number": 1,
             "procedure_code": null,
@@ -457,7 +533,7 @@ window.GREENBOOK = {
           },
           {
             "date": "2024-12-24",
-            "vaccine_code": "12672211000001104",
+            "vaccine_code": "11978101000001102",
             "display": "Bexsero vaccine (product)",
             "dose_number": 1,
             "procedure_code": null,
@@ -465,7 +541,7 @@ window.GREENBOOK = {
           },
           {
             "date": "2025-01-21",
-            "vaccine_code": "39114911000001105",
+            "vaccine_code": "13082601000001103",
             "display": "Infanrix Hexa vaccine (product)",
             "dose_number": 2,
             "procedure_code": null,
@@ -473,7 +549,7 @@ window.GREENBOOK = {
           },
           {
             "date": "2025-01-21",
-            "vaccine_code": "7374211000001102",
+            "vaccine_code": "9558401000001109",
             "display": "Rotarix vaccine (product)",
             "dose_number": 2,
             "procedure_code": null,
@@ -481,7 +557,7 @@ window.GREENBOOK = {
           },
           {
             "date": "2025-01-21",
-            "vaccine_code": "14473901000001100",
+            "vaccine_code": "10582301000001108",
             "display": "Prevenar 13 vaccine (product)",
             "dose_number": 1,
             "procedure_code": null,
@@ -489,7 +565,7 @@ window.GREENBOOK = {
           },
           {
             "date": "2025-02-18",
-            "vaccine_code": "39114911000001105",
+            "vaccine_code": "13082601000001103",
             "display": "Infanrix Hexa vaccine (product)",
             "dose_number": 3,
             "procedure_code": null,
@@ -497,7 +573,7 @@ window.GREENBOOK = {
           },
           {
             "date": "2025-02-18",
-            "vaccine_code": "12672211000001104",
+            "vaccine_code": "11978101000001102",
             "display": "Bexsero vaccine (product)",
             "dose_number": 2,
             "procedure_code": null,
@@ -518,7 +594,7 @@ window.GREENBOOK = {
         "immunisations": [
           {
             "date": "2023-10-29",
-            "vaccine_code": "9324201000001104",
+            "vaccine_code": "9312401000001102",
             "display": "Priorix vaccine (product)",
             "dose_number": 2,
             "procedure_code": null,
@@ -539,7 +615,7 @@ window.GREENBOOK = {
         "immunisations": [
           {
             "date": "2025-12-24",
-            "vaccine_code": "39114911000001105",
+            "vaccine_code": "13082601000001103",
             "display": "Infanrix Hexa vaccine (product)",
             "dose_number": 1,
             "procedure_code": "170370008",
@@ -547,7 +623,7 @@ window.GREENBOOK = {
           },
           {
             "date": "2026-01-10",
-            "vaccine_code": "39114911000001105",
+            "vaccine_code": "13082601000001103",
             "display": "Infanrix Hexa vaccine (product)",
             "dose_number": 1,
             "procedure_code": "170370008",
@@ -568,7 +644,7 @@ window.GREENBOOK = {
         "immunisations": [
           {
             "date": "2023-10-29",
-            "vaccine_code": "9324201000001104",
+            "vaccine_code": "9312401000001102",
             "display": "Priorix vaccine (product)",
             "dose_number": 1,
             "procedure_code": "170433008",
@@ -576,7 +652,7 @@ window.GREENBOOK = {
           },
           {
             "date": "2026-02-15",
-            "vaccine_code": "9324201000001104",
+            "vaccine_code": "9312401000001102",
             "display": "Priorix vaccine (product)",
             "dose_number": 2,
             "procedure_code": "170434002",
@@ -597,7 +673,7 @@ window.GREENBOOK = {
         "immunisations": [
           {
             "date": "2025-12-24",
-            "vaccine_code": "39114911000001105",
+            "vaccine_code": "13082601000001103",
             "display": "Infanrix Hexa vaccine (product)",
             "dose_number": 1,
             "procedure_code": null,
@@ -605,7 +681,7 @@ window.GREENBOOK = {
           },
           {
             "date": "2025-12-31",
-            "vaccine_code": "39114911000001105",
+            "vaccine_code": "13082601000001103",
             "display": "Infanrix Hexa vaccine (product)",
             "dose_number": 2,
             "procedure_code": null,
@@ -613,7 +689,7 @@ window.GREENBOOK = {
           },
           {
             "date": "2026-03-01",
-            "vaccine_code": "7374211000001102",
+            "vaccine_code": "9558401000001109",
             "display": "Rotarix vaccine (product)",
             "dose_number": 1,
             "procedure_code": null,
@@ -634,7 +710,7 @@ window.GREENBOOK = {
         "immunisations": [
           {
             "date": "2025-12-24",
-            "vaccine_code": "39114911000001105",
+            "vaccine_code": "13082601000001103",
             "display": "Infanrix Hexa vaccine (product)",
             "dose_number": 1,
             "procedure_code": null,
@@ -642,7 +718,7 @@ window.GREENBOOK = {
           },
           {
             "date": "2025-12-24",
-            "vaccine_code": "7374211000001102",
+            "vaccine_code": "9558401000001109",
             "display": "Rotarix vaccine (product)",
             "dose_number": 1,
             "procedure_code": null,
@@ -650,7 +726,7 @@ window.GREENBOOK = {
           },
           {
             "date": "2025-12-24",
-            "vaccine_code": "12672211000001104",
+            "vaccine_code": "11978101000001102",
             "display": "Bexsero vaccine (product)",
             "dose_number": 1,
             "procedure_code": null,
@@ -658,7 +734,7 @@ window.GREENBOOK = {
           },
           {
             "date": "2026-01-21",
-            "vaccine_code": "39114911000001105",
+            "vaccine_code": "13082601000001103",
             "display": "Infanrix Hexa vaccine (product)",
             "dose_number": 2,
             "procedure_code": null,
@@ -666,7 +742,7 @@ window.GREENBOOK = {
           },
           {
             "date": "2026-01-21",
-            "vaccine_code": "7374211000001102",
+            "vaccine_code": "9558401000001109",
             "display": "Rotarix vaccine (product)",
             "dose_number": 2,
             "procedure_code": null,
@@ -674,7 +750,7 @@ window.GREENBOOK = {
           },
           {
             "date": "2026-01-21",
-            "vaccine_code": "14473901000001100",
+            "vaccine_code": "10582301000001108",
             "display": "Prevenar 13 vaccine (product)",
             "dose_number": 1,
             "procedure_code": null,
@@ -682,7 +758,7 @@ window.GREENBOOK = {
           },
           {
             "date": "2026-02-18",
-            "vaccine_code": "39114911000001105",
+            "vaccine_code": "13082601000001103",
             "display": "Infanrix Hexa vaccine (product)",
             "dose_number": 3,
             "procedure_code": null,
@@ -690,7 +766,7 @@ window.GREENBOOK = {
           },
           {
             "date": "2026-02-18",
-            "vaccine_code": "12672211000001104",
+            "vaccine_code": "11978101000001102",
             "display": "Bexsero vaccine (product)",
             "dose_number": 2,
             "procedure_code": null,
@@ -711,7 +787,7 @@ window.GREENBOOK = {
         "immunisations": [
           {
             "date": "2025-12-24",
-            "vaccine_code": "39114911000001105",
+            "vaccine_code": "13082601000001103",
             "display": "Infanrix Hexa vaccine (product)",
             "dose_number": 1,
             "procedure_code": null,
@@ -719,7 +795,7 @@ window.GREENBOOK = {
           },
           {
             "date": "2026-01-21",
-            "vaccine_code": "9743801000001106",
+            "vaccine_code": "9300601000001102",
             "display": "Pediacel vaccine (product)",
             "dose_number": 2,
             "procedure_code": null,

@@ -15,7 +15,7 @@
       "resource": {
         "resourceType": "Immunization",
         "status": "completed",
-        "vaccineCode": { "coding": [{ "system": "http://snomed.info/sct", "code": "39114911000001105", "display": "Infanrix Hexa vaccine (product)" }] },
+        "vaccineCode": { "coding": [{ "system": "http://snomed.info/sct", "code": "13082601000001103", "display": "Infanrix Hexa vaccine (product)" }] },
         "patient": { "reference": "Patient/infant-early" },
         "occurrenceDateTime": "2025-12-24",
         "protocolApplied": [{ "doseNumberPositiveInt": 1 }]
@@ -25,7 +25,7 @@
       "resource": {
         "resourceType": "Immunization",
         "status": "completed",
-        "vaccineCode": { "coding": [{ "system": "http://snomed.info/sct", "code": "39114911000001105", "display": "Infanrix Hexa vaccine (product)" }] },
+        "vaccineCode": { "coding": [{ "system": "http://snomed.info/sct", "code": "13082601000001103", "display": "Infanrix Hexa vaccine (product)" }] },
         "patient": { "reference": "Patient/infant-early" },
         "occurrenceDateTime": "2025-12-31",
         "protocolApplied": [{ "doseNumberPositiveInt": 2 }]
@@ -35,7 +35,7 @@
       "resource": {
         "resourceType": "Immunization",
         "status": "completed",
-        "vaccineCode": { "coding": [{ "system": "http://snomed.info/sct", "code": "7374211000001102", "display": "Rotarix vaccine (product)" }] },
+        "vaccineCode": { "coding": [{ "system": "http://snomed.info/sct", "code": "9558401000001109", "display": "Rotarix vaccine (product)" }] },
         "patient": { "reference": "Patient/infant-early" },
         "occurrenceDateTime": "2026-03-01",
         "protocolApplied": [{ "doseNumberPositiveInt": 1 }]

@@ -28,6 +28,21 @@ pub enum ScheduleError {
 
     #[error("series `{series}` references unknown antigen `{antigen}`")]
     UnknownAntigen { series: String, antigen: String },
+
+    #[error("no schedule versions found for country `{country}` in {dir}")]
+    NoScheduleVersions { country: String, dir: String },
+
+    #[error("duplicate schedule version `{0}`")]
+    DuplicateScheduleVersion(String),
+
+    #[error("schedule version `{valid_from}` has valid_to before valid_from")]
+    InvalidScheduleRange { valid_from: String },
+
+    #[error("schedule versions overlap: `{first}` and `{second}`")]
+    OverlappingScheduleVersions { first: String, second: String },
+
+    #[error("no schedule version for country `{country}` covers {date}")]
+    NoScheduleForDate { country: String, date: String },
 }
 
 #[derive(Debug, Error)]

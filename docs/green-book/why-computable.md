@@ -19,6 +19,12 @@ The NHS childhood schedule has changed substantially and repeatedly:
 
 A child born in **1998** has a genuinely different "complete" schedule than one born in **2010** or **2020**. Any system that applies *today's* schedule to *all* patients will over- or under-flag.
 
+## A failure mode that exists in the wild
+
+This is not hypothetical. SystmOne Online's patient-facing childhood vaccination view has been observed presenting a naive grid of the **current** national routine schedule projected onto a patient's historical record, with due dates filled across antigens and age bands that were not all part of the schedule for that birth cohort. It is an understandable implementation shortcut - a static current-schedule table is much easier to build than a valid-time evaluator - but it is exactly the failure mode greenbook is designed to avoid.
+
+The hard part is not drawing a table. The hard part is answering, for a real person and a real evaluation date: which schedule version applied, which products existed then, which doses were due by then, and whether the recorded history conforms to that historical schedule.
+
 ## This is a valid-time problem
 
 The schedule is not a single document but a series of **versioned snapshots**, each with a `valid_from` date. Evaluating a patient born in 2003 requires the schedule **as it stood in 2003**, not today's schedule.

@@ -68,6 +68,7 @@ language = "en-GB"                     # BCP 47 (https://www.rfc-editor.org/info
 
 [schedule]
 valid_from = "2026-01-01"
+valid_to = "2029-12-31" # optional; if omitted, the next version's valid_from defines the end
 supersedes = "2020-01-01"
 source_document = "Green Book Chapter 11, updated 30 March 2026"
 source_url = "https://assets.publishing.service.gov.uk/media/..."
@@ -369,7 +370,7 @@ FHIR records contain product codes (SNOMED CT). The mapping file bridges each pr
 
 This mapping is maintained using SNOMED CT ECL queries against the UK drug extension, which encodes the antigen composition of each product via the SNOMED concept hierarchy. For v1 a hand-curated table covering the ~10-15 products in the current schedule is sufficient.
 
-The mapping is a separate file per coding system so it can be maintained independently and shared across jurisdictions using the same coding system.
+The mapping is a separate file per coding system so it can be maintained independently and shared across jurisdictions using the same coding system. For SNOMED UK dm+d, the canonical map is currently a historical superset: old and current products can live in the same file because a product's antigen composition is intrinsic, while the schedule decides whether that product class conforms at a given date. If a future coding system requires validity ranges or retired-code handling that cannot be represented as a simple superset, product maps can become dated files and selected alongside schedule versions.
 
 When products change over time, a historical dose of the old product counts toward the antigens it actually covered, not those of the replacement. Antigen-level evaluation handles this naturally: a Pediacel (5-in-1) dose counts toward diphtheria/tetanus/pertussis/polio/Hib but not hepatitis B, even when the schedule that applies to the patient now expects 6-in-1. The test suite must exercise both the 5-in-1 → 6-in-1 transition and the MMRV → MMR case, where the non-overlapping varicella antigen makes the substitution lossy in the opposite direction.
 
@@ -572,14 +573,25 @@ When a patient presents late (for example a 3-year-old with no previous vaccinat
 
 ---
 
-## Historical Versioning (v2 - deferred but designed for)
+## Historical Versioning
 
-The file-per-version approach means historical evaluation is an additive feature:
+Historical evaluation is a valid-time problem at the **dose slot** level, not a single "pick a schedule by DOB" lookup.
 
-1. Parse patient DOB from the FHIR bundle
-2. Call `load_schedule_for_date(rules_dir, "uk", dob)` which selects the schedule file (e.g. `rules/schedule-uk-*.toml`) where `valid_from <= dob` and no successor has `valid_from <= dob`
-3. Proceed with the same evaluation logic
+Each schedule file has a `valid_from` date and may optionally have a `valid_to` date. When `valid_to` is absent, the next schedule version's `valid_from` date defines the previous version's effective end. In practice versions are treated as half-open ranges: a version applies from `valid_from` up to, but not including, the next version's `valid_from` (or the day after its explicit `valid_to`). If no version covers a dose's due date, that is a data gap and the evaluator must report it rather than silently falling back.
 
-Schedule files for historical versions would be curated manually, working back from the current schedule using Green Book chapter revisions and JCVI/DoH publications as sources. The change history on the GOV.UK Green Book Chapter 11 page provides a useful skeleton for reconstruction.
+The automatic historical evaluator builds an **effective schedule** for one patient and one evaluation date:
+
+1. Parse patient DOB from the FHIR bundle.
+2. Load all `rules/schedule-<country>-*.toml` files for the jurisdiction.
+3. For each dose slot in each schedule version, calculate when that dose first became due for this patient (`earliest_age`, or `target_age` if no earliest age is set).
+4. Select the dose slot from the schedule version that was in force on that due date.
+5. If the dose is not yet due on the evaluation date, project it from the schedule version in force on the evaluation date. This keeps "what is next?" behaviour possible without pretending to know future schedule changes.
+6. Evaluate the patient's record against the resulting effective schedule using the normal conformance engine.
+
+This answers the default user question: **"is this person up to date for age on <date>?"** where `<date>` defaults to today. The rarer medicolegal question "were they up to date on some past date using only knowledge available then?" uses the same evaluation date mechanism, but may need stricter provenance reporting later.
+
+The human-readable verbose report may show the schedule-selection rationale. JSON output intentionally remains the evaluation result for now; schedule-selection metadata can be added later if a consumer needs it.
+
+Schedule files for historical versions are curated manually, working back from the current schedule using Green Book chapter revisions and JCVI/DoH publications as sources. The change history on the GOV.UK Green Book Chapter 11 page provides a useful skeleton for reconstruction.
 
 Likely scope for full historical coverage: approximately 1990 to present, covering roughly 8-12 distinct schedule versions. This is a bounded, tractable curation task.

@@ -6,60 +6,109 @@
 
 coding_system = "snomed-uk-dm"
 coding_system_url = "https://snomed.info/sct"
-last_verified = "2026-01-01"
+last_verified = "2026-06-27"
+verification_notes = "Concept IDs checked with sct against UK SNOMED release uk_sct2mo_42.2.0_20260603000001z."
 
 [[product]]
-code = "39114911000001105"
-display = "Infanrix Hexa vaccine (product)"
+code = "13082601000001103"
+display = "Infanrix Hexa (product)"
 product_class = "6-in-1"
 antigens = ["diphtheria", "tetanus", "pertussis", "polio", "hib", "hepatitis-b"]
 
 [[product]]
-code = "9743801000001106"
-display = "Pediacel vaccine (product)"
+code = "9300601000001102"
+display = "Pediacel (product)"
 product_class = "5-in-1"
 antigens = ["diphtheria", "tetanus", "pertussis", "polio", "hib"]
 notes = "5-in-1; does not include hepatitis B. Used before 2017 6-in-1 introduction. No conforming series in the 2026 schedule; conforms to the schedule valid at the time of administration once historical versions exist."
 
 [[product]]
-code = "12672211000001104"
-display = "Bexsero vaccine (product)"
+code = "9463401000001103"
+display = "Infanrix-IPV + Hib (product)"
+product_class = "5-in-1"
+antigens = ["diphtheria", "tetanus", "pertussis", "polio", "hib"]
+notes = "5-in-1 product class used in the 2006 schedule."
+
+[[product]]
+code = "11978101000001102"
+display = "Bexsero (product)"
 product_class = "MenB"
 antigens = ["meningococcal-b"]
 
 [[product]]
-code = "7374211000001102"
-display = "Rotarix vaccine (product)"
+code = "9558401000001109"
+display = "Rotarix (product)"
 product_class = "Rotavirus"
 antigens = ["rotavirus"]
 
 [[product]]
-code = "14473901000001100"
-display = "Prevenar 13 vaccine (product)"
+code = "10374501000001104"
+display = "Prevenar (product)"
+product_class = "PCV"
+antigens = ["pneumococcal"]
+notes = "Historic PCV product family used before Prevenar 13."
+
+[[product]]
+code = "10582301000001108"
+display = "Prevenar 13 (product)"
 product_class = "PCV"
 antigens = ["pneumococcal"]
 
 [[product]]
-code = "9684201000001108"
-display = "Menitorix vaccine (product)"
+code = "9585401000001106"
+display = "NeisVac-C (product)"
+product_class = "MenC"
+antigens = ["meningococcal-c"]
+
+[[product]]
+code = "9469401000001101"
+display = "Menitorix (product)"
 product_class = "Hib/MenC"
 antigens = ["hib", "meningococcal-c"]
 
 [[product]]
-code = "9324201000001104"
-display = "Priorix vaccine (product)"
+code = "9312401000001102"
+display = "Priorix (product)"
 product_class = "MMR"
 antigens = ["measles", "mumps", "rubella"]
 
 [[product]]
-code = "14491811000001103"
-display = "Gardasil 9 vaccine (product)"
+code = "9238601000001104"
+display = "Cervarix (product)"
+product_class = "HPV"
+antigens = ["hpv"]
+notes = "Historic HPV product used in the girls-only programme."
+
+[[product]]
+code = "12836501000001104"
+display = "Gardasil 9 (product)"
 product_class = "HPV"
 antigens = ["hpv"]
 
 [[product]]
-code = "22704311000001109"
-display = "Revaxis vaccine (product)"
+code = "9463501000001104"
+display = "Infanrix-IPV (product)"
+product_class = "DTaP/IPV"
+antigens = ["diphtheria", "tetanus", "pertussis", "polio"]
+notes = "Pre-school booster product class."
+
+[[product]]
+code = "9325101000001106"
+display = "Repevax (product)"
+product_class = "DTaP/IPV"
+antigens = ["diphtheria", "tetanus", "pertussis", "polio"]
+notes = "Reduced-dose dTaP/IPV product accepted for the Green Book DTaP/IPV or dTaP/IPV pre-school booster class."
+
+[[product]]
+code = "12218401000001103"
+display = "Boostrix-IPV (product)"
+product_class = "DTaP/IPV"
+antigens = ["diphtheria", "tetanus", "pertussis", "polio"]
+notes = "Reduced-dose dTaP/IPV product accepted for the Green Book DTaP/IPV or dTaP/IPV pre-school booster class."
+
+[[product]]
+code = "9326801000001107"
+display = "Revaxis (product)"
 product_class = "Td/IPV"
 antigens = ["tetanus", "diphtheria", "polio"]
 notes = "Td/IPV - used for teenage booster."

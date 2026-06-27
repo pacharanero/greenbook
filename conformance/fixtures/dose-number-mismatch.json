@@ -8,7 +8,7 @@
       "resource": {
         "resourceType": "Immunization",
         "status": "completed",
-        "vaccineCode": { "coding": [{ "system": "http://snomed.info/sct", "code": "9324201000001104", "display": "Priorix vaccine (product)" }] },
+        "vaccineCode": { "coding": [{ "system": "http://snomed.info/sct", "code": "9312401000001102", "display": "Priorix vaccine (product)" }] },
         "patient": { "reference": "Patient/miskey" },
         "occurrenceDateTime": "2023-10-29",
         "protocolApplied": [{ "doseNumberPositiveInt": 2 }]
