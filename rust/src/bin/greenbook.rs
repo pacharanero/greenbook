@@ -1,5 +1,6 @@
 use chrono::{Local, NaiveDate};
-use clap::{Parser, Subcommand};
+use clap::{CommandFactory, Parser, Subcommand};
+use clap_complete::{generate, Shell};
 use greenbook::evaluate::{OverallStatus, SeriesCompletionStatus, VaccinationStatus};
 use greenbook::{
     evaluate, load_effective_schedule_for_date, load_product_map, load_schedule,
@@ -7,7 +8,8 @@ use greenbook::{
 };
 use std::fs;
 use std::io::IsTerminal;
-use std::path::PathBuf;
+use std::io::{Error, ErrorKind};
+use std::path::{Path, PathBuf};
 use std::process::ExitCode;
 
 #[derive(Parser)]
@@ -66,6 +68,30 @@ enum Command {
         /// Jurisdiction code.
         #[arg(long, default_value = "UK")]
         country: String,
+    },
+    /// Generate or install shell completions.
+    Completions {
+        #[command(subcommand)]
+        command: Option<CompletionCommand>,
+        /// Shell to generate completions for.
+        #[arg(value_enum)]
+        shell: Option<Shell>,
+        /// Output directory. Prints to stdout when omitted.
+        #[arg(long, short = 'd')]
+        dir: Option<PathBuf>,
+    },
+}
+
+#[derive(Subcommand)]
+enum CompletionCommand {
+    /// Install completions for the current user.
+    Install {
+        /// Shell to install completions for. Detected from $SHELL when omitted.
+        #[arg(long)]
+        shell: Option<Shell>,
+        /// Completion directory to write to.
+        #[arg(long, short = 'd')]
+        dir: Option<PathBuf>,
     },
 }
 
@@ -170,6 +196,124 @@ fn run(cli: Cli) -> Result<(), Box<dyn std::error::Error>> {
             }
             Ok(())
         }
+        Command::Completions {
+            command,
+            shell,
+            dir,
+        } => run_completions(command, shell, dir.as_deref()),
+    }
+}
+
+fn run_completions(
+    command: Option<CompletionCommand>,
+    shell: Option<Shell>,
+    dir: Option<&Path>,
+) -> Result<(), Box<dyn std::error::Error>> {
+    let mut cmd = Cli::command();
+    match command {
+        Some(CompletionCommand::Install { shell, dir }) => {
+            let shell = shell.or_else(detect_shell).ok_or_else(|| {
+                Error::new(
+                    ErrorKind::InvalidInput,
+                    "could not detect shell; pass --shell bash|zsh|fish|powershell|elvish",
+                )
+            })?;
+            let dir = dir
+                .map(Ok)
+                .unwrap_or_else(|| default_completion_dir(shell))?;
+            write_completion(shell, &mut cmd, &dir)?;
+            print_install_note(shell, &dir);
+        }
+        None => {
+            let shell = shell.ok_or_else(|| {
+                Error::new(
+                    ErrorKind::InvalidInput,
+                    "missing shell; try `greenbook completions install`",
+                )
+            })?;
+            if let Some(dir) = dir {
+                write_completion(shell, &mut cmd, dir)?;
+            } else {
+                generate(shell, &mut cmd, "greenbook", &mut std::io::stdout());
+            }
+        }
+    }
+    Ok(())
+}
+
+fn write_completion(
+    shell: Shell,
+    cmd: &mut clap::Command,
+    dir: &Path,
+) -> Result<PathBuf, Box<dyn std::error::Error>> {
+    fs::create_dir_all(dir)?;
+    let path = dir.join(completion_filename(shell));
+    let mut file = fs::File::create(&path)?;
+    generate(shell, cmd, "greenbook", &mut file);
+    println!("Completion script written to: {}", path.display());
+    Ok(path)
+}
+
+fn completion_filename(shell: Shell) -> &'static str {
+    match shell {
+        Shell::Bash => "greenbook",
+        Shell::Zsh => "_greenbook",
+        Shell::Fish => "greenbook.fish",
+        Shell::PowerShell => "greenbook.ps1",
+        Shell::Elvish => "greenbook.elv",
+        _ => "greenbook.completion",
+    }
+}
+
+fn detect_shell() -> Option<Shell> {
+    let shell = std::env::var("SHELL").ok()?;
+    let name = Path::new(&shell).file_name()?.to_string_lossy();
+    match name.as_ref() {
+        "bash" => Some(Shell::Bash),
+        "zsh" => Some(Shell::Zsh),
+        "fish" => Some(Shell::Fish),
+        "elvish" => Some(Shell::Elvish),
+        _ => None,
+    }
+}
+
+fn default_completion_dir(shell: Shell) -> Result<PathBuf, Box<dyn std::error::Error>> {
+    let home = home_dir()
+        .ok_or_else(|| Error::new(ErrorKind::NotFound, "could not determine home directory"))?;
+    Ok(match shell {
+        Shell::Bash => std::env::var_os("XDG_DATA_HOME")
+            .map(PathBuf::from)
+            .unwrap_or_else(|| home.join(".local/share"))
+            .join("bash-completion/completions"),
+        Shell::Zsh => home.join(".zfunc"),
+        Shell::Fish => std::env::var_os("XDG_CONFIG_HOME")
+            .map(PathBuf::from)
+            .unwrap_or_else(|| home.join(".config"))
+            .join("fish/completions"),
+        Shell::PowerShell => home.join(".config/powershell/completions"),
+        Shell::Elvish => home.join(".elvish/lib"),
+        _ => home.join(".local/share/greenbook/completions"),
+    })
+}
+
+fn home_dir() -> Option<PathBuf> {
+    std::env::var_os("HOME")
+        .or_else(|| std::env::var_os("USERPROFILE"))
+        .map(PathBuf::from)
+}
+
+fn print_install_note(shell: Shell, dir: &Path) {
+    match shell {
+        Shell::Zsh => {
+            println!("Add this before `compinit` in ~/.zshrc if it is not already there:");
+            println!("  fpath=({} $fpath)", dir.display());
+            println!("Then restart zsh or run `autoload -Uz compinit && compinit`.");
+        }
+        Shell::PowerShell => {
+            println!("Add this to your PowerShell profile if it is not already there:");
+            println!("  . {}/greenbook.ps1", dir.display());
+        }
+        _ => println!("Restart your shell to load the updated completions."),
     }
 }
 

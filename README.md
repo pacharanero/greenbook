@@ -67,6 +67,12 @@ cargo run --bin greenbook -- evaluate <schedule.toml> <product-map.toml> <bundle
 
 To get a `greenbook` binary on your `PATH` instead of using `cargo run`, install it: `cargo install --path .`, then call `greenbook evaluate ...` directly.
 
+To install shell completions for the current user:
+
+```sh
+greenbook completions install
+```
+
 The bundled inputs are:
 
 - `rules/schedule-uk-2026-01-01.toml` - the current UK schedule
